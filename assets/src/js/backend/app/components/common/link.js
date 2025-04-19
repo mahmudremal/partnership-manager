@@ -1,5 +1,5 @@
-import React from 'react';
-import { home_url } from './functions';
+// import React from 'react';
+// import { home_url } from './functions';
 
 import { Link } from 'react-router-dom';
 export { Link };

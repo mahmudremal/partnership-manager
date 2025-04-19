@@ -4,11 +4,11 @@ import request from "./components/common/request";
 import { home_url, rest_url } from "./components/common/functions";
 import { usePopup } from './components/context/PopupProvider';
 import { useTranslation } from './components/context/LanguageProvider';
-import { Trash2, SquarePen, Eye, Search, ChevronsLeft, ChevronsRight, ShoppingCart, Copy } from 'lucide-react';
+import { Trash2, SquarePen, Eye, Search, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { sprintf } from 'sprintf-js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { useParams } from "react-router";
+// import { useParams } from "react-router";
 import ReferralShareBox from "./components/element/ReferralShareBox";
 dayjs.extend(utc);
 

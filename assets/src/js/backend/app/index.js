@@ -4,7 +4,7 @@ import LoadStyles from './LoadStyles';
 import { Toaster } from 'react-hot-toast';
 import { ShieldCheck } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 import LanguageProvider from './components/context/LanguageProvider';
 import SettingsProvider from './components/context/SettingsProvider';
 import { LoadingProvider } from './components/context/LoadingProvider';
@@ -34,7 +34,7 @@ export default function App({ config = {} }) {
             <SettingsProvider config={config}>
                 <LoadingProvider>
                     <PopupProvider>
-                        <Router>
+                        <BrowserRouter>
                             <LoadStyles />
                             <AuthProvider>
                                 <MainLayout>
@@ -53,7 +53,7 @@ export default function App({ config = {} }) {
                                     </div>
                                 </MainLayout>
                             </AuthProvider>
-                        </Router>
+                        </BrowserRouter>
                     </PopupProvider>
                 </LoadingProvider>
             </SettingsProvider>

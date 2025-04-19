@@ -31,7 +31,7 @@ const output = {
 
 const plugins = (argv) => [
     new CleanWebpackPlugin({
-        cleanStaleWebpackAssets: ('production' === argv.mode ) // Automatically remove all unused webpack assets on rebuild, when set to true in production. (https://www.npmjs.com/package/clean-webpack-plugin#options-and-defaults-optional)
+        cleanStaleWebpackAssets: ('production' === argv.mode )
     }),
     new MiniCssExtractPlugin({
         filename: 'css/[name].css'
@@ -52,10 +52,27 @@ const plugins = (argv) => [
 
 const rules = [
     {
+        test: /\.m?js$/,
+        type: "javascript/auto",
+        include: /node_modules/,
+    },
+    {
         test: /\.js$/,
         include: [ JS_DIR ],
         exclude: /node_modules/,
-        use: 'babel-loader'
+        use: {
+            loader: 'babel-loader',
+            options: {
+                presets: [
+                    '@babel/preset-env',
+                    '@babel/preset-react'
+                ],
+                plugins: [
+                    '@babel/plugin-proposal-optional-chaining',
+                    '@babel/plugin-proposal-nullish-coalescing-operator'
+                ]
+            }
+        }
     },
     {
         test: /\.(css|scss)$/,
@@ -114,6 +131,9 @@ module.exports = (env, argv) => ({
     module: {
         rules: rules,
     },
+    // resolve: {
+    //     fullySpecified: false,
+    // },
     optimization: {
         minimizer: [
             new OptimizeCssAssetsPlugin({
