@@ -1,3 +1,7 @@
+@use "sass:map";
+@use "sass:meta";
+@use "../0-settings/typography";
+
 // Center block
 @mixin center-block {
 	display: block;
@@ -10,8 +14,8 @@
 	-moz-osx-font-smoothing: grayscale;
 }
 
-@mixin font-family( $font: $font__main ) {
-	font-family: $font__main;
+@mixin font-family( $font: typography.$font__main ) {
+	font-family: typography.$font__main;
 }
 
 /**
@@ -20,32 +24,32 @@
  * This will add font-size and line-height with different breakpoints.
  */
 @mixin body-text( $level: normal, $body-text: $body-text, $device-size: false ) {
-	@if type-of($body-text) != "map" {
+	@if meta.type-of($body-text) != "map" {
 		@error "`#{$body-text}` is not a valid value for $values. It must be a list.";
 	}
 
-	$size: map_get($body-text, $level);
+	$size: map.get($body-text, $level);
 
-	@if type-of($size) == "map" {
+	@if meta.type-of($size) == "map" {
 
 		@if $device-size == false {
 			@each $device, $values in $size {
 
 				@if $device != "small" {
 					@include mq($from: $device) {
-						font-size: map_get($values, "font-size");
-						line-height: map_get($values, "line-height");
+						font-size: map.get($values, "font-size");
+						line-height: map.get($values, "line-height");
 					}
 				} @else {
-					font-size: map_get($values, "font-size");
-					line-height: map_get($values, "line-height");
+					font-size: map.get($values, "font-size");
+					line-height: map.get($values, "line-height");
 				}
 			}
 		} @else {
-			$device_values: map_get($size, $device-size);
+			$device_values: map.get($size, $device-size);
 
-			font-size: map_get($device_values, "font-size");
-			line-height: map_get($device_values, "line-height");
+			font-size: map.get($device_values, "font-size");
+			line-height: map.get($device_values, "line-height");
 		}
 	}
 }
