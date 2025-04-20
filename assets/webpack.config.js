@@ -54,12 +54,14 @@ const rules = [
     {
         test: /\.m?js$/,
         type: "javascript/auto",
-        include: /node_modules/,
+        // include: /node_modules/,
+        include: [ JS_DIR, path.resolve(__dirname, 'node_modules/react-router'), path.resolve(__dirname, 'node_modules/react-router-dom') ],
+        exclude: /node_modules(?!\/(react-router|react-router-dom))/,
     },
     {
         test: /\.js$/,
         include: [ JS_DIR ],
-        exclude: /node_modules/,
+        // exclude: /node_modules/,
         use: {
             loader: 'babel-loader',
             options: {
@@ -75,7 +77,8 @@ const rules = [
         }
     },
     {
-        test: /\.(css|scss)$/,
+        // test: /\.(css|scss)$/,
+        test: /\.s[ac]ss$/i,
         exclude: /node_modules/,
         use: [
             MiniCssExtractPlugin.loader,
@@ -131,9 +134,10 @@ module.exports = (env, argv) => ({
     module: {
         rules: rules,
     },
-    // resolve: {
-    //     fullySpecified: false,
-    // },
+    resolve: {
+        // fullySpecified: false,
+        modules: ['node_modules'],
+    },
     optimization: {
         minimizer: [
             new OptimizeCssAssetsPlugin({
@@ -157,14 +161,15 @@ module.exports = (env, argv) => ({
         })
     ],
     externals: {
-        jquery: 'jQuery',
-        react: 'React',
-        'react-dom': 'ReactDOM',
-        'react-dom/client': 'ReactDOM',
+        // jquery: 'jQuery',
+        // react: 'React',
+        // 'react-dom': 'ReactDOM',
+        // 'react-dom/client': 'ReactDOM',
+        // 'react-router-dom': 'ReactRouterDOM',
     },
     watchOptions: {
-        aggregateTimeout: 300,
         poll: 1000,
+        aggregateTimeout: 300,
         ignored: /node_modules|build/,
     },
 });

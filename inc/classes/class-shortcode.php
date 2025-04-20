@@ -41,12 +41,14 @@ class Shortcode {
         // wp_enqueue_style( 'wp-partnershipm-admin' ):
         wp_enqueue_script( 'wp-partnershipm-admin' );
         wp_enqueue_script( 'wp-partnershipm-public' );
+        
+        // <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        // <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+        // <script src="https://cdn.jsdelivr.net/npm/react-router"></script>
+        // <script src="https://cdn.jsdelivr.net/npm/react-router-dom/umd/react-router-dom.development.js"></script>
+        
         return '
         <div id="protoolsapp" class="do-not-track" data-sensitive="true" data-hj-suppress data-fs-ignore>
-            <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-            <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-            <script src="https://unpkg.com/react-router"></script>
-            <script src="https://unpkg.com/react-router-dom"></script>
             <p>
                 Partner manager Interface should be apear here. If your found this message repeating, please contact to Remal Mahmud (Developer).
                 <a href="https://wa.me/8801814118328">+8801814118328</a> <a href="mailto:hi@mahmudremal.com">hello@mahmudremal.com</a>
