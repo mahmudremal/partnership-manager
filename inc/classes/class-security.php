@@ -14,6 +14,13 @@ class Security {
 	}
 
 	protected function setup_hooks() {
+		add_action('init', function () {
+			header("Access-Control-Allow-Origin: *");
+			header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+			header("Access-Control-Allow-Headers: Origin, Content-Type, Accept, Authorization");
+		});
+
+		
 		add_filter('partnership/security/verify/permission', [$this, 'default_permission'], 10, 2);
 		// return apply_filters('partnership/security/verify/permission', false);
 		add_action('rest_api_init', [$this, 'rest_api_init']);
@@ -63,7 +70,7 @@ class Security {
 
 		$user = wp_authenticate($username, $password);
 		if (is_wp_error($user)) {
-			return new WP_REST_Response(['message' => 'Invalid credentials'], 403);
+			return new WP_REST_Response(['message' => 'Invalid credentials. ' . $user->get_error_message()], 403);
 		}
 
 		$payload = [
