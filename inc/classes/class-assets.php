@@ -48,7 +48,7 @@ class Assets {
 		if (!apply_filters('partnership_manager_screen_active', false)) {return;}
 
 		// Enqueue scripts.
-		wp_register_script('wp-partnershipm-public', WP_PARTNERSHIPM_BUILD_JS_URI . '/public.js', [ 'jquery', 'wp-partnershipm-admin' ], $this->filemtime(WP_PARTNERSHIPM_BUILD_JS_DIR_PATH . '/public.js'), true);
+		wp_register_script('wp-partnershipm-public', WP_PARTNERSHIPM_BUILD_JS_URI . '/public.js', [ 'wp-partnershipm-admin' ], $this->filemtime(WP_PARTNERSHIPM_BUILD_JS_DIR_PATH . '/public.js'), true);
 		$this->admin_enqueue_scripts(false);
 	}
 
@@ -60,7 +60,8 @@ class Assets {
 	public function admin_enqueue_scripts($curr_page) {
 		wp_register_style('wp-partnershipm-tailwind', WP_PARTNERSHIPM_DIR_URI . '/assets/tailwind.css', [], $this->filemtime(WP_PARTNERSHIPM_DIR_PATH . '/assets/tailwind.css'), 'all');
 		wp_register_style('wp-partnershipm-admin', WP_PARTNERSHIPM_BUILD_CSS_URI . '/admin.css', [], $this->filemtime(WP_PARTNERSHIPM_BUILD_CSS_DIR_PATH . '/admin.css'), 'all');
-		wp_register_script('wp-partnershipm-admin', WP_PARTNERSHIPM_BUILD_JS_URI . '/admin.js', [ 'jquery' ], $this->filemtime(WP_PARTNERSHIPM_BUILD_JS_DIR_PATH . '/admin.js'), true);
+		wp_register_script('wp-partnershipm-admin', WP_PARTNERSHIPM_BUILD_JS_URI . '/admin.js', [ 'wp-partnershipm-runtime' ], $this->filemtime(WP_PARTNERSHIPM_BUILD_JS_DIR_PATH . '/admin.js'), true);
+		wp_register_script('wp-partnershipm-runtime', WP_PARTNERSHIPM_BUILD_JS_URI . '/runtime.js', [], $this->filemtime(WP_PARTNERSHIPM_BUILD_JS_DIR_PATH . '/runtime.js'), true);
 		
 		wp_localize_script('wp-partnershipm-admin', 'partnershipmangConfig', apply_filters('partnershipmang/siteconfig', []));
 		if ($curr_page !== 'toplevel_page_pro-tools') {return;}
@@ -75,7 +76,7 @@ class Assets {
 	 * @param string $path The file path.
 	 * @return int|false The file modification time or false if the file does not exist.
 	 */
-	public function filemtime($path) {
+	public static function filemtime($path) {
 		return (file_exists($path)&&!is_dir($path))?filemtime($path):false;
 	}
 

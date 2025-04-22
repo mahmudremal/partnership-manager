@@ -56,6 +56,10 @@ class Task {
             'methods' => 'GET',
             'callback' => [$this, 'tasks_search']
         ]);
+        register_rest_route('partnership/v1', '/tasks/(?P<task_id>\d+)', [
+            'methods' => 'POST',
+            'callback' => [$this, 'tasks_update']
+        ]);
         register_rest_route('partnership/v1', '/post-table/(?P<post_type>[a-zA-Z0-9_-]+)/(?P<post_id>\d+)', [
             'methods'  => 'GET',
             'callback' => [$this, 'get_post_data'],
@@ -75,7 +79,7 @@ class Task {
         register_rest_route('partnership/v1', '/post-table/(?P<post_type>[a-zA-Z0-9_-]+)/(?P<post_id>\d+)', [
             'methods'             => 'POST',
             'callback'            => [$this, 'update_post_data'],
-            'args'                => array(
+            'args'                => [
                 'post_type' => [
                     'required'          => true,
                     'description'       => __('The post type of the requested item.', 'wp-partnershipm'),
@@ -86,7 +90,7 @@ class Task {
                     'description'       => __('The ID of the requested item.', 'wp-partnershipm'),
                     // 'validate_callback' => function ($param, $request, $key) {return is_numeric( $param );}
                 ],
-            )
+            ]
         ]);
     }
 
@@ -137,6 +141,33 @@ class Task {
             }
         }
         return new WP_REST_Response($latest_task, 200);
+    }
+    public function tasks_update( WP_REST_Request $request ) {
+        global $wpdb;
+    
+        $task_id = $request->get_param( 'task_id' );
+        $params = $request->get_params();
+    
+        if ( ! $task_id || ! isset( $params['task_key'], $params['update_value'] ) ) {
+            return new WP_Error( 'invalid_request', 'Missing task_id, task_key, or update_value', [ 'status' => 400 ] );
+        }
+    
+        $task_key = sanitize_key( $params['task_key'] );
+        $update_value = sanitize_text_field( $params['update_value'] );
+    
+        $updated = $wpdb->update(
+            $this->table,
+            [ $task_key => $update_value ],
+            [ 'id' => (int) $task_id ],
+            [ '%s' ],
+            [ '%d' ]
+        );
+    
+        if ( $updated !== false ) {
+            return rest_ensure_response( [ 'message' => 'Updated!' ] )->set_status( 201 );
+        }
+    
+        return new WP_Error( 'rest_post_processing_failed', 'Failed to update query', [ 'status' => 500 ] );
     }
     public function get_post_data( WP_REST_Request $request ) {
         $post_type = $request->get_param( 'post_type' );
@@ -428,13 +459,19 @@ class Task {
                         <tr><td colspan="6"><?php _e('No jobs found.', 'wp-partnershipm'); ?></td></tr>
                     <?php else : ?>
                         <?php foreach ($jobs as $job) : ?>
-                            <tr>
-                                <td><?php echo esc_html($job['id']); ?></td>
-                                <td><?php echo esc_html($job['task_type']); ?></td>
-                                <td><?php echo esc_html(ucfirst($job['status'])); ?></td>
-                                <td><?php echo date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($job['created_at'])); ?></td>
-                                <td><?php echo date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($job['updated_at'])); ?></td>
-                                <td><?php echo esc_html($job['task_desc']); ?></td>
+                            <tr data-job-id="<?php echo esc_attr($job['id']); ?>">
+                                <td data-key="id"><?php echo esc_html($job['id']); ?></td>
+                                <td data-key="task_type"><?php echo esc_html($job['task_type']); ?></td>
+                                <td data-key="status">
+                                    <select name="job-status">
+                                        <?php foreach (['pending' => __('Pending', 'wp-partnershipm'), 'completed' => __('Completed', 'wp-partnershipm')] as $key => $value) { ?>
+                                            <option value="<?php echo esc_attr($key); ?>" <?php echo esc_attr($job['status'] == $key ? 'selected' : ''); ?>><?php echo esc_html($value); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <td data-key="created_at"><?php echo date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($job['created_at'])); ?></td>
+                                <td data-key="updated_at"><?php echo date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($job['updated_at'])); ?></td>
+                                <td data-key="task_desc"><?php echo esc_html($job['task_desc']); ?></td>
                             </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>
@@ -498,6 +535,8 @@ class Task {
             </div>
         </div>
         <?php
+        wp_enqueue_script('wp-partnershipm-runtime');
+        wp_enqueue_script('task-onboarding', WP_PARTNERSHIPM_BUILD_JS_URI . '/task.js', ['wp-partnershipm-runtime'], Assets::filemtime(WP_PARTNERSHIPM_BUILD_JS_DIR_PATH . '/task.js'), true);
     }
 
     public function screen_option() {
