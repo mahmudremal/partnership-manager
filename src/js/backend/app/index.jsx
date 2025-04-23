@@ -11,6 +11,7 @@ import { LoadingProvider } from '@context/LoadingProvider';
 import { PopupProvider } from '@context/PopupProvider';
 import { AuthProvider } from '@context/AuthProvider';
 import SessionProvider from '@context/SessionProvider';
+import ThemeProvider from '@context/ThemeProvider';
 
 export default function App({ config = {} }) {
     const [loading, setLoading] = useState(true);
@@ -32,34 +33,36 @@ export default function App({ config = {} }) {
 
     return (
         <SessionProvider>
-            <LanguageProvider config={config}>
-                <SettingsProvider config={config}>
-                    <LoadingProvider>
-                        <PopupProvider>
-                            <BrowserRouter>
-                                <LoadStyles />
-                                <AuthProvider>
-                                    <MainLayout>
-                                        <div>
-                                            <Toaster />
-                                            <Content />
-                                            {isLocked && (
-                                                <div className="xpo_absolute xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full xpo_bg-black xpo_bg-opacity-75 xpo_flex xpo_flex-col xpo_justify-center xpo_items-center">
-                                                    <ShieldCheck size={200} color="white" className="xpo_mb-8" />
-                                                    <button
-                                                        onClick={handleUnlockScreen}
-                                                        className="xpo_px-4 xpo_py-2 xpo_bg-primary-500 xpo_text-white xpo_rounded-full hover:xpo_bg-primary-600"
-                                                    >{__('Unlock')}</button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </MainLayout>
-                                </AuthProvider>
-                            </BrowserRouter>
-                        </PopupProvider>
-                    </LoadingProvider>
-                </SettingsProvider>
-            </LanguageProvider>
+            <ThemeProvider>
+                <LanguageProvider config={config}>
+                    <SettingsProvider config={config}>
+                        <LoadingProvider>
+                            <PopupProvider>
+                                <BrowserRouter>
+                                    <LoadStyles />
+                                    <AuthProvider>
+                                        <MainLayout>
+                                            <div>
+                                                <Toaster />
+                                                <Content />
+                                                {isLocked && (
+                                                    <div className="xpo_absolute xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full xpo_bg-black xpo_bg-opacity-75 xpo_flex xpo_flex-col xpo_justify-center xpo_items-center">
+                                                        <ShieldCheck size={200} color="white" className="xpo_mb-8" />
+                                                        <button
+                                                            onClick={handleUnlockScreen}
+                                                            className="xpo_px-4 xpo_py-2 xpo_bg-primary-500 xpo_text-white xpo_rounded-full hover:xpo_bg-primary-600"
+                                                        >{__('Unlock')}</button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </MainLayout>
+                                    </AuthProvider>
+                                </BrowserRouter>
+                            </PopupProvider>
+                        </LoadingProvider>
+                    </SettingsProvider>
+                </LanguageProvider>
+            </ThemeProvider>
         </SessionProvider>
     );
 }

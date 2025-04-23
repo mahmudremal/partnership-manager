@@ -32,7 +32,8 @@ export const AuthProvider = ({ children }) => {
     const [showPass, setShowPass] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [auth, setAuth] = useState(!(
-        settings?.loggedin && session?.authToken
+        // settings?.loggedin && 
+        session?.authToken
     ));
     // const [auth, setAuth] = useState(settings?.loggedin === true);
     const [token, setToken] = useState(null);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 // import { Link } from "react-router-dom";
 import { Nav } from '@components/sidebar/nav';
 import { Link } from '@common/link';
@@ -10,6 +10,7 @@ import LanguageSwitcher from '@components/element/LanguageSwitcher';
 import Notifications from '@components/element/Notifications';
 import { useTranslation } from '@context/LanguageProvider';
 import ProfilePannel from '@components/element/ProfilePannel';
+import { useTheme } from '@context/ThemeProvider';
 
 import logo from '@img/logo.png';
 import logoIcon from '@img/logo-icon.png';
@@ -18,21 +19,15 @@ import logoLight from '@img/logo-light.png';
 
 const MainLayout = ({ children }) => {
     const { __ } = useTranslation();
-    const [themeMode, setThemeMode] = useState(null);
+    const { theme, switchTheme } = useTheme();
+    
     const [miniSidebar, setMiniSidebar] = useState(null);
     
-    useEffect(() => {
-        document.querySelector('html').dataset.theme = themeMode ? 'dark' : 'light';
-    }, [themeMode]);
-
+    
     const toggleMiniSidebar = () => {
         setMiniSidebar(prevMode => !prevMode);
     }
 
-    const toggleDarkMode = () => {
-        setThemeMode(prevMode => !prevMode);
-    }
-    
     return (
         <section>
             <aside className={ `sidebar ${miniSidebar ? 'active' : ''}` }>
@@ -71,8 +66,8 @@ const MainLayout = ({ children }) => {
                         <div className="col-auto">
                             <div className="d-flex flex-wrap align-items-center gap-3">
 
-                                <button type="button" data-theme-toggle className="w-40-px h-40-px bg-neutral-200 rounded-circle d-flex justify-content-center align-items-center" onClick={toggleDarkMode}>
-                                    {themeMode ? <MoonStar /> : <SunMedium />}
+                                <button type="button" data-theme-toggle className="w-40-px h-40-px bg-neutral-200 rounded-circle d-flex justify-content-center align-items-center" onClick={switchTheme}>
+                                    {theme === 'dark' ? <MoonStar /> : <SunMedium />}
                                 </button>
                                 {/*  */}
                                 <LanguageSwitcher />
