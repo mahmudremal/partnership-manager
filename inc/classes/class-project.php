@@ -26,6 +26,7 @@ class Project {
 		Menus::get_instance();
 		Option::get_instance();
 		Assets::get_instance();
+		Finance::get_instance();
 		Payment::get_instance();
 		Referral::get_instance();
 		Security::get_instance();
@@ -35,6 +36,8 @@ class Project {
 		Admin_Menu::get_instance();
 		Translations::get_instance();
 		Notifications::get_instance();
+		Payment_Tabby::get_instance();
+		Payment_Stripe::get_instance();
         // 
 		// Uncomment the following line if setup_hooks needs to be called.
 		$this->setup_hooks();

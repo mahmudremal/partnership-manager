@@ -4,6 +4,7 @@ const cacheStore = new Map();
 const configStore = new Map();
 const DEFAULT_CACHE_TTL = 30 * 60 * 1000;
 
+
 function request(url, options = {}) {
     const cacheKey = url + JSON.stringify(options);
     const now = Date.now();
@@ -30,34 +31,34 @@ function request(url, options = {}) {
 
     const finalOptions = {...options, headers};
 
-    // return fetch(url, finalOptions)
-    //     .then(res => {
-    //         if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-    //         return res.json();
-    //     })
-    //     .then(data => {
-    //         cacheStore.set(cacheKey, {
-    //             data,
-    //             timestamp: now,
-    //             ttl: options.cacheTTL || DEFAULT_CACHE_TTL,
-    //         });
-    //         return data;
-    //     });
-    return axios({
-        method: finalOptions.method || 'get', url,
-        ...finalOptions, // includes headers, data, etc.
-    })
-    .then(response => {
-        const data = response.data;
-        cacheStore.set(cacheKey, {
-            data, timestamp: now, ttl: options.cacheTTL || DEFAULT_CACHE_TTL,
+    return fetch(url, finalOptions)
+        .then(res => {
+            if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+            return res.json();
+        })
+        .then(data => {
+            cacheStore.set(cacheKey, {
+                data,
+                timestamp: now,
+                ttl: options.cacheTTL || DEFAULT_CACHE_TTL,
+            });
+            return data;
         });
-        return data;
-    })
-    .catch(error => {
-        const status = error.response?.status;
-        throw new Error(`HTTP error ${status || 'unknown'}: ${error.message}`);
-    });
+    // return axios({
+    //     method: finalOptions.method || 'get', url,
+    //     ...finalOptions, // includes headers, data, etc.
+    // })
+    // .then(response => {
+    //     const data = response.data;
+    //     cacheStore.set(cacheKey, {
+    //         data, timestamp: now, ttl: options.cacheTTL || DEFAULT_CACHE_TTL,
+    //     });
+    //     return data;
+    // })
+    // .catch(error => {
+    //     const status = error.response?.status;
+    //     throw new Error(`HTTP error ${status || 'unknown'}: ${error.message}`);
+    // });
 }
 // === Cache API ===
 request.cache = {

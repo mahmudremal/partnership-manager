@@ -1,8 +1,8 @@
 
 import React, { useState } from "react";
-import { Link } from '@components/common/link';
-import request from "@components/common/request";
-import { home_url, rest_url } from "@components/common/functions";
+import { Link } from '@common/link';
+import request from "@common/request";
+import { home_url, rest_url } from "@functions";
 import { usePopup } from '@context/PopupProvider';
 import { useTranslation } from '@context/LanguageProvider';
 import { useSettings } from "@context/SettingsProvider";
@@ -15,7 +15,7 @@ import { CheckCheck, Loader, Save } from 'lucide-react';
 const TabButton = ({ label, isActive, onClick }) => (
   <button
       type="button"
-      className={`btn btn-outline-neutral-900 px-20 py-11 ${isActive ? '' : 'xpo_opacity-60 hover:xpo_opacity-80'}`}
+      className={`btn btn-outline-neutral-900 px-20 py-11 ${isActive ? '' : ''}`}
       onClick={onClick}
   >
       {label}

@@ -15,28 +15,28 @@ const SRC_DIR = path.resolve(__dirname, 'src');
 
 module.exports = {
   entry: {
-    public       : JS_DIR + '/public.js',
-    admin        : JS_DIR + '/admin.js',
-    task          : JS_DIR + '/task.js',
-    pwa          : JS_DIR + '/pwa.js',
+    public: JS_DIR + '/public.js',
+    admin: JS_DIR + '/admin.js',
+    task: JS_DIR + '/task.js',
+    pwa: JS_DIR + '/pwa.js',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
-    // filename: isDev ? '[name].js' : '[name].[contenthash].js',
-    // publicPath: '/',
-    publicPath: '/wp-content/plugins/partnership-manager/assets/dist/',
+    publicPath: '/wp-content/plugins/partnership-manager/dist/',
     clean: true,
-
-    // path: BUILD_DIR,
-    filename: 'js/[name].js'
+    filename: 'js/[name].js',
+    // libraryTarget: 'var',
+    chunkFilename: 'js/[name].[contenthash].js',
   },
   mode: isDev ? 'development' : 'production',
   devtool: isDev ? 'source-map' : false,
   resolve: {
     extensions: ['.js', '.jsx', '.json'],
     alias: {
-      '@components': path.resolve(__dirname, 'src/js/backend/app/components'),
+      '@functions': path.resolve(__dirname, 'src/js/backend/app/components/common/functions'),
       '@context': path.resolve(__dirname, 'src/js/backend/app/components/context'),
+      '@common': path.resolve(__dirname, 'src/js/backend/app/components/common'),
+      '@components': path.resolve(__dirname, 'src/js/backend/app/components'),
       '@sass': path.resolve(__dirname, 'src/sass'),
       '@img': path.resolve(__dirname, 'src/img'),
       '@js': path.resolve(__dirname, 'src/js'),
@@ -57,12 +57,11 @@ module.exports = {
         test: /\.jsx?$/,
         exclude: /node_modules/,
         use: [
-          // isDev && require.resolve('react-refresh/babel'),
           {
             loader: 'babel-loader',
             options: {
               presets: [
-                ['@babel/preset-env', { targets: 'defaults' }],
+                ['@babel/preset-env', { targets: { browsers: ['>0.25%', 'not dead'] } }],
                 ['@babel/preset-react', { runtime: 'automatic' }],
               ],
               plugins: [
@@ -100,18 +99,12 @@ module.exports = {
   },
   plugins: [
     new CleanWebpackPlugin(),
-    // new HtmlWebpackPlugin({
-    //   template: './src/js/backend/app/index.html',
-    //   favicon: './src/img/brand/favicon.ico',
-    // }),
     !isDev && new MiniCssExtractPlugin({
-      // filename: '[name].[contenthash].css',
       filename: 'css/[name].css',
     }),
     isDev && new ReactRefreshWebpackPlugin(),
     !isDev && new WorkboxPlugin.InjectManifest({
       swSrc: JS_DIR + '/sw.js',
-      // swSrc: './src/js/sw.js',
       swDest: 'js/sw.js',
       maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
     }),
@@ -128,14 +121,4 @@ module.exports = {
     },
     runtimeChunk: 'single',
   },
-  // performance: {
-  //   hints: isDev ? false : 'warning',
-  //   maxEntrypointSize: 512000, // 500 KB
-  //   maxAssetSize: 512000,
-  // },
-  // watchOptions: {
-  //   aggregateTimeout: 300,
-  //   poll: 1000,
-  //   ignored: /node_modules|build/,
-  // },
 };

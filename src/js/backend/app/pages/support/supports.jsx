@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from '../../components/context/LanguageProvider';
-import { Link } from '../../components/common/link';
+import { useTranslation } from '@context/LanguageProvider';
+import { Link } from '@common/link';
 
 export default function Supports() {
     const { __ } = useTranslation();

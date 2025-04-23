@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from '../common/link';
 import { Icon } from "@iconify/react";
-import { useTranslation } from "../context/LanguageProvider";
+import { useTranslation } from "@context/LanguageProvider";
 import { createPopper } from '@popperjs/core';
 import { Cross, MailCheck, Power, Settings, User } from 'lucide-react';
 

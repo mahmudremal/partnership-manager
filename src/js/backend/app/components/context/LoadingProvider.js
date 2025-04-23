@@ -1,8 +1,10 @@
 import React, { createContext, useState, useContext } from 'react';
+import { useTranslation } from "@context/LanguageProvider";
 
 const LoadingContext = createContext();
 
 export const LoadingProvider = ({ children }) => {
+    const { __ } = useTranslation();
     const [loading, setLoading] = useState(false);
 
     return (
@@ -11,7 +13,7 @@ export const LoadingProvider = ({ children }) => {
             {loading && (
                 <div className="xpo_fixed xpo_inset-0 xpo_bg-white/70 xpo_z-40 xpo_flex xpo_justify-center xpo_items-center">
                     <div className="xpo_text-primary-500 xpo_text-xl xpo_animate-pulse">
-                        Loading...
+                        {__('Loading...')}
                     </div>
                 </div>
             )}

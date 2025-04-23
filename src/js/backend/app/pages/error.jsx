@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
-import { app_url, home_url, notify, request_headers, rest_url } from '@components/common/functions';
+import { app_url, home_url, notify, request_headers, rest_url } from '@functions';
 import axios from "axios";
 import { useTranslation } from "@context/LanguageProvider";
-import { Link } from "@components/common/link";
+import { Link } from "@common/link";
 import { useLocation } from 'react-router-dom';
 
 

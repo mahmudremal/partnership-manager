@@ -26,9 +26,19 @@ const LoadStyles = () => {
       link.rel = "stylesheet";
       link.href = stylesheet;
       document.head.appendChild(link);
-
       return () => {
-        document.head.removeChild(link);  // Clean up on unmount
+        document.head.removeChild(link);
+      };
+    });
+
+    const scripts = [];
+    
+    scripts.forEach((src) => {
+      const script = document.createElement("script");
+      script.src = src;
+      document.head.appendChild(script);
+      return () => {
+        document.head.removeChild(script);
       };
     });
   }, []);  // Empty dependency array ensures this runs only once

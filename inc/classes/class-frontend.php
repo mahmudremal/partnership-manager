@@ -33,8 +33,11 @@ class Frontend {
     public function rewrite_rules_array($rules) {
         $new_rules = [
             // 'partnership-dashboard/?$'          => 'index.php?mn_page=dashboard',
-            '^partnership-dashboard(.*)$'       => 'index.php?mn_page=dashboard',
-            '^signup(.*)$'       => 'index.php?mn_page=signup',
+            // '^partnership-dashboard(.*)$'       => 'index.php?mn_page=dashboard',
+            // '^signup(.*)$'       => 'index.php?mn_page=dashboard',
+            // '^signin(.*)$'       => 'index.php?mn_page=dashboard',
+            // '^forgot(.*)$'       => 'index.php?mn_page=dashboard',
+            '^(partnership-dashboard|signup|signin|forgot)(.*)$' => 'index.php?mn_page=dashboard'
         ];
         return $new_rules + $rules;
     }
@@ -42,7 +45,7 @@ class Frontend {
     public function template_redirect() {
         $page = get_query_var('mn_page');
         
-        if ($page == 'dashboard' || $page == 'signup') {
+        if ($page == 'dashboard') {
             include WP_PARTNERSHIPM_DIR_PATH . '/templates/dashboard/index.php';
             die;
         }

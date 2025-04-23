@@ -7,11 +7,6 @@
 namespace PARTNERSHIP_MANAGER\inc;
 use PARTNERSHIP_MANAGER\inc\Traits\Singleton;
 
-// include_once WP_PARTNERSHIPM_DIR_PATH . '/inc/vendor/autoload.php';
-
-// use Minishlink\WebPush\WebPush;
-// use Minishlink\WebPush\Subscription;
-
 class Notifications {
 	use Singleton;
 

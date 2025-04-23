@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { usePopup } from '../context/PopupProvider';
+import { usePopup } from '@context/PopupProvider';
 import { Copy, Share2, MoreHorizontal, Mail } from 'lucide-react';
-import { useTranslation } from "../context/LanguageProvider";
+import { useTranslation } from "@context/LanguageProvider";
 import { rest_url } from '../common/functions';
-import { useAuth } from '../context/AuthProvider';
+import { useAuth } from '@context/AuthProvider';
 import request from '../common/request';
 
 export default function ReferralShareBox() {
@@ -128,7 +128,7 @@ function SharePopupBody({ url }) {
           onClick={() => shareTo('email')}
           className="xpo_flex xpo_flex-col xpo_items-center xpo_justify-center xpo_gap-2 xpo_px-4 xpo_py-3 xpo_rounded-lg xpo_bg-[#4A90E2] xpo_text-white xpo_text-sm xpo_font-medium xpo_hover:opacity-90"
         >
-          <Mail className="xpo_w-6 xpo_h-6 xpo_fill-white" />
+          <Mail className="xpo_w-6 xpo_h-6" />
           <span>{__('Email')}</span>
         </button>
   

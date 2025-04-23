@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@context/LanguageProvider';
-import { Link } from '@components/common/link';
+import { Link } from '@common/link';
 import { Award, ChevronDown, ChevronUp, Users } from 'lucide-react';
 
 export default function Home({ setLoading }) {

@@ -46,6 +46,7 @@ defined('WP_PARTNERSHIPM_OPTIONS') || define('WP_PARTNERSHIPM_OPTIONS', get_opti
 require_once WP_PARTNERSHIPM_DIR_PATH . '/inc/helpers/autoloader.php';
 require_once WP_PARTNERSHIPM_DIR_PATH . '/inc/helpers/template-tags.php';
 try {
+	add_action('wp_enqueue_scripts', 'enqueue_all_chunks_except_specific');
 	\PARTNERSHIP_MANAGER\inc\Project::get_instance();
 } catch (\Throwable $th) {
 	//throw $th;
@@ -55,4 +56,29 @@ try {
 	//throw $th;
 }
 
+
+function enqueue_all_chunks_except_specific() {
+    $dist_dir = plugin_dir_path(__FILE__) . 'dist/js/';
+    $exclude_files = ['pwa.js', 'public.js', 'admin.js', 'runtime.js', 'task.js'];
+
+    // Get all .js files in the dist/js directory
+    $js_files = glob($dist_dir . '*.js');
+    
+    // Loop through each file and enqueue them
+    foreach ($js_files as $file) {
+        $file_name = basename($file);
+
+        // Skip files that are in the exclude list
+        if (in_array($file_name, $exclude_files)) {
+            continue;
+        }
+        wp_enqueue_script(
+            $file_name,
+            plugin_dir_url(__FILE__) . 'dist/js/' . $file_name,
+            ['wp-partnershipm-runtime'],
+            null,
+            true
+        );
+    }
+}
 

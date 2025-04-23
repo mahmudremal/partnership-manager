@@ -16,7 +16,7 @@ class Translations {
     private $directory;
 
 	protected function __construct() {
-        $this->directory = untrailingslashit(WP_PARTNERSHIPM_DIR_PATH . '/assets/translations');
+        $this->directory = untrailingslashit(WP_PARTNERSHIPM_DIR_PATH . '/languages/translations');
 		$this->setup_hooks();
 	}
 	protected function setup_hooks() {

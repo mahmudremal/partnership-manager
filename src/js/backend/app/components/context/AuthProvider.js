@@ -1,17 +1,26 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { app_url, home_url, rest_url } from '../common/functions';
+import { app_url, home_url, rest_url } from '@common/functions';
 import { Eye, EyeOff, LockKeyhole, Mail, UserRound } from 'lucide-react';
-import { Link } from '../common/link';
-import { useSettings } from './SettingsProvider';
-import { useTranslation } from "../context/LanguageProvider";
+import { Link } from '@common/link';
+import { useSettings } from '@context/SettingsProvider';
+import { useTranslation } from "@context/LanguageProvider";
 import { sprintf } from 'sprintf-js';
 import axios from 'axios';
-import request from '../common/request';
+import request from '@common/request';
+import logo from '@img/logo.png';
+import authImage from '@img/auth-img.png';
+import { useNavigate } from 'react-router-dom';
+import { useSession } from '@context/SessionProvider';
+import { useLoading } from '@context/LoadingProvider';
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const { settings } = useSettings();
     const { __ } = useTranslation();
+    const { settings } = useSettings();
+    const { session, setSession } = useSession();
+    const { loading, setLoading } = useLoading();
+    const navigate = useNavigate();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -22,9 +31,12 @@ export const AuthProvider = ({ children }) => {
     );
     const [showPass, setShowPass] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [auth, setAuth] = useState(true);
+    const [auth, setAuth] = useState(!(
+        settings?.loggedin && session?.authToken
+    ));
     // const [auth, setAuth] = useState(settings?.loggedin === true);
     const [token, setToken] = useState(null);
+    const [error, setError] = useState(null);
 
     
     const [firstName, setFirstName] = useState('');
@@ -33,19 +45,19 @@ export const AuthProvider = ({ children }) => {
     const login = async (args) => {
         try {
             const { data } = await axios.post(rest_url('partnership/v1/token'), args);
-            console.log('data:', data)
-            setAuth(false);
-            request.set('Authorization', data.token);
+            request.set('Authorization', data.token);setAuth(false);
+            setSession(prev => ({ ...prev, authToken: data.token }));
+            navigate('/');
             return data.token;
-        } catch (error) {
+        } catch (err) {
             setAuth(true);
-            throw error;
+            throw err;
         }
     };
 
     const submit_auth_function = async (e) => {
         e.preventDefault();
-        setIsLoading(true);
+        setLoading(true);
         try {
             await login({
                 username, email, password, isSignUp,
@@ -53,8 +65,11 @@ export const AuthProvider = ({ children }) => {
             });
         } catch (err) {
             console.error('Login failed', err);
+            if (err?.response && err?.response?.data && err?.response?.data?.message) {
+                setError(err?.response?.data?.message);
+            }
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     };
 
@@ -79,13 +94,19 @@ export const AuthProvider = ({ children }) => {
     //     }
     // };
 
+    useEffect(() => {
+        if (auth) {
+            navigate(isSignUp ? '/signup' : '/signin');
+        }
+    }, [isSignUp, navigate]);
+
     return (
         <AuthContext.Provider value={{ auth, setAuth }}>
             {auth ? (
-                <section className="auth bg-base d-flex flex-wrap xpo_overflow-hidden xpo_overflow-y-auto">  
+                <section className="auth bg-base d-flex flex-wrap xpo_h-screen xpo_overflow-hidden xpo_overflow-y-auto">  
                     <div className="auth-left d-lg-block d-none">
                         <div className="d-flex align-items-center flex-column h-100 justify-content-center xpo_relative">
-                            <img src="https://wowdash.wowtheme7.com/bundlelive/demo/assets/images/auth/auth-img.png" alt={__('Authentication screen banner')} />
+                            <img src={authImage} alt={__('Authentication screen banner')} />
                             <div className="xpo_absolute xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full"></div>
                         </div>
                     </div>
@@ -93,10 +114,17 @@ export const AuthProvider = ({ children }) => {
                         <div className={ `${isSignUp ? 'max-w-464-px' : 'xpo_max-w-xl'} mx-auto w-100` }>
                             <div>
                                 <Link to={ home_url('/') } className="mb-40 max-w-290-px">
-                                    <img src={ app_url('/src/img/logo.png') } alt={__('Logo')} />
+                                    <img src={logo} alt={__('Logo')} />
                                 </Link>
                                 <h4 className="mb-12">{isSignUp ? __('Sign Up to your Account') : __('Sign In to your Account')}</h4>
                                 <p className="mb-32 text-secondary-light text-lg">{isSignUp ? __('Welcome! please enter your detail') : __('Welcome back! please enter your detail')}</p>
+                                {error && (
+                                    <div>
+                                        <div class="alert alert-danger bg-transparent text-danger-600 border-danger-600 px-24 py-11 mb-0 fw-semibold text-lg radius-8 d-flex align-items-center justify-content-between" role="alert">
+                                            <span dangerouslySetInnerHTML={{__html: error}}></span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             <form onSubmit={submit_auth_function}>
                                 {!isSignUp && (
@@ -145,7 +173,7 @@ export const AuthProvider = ({ children }) => {
                                                 type="text"
                                                 name="lastName"
                                                 value={lastName}
-                                                placeholder={__('First Name')}
+                                                placeholder={__('Last Name')}
                                                 onChange={(e) => setLastName(e.target.value)}
                                                 className="form-control h-56-px bg-neutral-50 radius-12"
                                             />

@@ -40,7 +40,7 @@ class Manifest {
                 'display' => 'standalone',
                 'background_color' => '#fdedef',
                 'theme_color' => '#e63f51',
-                'description' => 'Manage your partnership program with ecommerzied llc.',
+                'description' => __('Manage your partnership program with ecommerzied llc.', 'wp-partnershipm'),
                 'icons' => [
                     // [
                     //     'src' => esc_url(WP_PARTNERSHIPM_BUILD_URI . '/src/img/brand/cursor-32.png'),

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 // import { Link } from "react-router-dom";
 import { Nav } from '@components/sidebar/nav';
-import { Link } from '@components/common/link';
-import { app_url } from '@components/common/functions';
+import { Link } from '@common/link';
+import { app_url } from '@functions';
 import Footer from '@components/element/Footer';
 import { ChevronRight, Home, Menu, MoonStar, Search, SunMedium, X } from 'lucide-react';
 import LanguageSwitcher from '@components/element/LanguageSwitcher';
@@ -87,16 +87,16 @@ const MainLayout = ({ children }) => {
                 
                 <div className="dashboard-main-body xpo_h-[calc(100vh-72px)] xpo_overflow-hidden xpo_overflow-y-scroll">
                     <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                        <h6 className="fw-semibold mb-0">Dashboard</h6>
+                        <h6 className="fw-semibold mb-0">{__('Dashboard')}</h6>
                         <ul className="d-flex align-items-center gap-2">
                             <li className="fw-medium">
-                                <Link to="index.html" className="d-flex align-items-center gap-1 hover-text-primary">
+                                <Link to="/" className="d-flex align-items-center gap-1 hover-text-primary">
                                     <Home className="icon text-lg" />
-                                    Dashboard
+                                    {__('Dashboard')}
                                 </Link>
                             </li>
                             <li>-</li>
-                            <li className="fw-medium">AI</li>
+                            <li className="fw-medium">{__('AI')}</li>
                         </ul>
                     </div>
 

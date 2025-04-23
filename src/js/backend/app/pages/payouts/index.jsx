@@ -1,12 +1,11 @@
 
 import React, { useEffect, useState } from "react";
-import { Link } from '@components/common/link';
-import request from "@components/common/request";
-import { home_url, rest_url } from "@components/common/functions";
+import { Link } from '@common/link';
+import request from "@common/request";
+import { home_url, rest_url } from "@functions";
 import { usePopup } from '@context/PopupProvider';
 import { useTranslation } from '@context/LanguageProvider';
-import { Trash2, SquarePen, Eye, Plus, Search, ChevronsLeft, ChevronsRight, Camera } from 'lucide-react';
-import { useParams } from 'react-router-dom';
+import { Trash2, SquarePen, Eye, Plus, Search, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { sprintf } from 'sprintf-js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -16,7 +15,7 @@ dayjs.extend(utc);
 const PER_PAGE_OPTIONS = [5, 10, 20, 50];
 const STATUS_OPTIONS = ["any", "active", "inactive"];
 
-export default function Payouts({ viewType = 'list' }) {
+export default function Payouts({ maxAmount = 0, viewType = 'list' }) {
     const { __ } = useTranslation();
     const { setPopup } = usePopup();
     const { settings } = useSettings();
@@ -101,7 +100,10 @@ export default function Payouts({ viewType = 'list' }) {
                     </select>
                 </div>
 
-                <button className="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
+                <button
+                    className="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2"
+                    onClick={() => setPopup(<PayoutRequestForm maxAmount={maxAmount} />)}
+                >
                     <Plus className="icon text-xl line-height-1" />
                     {__('Request a Payout')}
                 </button>
@@ -183,3 +185,65 @@ export default function Payouts({ viewType = 'list' }) {
         </div>
     );
 }
+
+function PayoutRequestForm({ maxAmount }) {
+    const { __ } = useTranslation();
+    const [amount, setAmount] = useState('');
+    const [method, setMethod] = useState('');
+    const [note, setNote] = useState('');
+
+    return (
+        <div className="xpo_p-6 xpo_space-y-6 xpo_mx-auto">
+            <h2 className="xpo_font-semibold">{__('Request a Payout')}</h2>
+
+            <div className="xpo_space-y-1">
+                <label className="xpo_block xpo_text-sm xpo_font-medium">
+                    {__('Amount')} {maxAmount ? <span className="xpo_text-xs">({__('Max')}: {maxAmount})</span> : null}
+                </label>
+                <input
+                    type="number"
+                    className="xpo_w-full xpo_border xpo_border-gray-300 xpo_rounded-lg xpo_px-4 xpo_py-2 xpo_text-sm xpo_focus:outline-none xpo_focus:ring-2 xpo_focus:ring-primary-500"
+                    placeholder={__('Enter amount')}
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    max={maxAmount}
+                />
+            </div>
+
+            <div className="xpo_space-y-1">
+                <label className="xpo_block xpo_text-sm xpo_font-medium">{__('Payout Method')}</label>
+                <select
+                    className="xpo_w-full xpo_border xpo_border-gray-300 xpo_rounded-lg xpo_px-4 xpo_py-2 xpo_text-sm xpo_focus:outline-none xpo_focus:ring-2 xpo_focus:ring-primary-500"
+                    value={method}
+                    onChange={(e) => setMethod(e.target.value)}
+                >
+                    <option value="">{__('Select method')}</option>
+                    <option value="bank">{__('Bank Transfer')}</option>
+                    <option value="paypal">{__('PayPal')}</option>
+                    <option value="crypto">{__('Crypto')}</option>
+                </select>
+            </div>
+
+            <div className="xpo_space-y-1">
+                <label className="xpo_block xpo_text-sm xpo_font-medium">{__('Note')}</label>
+                <textarea
+                    className="xpo_w-full xpo_border xpo_border-gray-300 xpo_rounded-lg xpo_px-4 xpo_py-2 xpo_text-sm xpo_focus:outline-none xpo_focus:ring-2 xpo_focus:ring-primary-500"
+                    rows="3"
+                    placeholder={__('Optional message')}
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                />
+            </div>
+
+            <div className="xpo_flex xpo_justify-end xpo_gap-2">
+                <button className="xpo_px-4 xpo_py-2 xpo_text-sm xpo_rounded-lg xpo_border xpo_border-gray-300 hover:xpo_bg-gray-50">
+                    {__('Cancel')}
+                </button>
+                <button className="xpo_px-4 xpo_py-2 xpo_text-sm xpo_rounded-lg xpo_bg-primary-600 hover:xpo_bg-primary-700">
+                    {__('Submit Request')}
+                </button>
+            </div>
+        </div>
+    );
+}
+

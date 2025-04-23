@@ -1,8 +1,14 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import CoverPhoto from '@img/cover-photo.png';
+import { useTranslation } from "@context/LanguageProvider";
+import { useLoading } from "@context/LoadingProvider";
+import { useParams } from "react-router-dom";
+import { Camera } from "lucide-react";
+import { rest_url } from "@functions";
+import request from "@common/request";
 
 export default function UsersView() {
-    const {__ } = useTranslation();
+    const { __ } = useTranslation();
     const { setLoading } = useLoading();
     const { userId } = useParams();
     const [user, setUser] = useState({});

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPopper } from '@popperjs/core';
 import { Link } from 'react-router-dom';
 import { ChevronRight, EllipsisVertical } from 'lucide-react';
-import { useTranslation } from "../context/LanguageProvider";
+import { useTranslation } from "@context/LanguageProvider";
 import { home_url } from '../common/functions';
 
 export const UserCard = ({ user, index }) => {
@@ -76,7 +76,7 @@ export const UserCard = ({ user, index }) => {
 
             <div className="ps-16 pb-16 pe-16 text-center mt--50">
                 <img
-                    src={ `https://randomuser.me/api/portraits/women/${user.id}.jpg` }
+                    src={ `https://randomuser.me/api/portraits/men/${user.id}.jpg` }
                     alt=""
                     className="border br-white border-width-2-px w-100-px h-100-px rounded-circle object-fit-cover"
                 />

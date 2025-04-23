@@ -1,7 +1,11 @@
-import React from "react";
+import React, { useRef, useState } from "react";
+import { useParams } from "react-router-dom";
+import { useTranslation } from "@context/LanguageProvider";
+import { Camera } from "lucide-react";
 
 export default function UsersEdit({ viewType = 'list' }) {
     const { userId } = useParams();
+    const { __ } = useTranslation();
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -47,7 +51,7 @@ export default function UsersEdit({ viewType = 'list' }) {
                         <div className="col-xxl-6 col-xl-8 col-lg-10">
                             <div className="card border">
                                 <div className="card-body">
-                                    <h6 className="text-md text-primary-light mb-16">Profile Image</h6>
+                                    <h6 className="text-md text-primary-light mb-16">{__('Profile Image')}</h6>
                                     <div className="mb-24 mt-16">
                                         <div className="avatar-upload position-relative">
                                             <div className="avatar-edit position-absolute bottom-0 end-0 me-24 mt-16 z-1 cursor-pointer">
@@ -71,7 +75,7 @@ export default function UsersEdit({ viewType = 'list' }) {
                                                     {previewImage ? (
                                                         <img src={previewImage} alt="Preview" className="w-100 h-100 object-fit-cover" />
                                                     ) : (
-                                                        <span className="text-sm text-muted">No image</span>
+                                                        <span className="text-sm text-muted">{__('No image')}</span>
                                                     )}
                                                 </div>
                                             </div>
@@ -81,13 +85,13 @@ export default function UsersEdit({ viewType = 'list' }) {
                                     <form onSubmit={handleSubmit}>
                                         <div className="mb-20">
                                             <label htmlFor="name" className="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Full Name <span className="text-danger-600">*</span>
+                                                {__('Full Name')} <span className="text-danger-600">*</span>
                                             </label>
                                             <input
                                                 type="text"
                                                 className="form-control radius-8"
                                                 id="name"
-                                                placeholder="Enter Full Name"
+                                                placeholder={__('Enter Full Name')}
                                                 defaultValue={formData.name}
                                                 onChange={handleInputChange}
                                             />
@@ -95,13 +99,13 @@ export default function UsersEdit({ viewType = 'list' }) {
 
                                         <div className="mb-20">
                                             <label htmlFor="email" className="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Email <span className="text-danger-600">*</span>
+                                                {__('Email')} <span className="text-danger-600">*</span>
                                             </label>
                                             <input
                                                 type="email"
                                                 className="form-control radius-8"
                                                 id="email"
-                                                placeholder="Enter email address"
+                                                placeholder={__('Enter email address')}
                                                 defaultValue={formData.email}
                                                 onChange={handleInputChange}
                                             />
@@ -109,13 +113,13 @@ export default function UsersEdit({ viewType = 'list' }) {
 
                                         <div className="mb-20">
                                             <label htmlFor="phone" className="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Phone
+                                                {__('Phone')}
                                             </label>
                                             <input
                                                 type="text"
                                                 className="form-control radius-8"
                                                 id="phone"
-                                                placeholder="Enter phone number"
+                                                placeholder={__('Enter phone number')}
                                                 defaultValue={formData.phone}
                                                 onChange={handleInputChange}
                                             />
@@ -123,7 +127,7 @@ export default function UsersEdit({ viewType = 'list' }) {
 
                                         <div className="mb-20">
                                             <label htmlFor="department" className="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Department <span className="text-danger-600">*</span>
+                                                {__('Department')} <span className="text-danger-600">*</span>
                                             </label>
                                             <select
                                                 id="department"
@@ -131,16 +135,16 @@ export default function UsersEdit({ viewType = 'list' }) {
                                                 defaultValue={formData.department}
                                                 onChange={handleInputChange}
                                             >
-                                                <option value="">Select Department</option>
-                                                <option value="HR">HR</option>
-                                                <option value="Design">Design</option>
-                                                <option value="Engineering">Engineering</option>
+                                                <option value="">{__('Select Department')}</option>
+                                                <option value={__('HR')}>{__('HR')}</option>
+                                                <option value={__('Design')}>{__('Design')}</option>
+                                                <option value={__('Engineering')}>{__('Engineering')}</option>
                                             </select>
                                         </div>
 
                                         <div className="mb-20">
                                             <label htmlFor="designation" className="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Designation <span className="text-danger-600">*</span>
+                                                {__('Designation')} <span className="text-danger-600">*</span>
                                             </label>
                                             <select
                                                 id="designation"
@@ -148,21 +152,21 @@ export default function UsersEdit({ viewType = 'list' }) {
                                                 defaultValue={formData.designation}
                                                 onChange={handleInputChange}
                                             >
-                                                <option value="">Select Designation</option>
-                                                <option value="Manager">Manager</option>
-                                                <option value="Designer">Designer</option>
-                                                <option value="Developer">Developer</option>
+                                                <option value="">{__('Select Designation')}</option>
+                                                <option value={__('Manager')}>{__('Manager')}</option>
+                                                <option value={__('Designer')}>{__('Designer')}</option>
+                                                <option value={__('Developer')}>{__('Developer')}</option>
                                             </select>
                                         </div>
 
                                         <div className="mb-20">
                                             <label htmlFor="description" className="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                Description
+                                                {__('Description')}
                                             </label>
                                             <textarea
                                                 id="description"
                                                 className="form-control radius-8"
-                                                placeholder="Write description..."
+                                                placeholder={__('Write description...')}
                                                 defaultValue={formData.description}
                                                 onChange={handleInputChange}
                                             />
@@ -174,13 +178,13 @@ export default function UsersEdit({ viewType = 'list' }) {
                                                 onClick={handleCancel}
                                                 className="border border-danger-600 bg-hover-danger-200 text-danger-600 text-md px-56 py-11 radius-8"
                                             >
-                                                Cancel
+                                                {__('Cancel')}
                                             </button>
                                             <button
                                                 type="submit"
                                                 className="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8"
                                             >
-                                                Save
+                                                {__('Save')}
                                             </button>
                                         </div>
                                     </form>

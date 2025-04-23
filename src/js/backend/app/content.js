@@ -1,6 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { home_route } from '@components/common/functions';
+import { home_route } from '@functions';
 
 
 // Lazy-loaded components
@@ -26,6 +26,7 @@ export default function Content() {
         <div className="xpo_w-full">
             <Suspense fallback={<div className="text-center p-4">Loading...</div>}>
                 <Routes>
+                    <Route path={'/'} element={<Home />} />
                     <Route path={home_route('/')} element={<Home />} />
                     <Route path={home_route('/sales')} element={<Home />} />
                     <Route path={home_route('/analytics')} element={<Home />} />

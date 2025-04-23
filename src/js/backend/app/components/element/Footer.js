@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useTranslation } from "../context/LanguageProvider";
+import { useTranslation } from "@context/LanguageProvider";
 
 const Footer = () => {
     const { __ } = useTranslation();

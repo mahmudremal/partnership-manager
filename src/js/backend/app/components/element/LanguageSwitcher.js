@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useTranslation } from "../context/LanguageProvider";
+import { useTranslation } from "@context/LanguageProvider";
 import { createPopper } from '@popperjs/core';
 import request from '../common/request';
 import { rest_url } from '../common/functions';

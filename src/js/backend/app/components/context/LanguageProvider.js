@@ -1,14 +1,18 @@
 import React, { useState, useEffect, useCallback, useContext, createContext } from 'react';
-import { app_url, rest_url } from '../common/functions';
-import request from '../common/request';
+import { useSession } from '@context/SessionProvider';
+import { app_url, rest_url } from '@functions';
+import request from '@common/request';
 
 const LanguageContext = createContext();
 
 const get_langcode = (l) => l.toString().split('_')[0];
 
+let isFirstCall = true;
+
 export default function LanguageProvider({ children, config={} }) {
-  const [language, setLanguage] = useState(get_langcode(config?.locale??'en'));
+  const [language, setLanguage] = useState(get_langcode(config?.locale??''));
   const [translations, setTranslations] = useState({});
+  const { session, setSession } = useSession();
 
   const cache = {};
 
@@ -23,15 +27,19 @@ export default function LanguageProvider({ children, config={} }) {
   }
 
   const loadLanguage = useCallback(async (langCode) => {
-    if (!langCode || langCode == '') {langCode = 'en';}
-    const url = app_url(`../translations/${langCode}.json`);
+    if (!langCode || langCode == '') {langCode = session?.languageCode??'en';}
+    const url = app_url(`../languages/translations/${langCode}.json`);
     lang_request(url).then(data => {
       cache[url] = data;
       setTranslations(data);
       setLanguage(langCode);
+      setSession(prev => ({ ...prev, languageCode: langCode }));
       window.i18ns[langCode] = {};
       // window.i18ns[langCode] = {...window?.i18ns[langCode]??{}, ...data};
-      request(rest_url('/partnership/v1/locale'), {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({language: langCode, user_id: parseInt(config?.user_id??0)})}).then(data => console.log(data)).catch(console.error);
+      if (!isFirstCall) {
+        request(rest_url('/partnership/v1/locale'), {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({language: langCode, user_id: parseInt(config?.user_id??0)})}).then(data => console.log(data)).catch(console.error);
+        isFirstCall = false;
+      }
     }).catch(err => console.error('Failed to load language:', err));
   }, []);
 

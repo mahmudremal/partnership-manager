@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Link } from '@components/common/link';
-import request from "@components/common/request";
-import { home_url, rest_url } from "@components/common/functions";
+import { Link } from '@common/link';
+import request from "@common/request";
+import { home_url, rest_url } from "@functions";
 import { usePopup } from '@context/PopupProvider';
 import { useTranslation } from '@context/LanguageProvider';
 import { Trash2, SquarePen, Eye, Search, ChevronsLeft, ChevronsRight, Mail, Globe, LocateOffIcon } from 'lucide-react';
@@ -40,7 +40,7 @@ const Referrals = ({ filters = 'any' }) => {
                 join_date: parseInt(r.meta['wp_user-settings-time'].join('')),
                 status: r.converted ? 'active' : 'inactive',
                 converted: r.converted,
-                avatar: `https://randomuser.me/api/portraits/women/${r.id}.jpg`
+                avatar: `https://randomuser.me/api/portraits/men/${r.id}.jpg`
                 // map the response as needed
             }));
             setReferrals(referralList);

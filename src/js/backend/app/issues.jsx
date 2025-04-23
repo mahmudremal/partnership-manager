@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
-import { notify, request_headers, rest_url } from '@components/common/functions';
+import { notify, request_headers, rest_url } from '@functions';
 import { X } from 'lucide-react';
 import Pagination from './pagination';
 

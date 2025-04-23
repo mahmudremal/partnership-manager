@@ -1,24 +1,22 @@
 
 import React, { useEffect, useState, useRef } from "react";
-import { Link } from '@components/common/link';
-import request from "@components/common/request";
-import { app_url, home_url, rest_url } from "@components/common/functions";
+import { Link } from '@common/link';
+import request from "@common/request";
+import { home_url, rest_url } from "@functions";
 import { usePopup } from '@context/PopupProvider';
 import { useTranslation } from '@context/LanguageProvider';
-import { Trash2, SquarePen, Eye, Plus, Search, ChevronsLeft, ChevronsRight, Camera } from 'lucide-react';
-import { useParams } from 'react-router-dom';
+import { Trash2, SquarePen, Eye, Plus, Search, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { sprintf } from 'sprintf-js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { UserCard } from "@components/element/usercard";
-import { useLoading } from "@context/LoadingProvider";
 dayjs.extend(utc);
 
 const PER_PAGE_OPTIONS = [5, 10, 20, 50];
 const STATUS_OPTIONS = ["any", "active", "inactive"];
 
 export default function Users({ viewType = 'list' }) {
-    const {__ } = useTranslation();
+    const { __ } = useTranslation();
     const { setPopup } = usePopup();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -39,11 +37,11 @@ export default function Users({ viewType = 'list' }) {
                 id: r.id,
                 email: r.email,
                 name: `${r.first_name} ${r.last_name}`,
-                join_date: parseInt(r.meta['wp_user-settings-time'].join('')),
+                join_date: parseInt(r.meta?.['wp_user-settings-time']?.join('') || 0),
                 department: 'N/A',
                 designation: 'N/A',
                 status: 'active',
-                avatar: `https://randomuser.me/api/portraits/women/${r.id}.jpg`
+                avatar: `https://randomuser.me/api/portraits/men/${r.id}.jpg`
             }))
             setUsers(sortedUsers || []);
             setTotalPages(res.total_pages || 1);

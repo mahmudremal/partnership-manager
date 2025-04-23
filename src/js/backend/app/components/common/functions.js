@@ -19,15 +19,15 @@ export const home_route = (url) => {
     if (url.startsWith('/')) {
         url = url.substring(1);
     }
-    return `/${url}`;
-    // return `/partnership-dashboard/${url}`;
+    // return `/${url}`;
+    return `/partnership-dashboard/${url}`;
 }
 export const home_url = (url) => {
     if (url.startsWith('/')) {
         url = url.substring(1);
     }
-    return site_url(`/${url}`);
-    // return site_url(`/partnership-dashboard/${url}`);
+    // return site_url(`/${url}`);
+    return site_url(`/partnership-dashboard/${url}`);
 }
 export const rest_url = (url) => {
     if (url.startsWith('/')) {

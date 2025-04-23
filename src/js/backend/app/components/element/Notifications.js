@@ -3,7 +3,7 @@ import { Icon } from "@iconify/react";
 import { Link } from "../common/link";
 import { createPopper } from "@popperjs/core";
 import { timeAgo } from "../common/functions";
-import { useTranslation } from "../context/LanguageProvider";
+import { useTranslation } from "@context/LanguageProvider";
 import { Bell } from "lucide-react";
 
 
@@ -19,7 +19,7 @@ export default function Notifications() {
 
     const showableNotifications = [
         {
-            image: "https://randomuser.me/api/portraits/women/1.jpg",
+            image: "https://randomuser.me/api/portraits/men/1.jpg",
             title: "New follower",
             subtitle: "Alice started following you",
             time: Date.now() - 5 * 60 * 1000
@@ -31,7 +31,7 @@ export default function Notifications() {
             time: Date.now() - 2 * 60 * 60 * 1000
         },
         {
-            image: "https://randomuser.me/api/portraits/women/3.jpg",
+            image: "https://randomuser.me/api/portraits/men/3.jpg",
             title: "Mentioned you",
             subtitle: "Sophia mentioned you in a story",
             time: Date.now() - 3 * 24 * 60 * 60 * 1000
