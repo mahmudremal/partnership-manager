@@ -1,5 +1,5 @@
 // __webpack_public_path__ = window.__webpack_public_path__ || document.currentScript?.src?.replace(/\/[^/]+$/, '/') || '';
-__webpack_public_path__ = 'https://tools4everyone.local/wp-content/plugins/partnership-manager/dist/';
+__webpack_public_path__ = `https://${location.host}/wp-content/plugins/partnership-manager/dist/`;
 
 
 // Scripts
@@ -13,3 +13,11 @@ import '@sass/admin.scss';
 // import '@img/logo-icon.png';
 // import '@img/logo-light.png';
 // import '@img/cover-photo.png';
+
+// Favicons
+// import '@img/brand/favicon.ico';
+// import '@img/brand/favicon-16x16.png';
+// import '@img/brand/favicon-32x32.png';
+// import '@img/brand/apple-touch-icon.png';
+// import '@img/brand/android-chrome-192x192.png';
+// import '@img/brand/android-chrome-512x512.png';

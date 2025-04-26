@@ -82,7 +82,7 @@ module.exports = {
         ],
       },
       {
-        test: /\.(png|jpe?g|gif|svg|webp)$/i,
+        test: /\.(ico|png|jpe?g|gif|svg|webp)$/i,
         type: 'asset/resource',
         generator: {
           filename: 'images/[hash][ext][query]',
@@ -111,6 +111,7 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         { from: LIB_DIR, to: path.resolve(__dirname, 'dist/library') },
+        { from: path.resolve(SRC_DIR, 'icons'), to: path.resolve(__dirname, 'dist/icons') },
         { from: path.resolve(SRC_DIR, 'icons'), to: path.resolve(__dirname, 'dist/icons') },
       ],
     })

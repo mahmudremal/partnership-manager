@@ -4,16 +4,13 @@ import { app_url, rest_url } from '@functions';
 import request from '@common/request';
 
 const LanguageContext = createContext();
-
 const get_langcode = (l) => l.toString().split('_')[0];
-
 let isFirstCall = true;
 
-export default function LanguageProvider({ children, config={} }) {
-  const [language, setLanguage] = useState(get_langcode(config?.locale??''));
-  const [translations, setTranslations] = useState({});
+export default function LanguageProvider({ children, config = {} }) {
   const { session, setSession } = useSession();
-
+  const [language, setLanguage] = useState(get_langcode(config?.locale ?? ''));
+  const [translations, setTranslations] = useState({});
   const cache = {};
 
   const lang_request = (url) => {
@@ -22,37 +19,60 @@ export default function LanguageProvider({ children, config={} }) {
         resolve(cache[url]);
         return;
       }
-      fetch(url).then(res => res.json()).then(data => resolve(data)).catch(err => reject(err));
-    })
-  }
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          cache[url] = data;
+          resolve(data);
+        })
+        .catch(err => reject(err));
+    });
+  };
 
   const loadLanguage = useCallback(async (langCode) => {
-    if (!langCode || langCode == '') {langCode = session?.languageCode??'en';}
+    if (!langCode || langCode === '') {
+      langCode = session?.languageCode ?? 'en';
+    }
+
     const url = app_url(`../languages/translations/${langCode}.json`);
-    lang_request(url).then(data => {
-      cache[url] = data;
+
+    try {
+      const data = await lang_request(url);
       setTranslations(data);
       setLanguage(langCode);
       setSession(prev => ({ ...prev, languageCode: langCode }));
-      window.i18ns[langCode] = {};
-      // window.i18ns[langCode] = {...window?.i18ns[langCode]??{}, ...data};
+
+      if (!window.i18ns) window.i18ns = {};
+      window.i18ns[langCode] = {}; // or to preserve commented merge logic:
+      // window.i18ns[langCode] = { ...window?.i18ns[langCode] ?? {}, ...data };
+
+      return;
       if (!isFirstCall) {
-        request(rest_url('/partnership/v1/locale'), {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({language: langCode, user_id: parseInt(config?.user_id??0)})}).then(data => console.log(data)).catch(console.error);
-        isFirstCall = false;
+        request(rest_url('/partnership/v1/locale'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            language: langCode,
+            user_id: parseInt(config?.user_id ?? 0)
+          })
+        }).then(console.log).catch(console.error);
       }
-    }).catch(err => console.error('Failed to load language:', err));
-  }, []);
+      isFirstCall = false;
+    } catch (err) {
+      console.error('Failed to load language:', err);
+    }
+  }, [config?.user_id, session?.languageCode, setSession]);
 
   useEffect(() => {
     loadLanguage(language);
-  }, [loadLanguage]);
+  }, [loadLanguage, language]);
 
-  // const t = (key) => translations?.[key] || key;
   const t = (key) => {
-    if (! translations?.[key]) {
-      if (!window.i18ns?.[language]) {window.i18ns[language] = {};}
+    if (!translations?.[key]) {
+      if (!window.i18ns?.[language]) {
+        window.i18ns[language] = {};
+      }
       window.i18ns[language][key] = translations[key] = key;
-      // 
     }
     return translations?.[key] || key;
   };

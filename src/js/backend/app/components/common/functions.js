@@ -2,7 +2,7 @@ import toast from 'react-hot-toast';
 // import { Notyf } from 'notyf';
 // import 'notyf/notyf.min.css';
 
-const location_host = "tools4everyone.local"; // location.host;
+const location_host = location.host ; //"tools4everyone.local"; // location.host;
 
 export const nl2br = (str) => {
     if (typeof str !== 'string') return str;
@@ -77,6 +77,28 @@ export const timeAgo = (timestamp) => {
   if (minutes > 0) return `${minutes} min${minutes > 1 ? "s" : ""} ago`;
   return "Just now";
 };
+
+export const get_user_role = (user) => {
+    // if (!user?.roles) {return '';}
+    const roles = user?.roles??[];
+    switch (true) {
+        case roles.includes('administrator'):
+            return 'Admin';
+            break;
+        case roles.includes('author'):
+            return 'Influencer';
+            break;
+        case roles.includes('editor'):
+            return 'Agency';
+            break;
+        case roles.includes('contributor'):
+            return 'Freelancer';
+            break;
+        default:
+            return 'Client'; // 'subscriber'
+            break;
+    }
+}
 
 class ToastNotification {
     constructor() {

@@ -57,14 +57,17 @@ class Security {
 					$username = sanitize_user($username, true);
 					if (empty($username)) {$username = 'user_' . wp_generate_password(8, false);}
 				}
-				$created = wp_create_user( $username, $password, $email );
-				if ($created && !is_wp_error($created)) {
-					$user_id = $created;
-					update_user_meta($user_id, 'first_name', $firstName);
-					update_user_meta($user_id, 'last_name', $lastName);
-				} else {
-					return new WP_REST_Response(['message' => 'Failed to create account!', 'error' => $created->get_error_message()], 403);
+				$user_id = username_exists( $username );
+				if ($user_id || email_exists( $email )) {
+					return new WP_REST_Response(['message' => __('User already exists.', 'domain')], 403);
 				}
+				$created = wp_create_user( $username, $password, $email );
+				if (!$created || is_wp_error($created)) {
+					return new WP_REST_Response(['message' => __('Failed to create account!', 'domain'), 'error' => $created->get_error_message()], 403);
+				}
+				$user_id = $created;
+				update_user_meta($user_id, 'first_name', $firstName);
+				update_user_meta($user_id, 'last_name', $lastName);
 			}
 		}
 
@@ -78,9 +81,11 @@ class Security {
 			'iat' => time(),
 			'exp' => time() + 3600
 		];
+		
+		$full_name = trim($first_name . ' ' . $last_name);
 
 		$token = $this->encode_token($payload);
-		return ['token' => $token];
+		return ['token' => $token, 'bearer' => $user->ID, 'user' => Users::prepare_user_data_for_response($user)];
 	}
 
 	public function validate_token(WP_REST_Request $request) {

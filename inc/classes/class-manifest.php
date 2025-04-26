@@ -42,34 +42,35 @@ class Manifest {
                 'theme_color' => '#e63f51',
                 'description' => __('Manage your partnership program with ecommerzied llc.', 'wp-partnershipm'),
                 'icons' => [
-                    // [
-                    //     'src' => esc_url(WP_PARTNERSHIPM_BUILD_URI . '/src/img/brand/cursor-32.png'),
-                    //     'sizes' => '32x32',
-                    //     'type' => 'image/png',
-                    // ],
-                    // [
-                    //     'src' => esc_url(WP_PARTNERSHIPM_BUILD_URI . '/src/img/brand/cursor-48.png'),
-                    //     'sizes' => '48x48',
-                    //     'type' => 'image/png',
-                    // ],
-                    // [
-                    //     'src' => esc_url(WP_PARTNERSHIPM_BUILD_URI . '/src/img/brand/cursor-192.png'),
-                    //     'sizes' => '192x192',
-                    //     'type' => 'image/png',
-                    // ],
-                    // [
-                    //     'src' => esc_url(WP_PARTNERSHIPM_BUILD_URI . '/src/img/brand/cursor-512.png'),
-                    //     'sizes' => '512x512',
-                    //     'type' => 'image/png',
-                    // ],
+                    
+                    [
+                        'src' => esc_url(WP_PARTNERSHIPM_BUILD_URI . '/icons/brand/favicon-16x16.png'),
+                        'sizes' => '16x16',
+                        'type' => 'image/png',
+                    ],
+                    [
+                        'src' => esc_url(WP_PARTNERSHIPM_BUILD_URI . '/icons/brand/favicon-32x32.png'),
+                        'sizes' => '32x32',
+                        'type' => 'image/png',
+                    ],
+                    [
+                        'src' => esc_url(WP_PARTNERSHIPM_BUILD_URI . '/icons/brand/android-chrome-192x192.png'),
+                        'sizes' => '192x192',
+                        'type' => 'image/png',
+                    ],
+                    [
+                        'src' => esc_url(WP_PARTNERSHIPM_BUILD_URI . '/icons/brand/android-chrome-512x512.png'),
+                        'sizes' => '512x512',
+                        'type' => 'image/png',
+                    ],
                 ],
                 'scope' => '/',
                 'orientation' => 'portrait',
                 'splash_pages' => null,
             ];
     
-            echo json_encode($manifest, JSON_UNESCAPED_SLASHES);
-            // echo json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+            // echo json_encode($manifest, JSON_UNESCAPED_SLASHES);
+            echo json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             exit; // Prevent WordPress from continuing to load
         }
     }

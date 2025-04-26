@@ -1,11 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link } from '../common/link';
-import { Icon } from "@iconify/react";
+import { Link } from '@common/link';
+import { useAuth } from "@context/AuthProvider";
+import { useSession } from "@context/SessionProvider";
 import { useTranslation } from "@context/LanguageProvider";
 import { createPopper } from '@popperjs/core';
 import { Cross, MailCheck, Power, Settings, User } from 'lucide-react';
+import { get_user_role, home_url } from '@functions';
 
 export default function ProfilePannel() {
+    const { logout } = useAuth();
+    const { session } = useSession();
     const { __ } = useTranslation();
     const [menuOpened, setMenuOpened] = useState(false);
     const buttonRef = useRef(null);
@@ -31,6 +35,8 @@ export default function ProfilePannel() {
         }
     }, [menuOpened]);
 
+    const user = session?.user;
+
     return (
         <div className="dropdown">
             <button
@@ -41,7 +47,7 @@ export default function ProfilePannel() {
                 onClick={toggleDropdown}
                 aria-expanded={menuOpened ? 'true' : 'false'}
             >
-                <img src="https://wowdash.wowtheme7.com/bundlelive/demo/assets/images/user.png" alt="image" className="w-40-px h-40-px object-fit-cover rounded-circle" />
+                <img src={ user?.avater??'' } alt="image" className="w-40-px h-40-px object-fit-cover rounded-circle" />
             </button>
             <div
                 ref={dropdownRef}
@@ -49,8 +55,8 @@ export default function ProfilePannel() {
             >
                 <div className="py-12 px-16 radius-8 bg-primary-50 mb-16 d-flex align-items-center justify-content-between gap-2">
                     <div>
-                        <h6 className="text-lg text-primary-light fw-semibold mb-2">Shaidul Islam</h6>
-                        <span className="text-secondary-light fw-medium text-sm">Admin</span>
+                        <h6 className="text-lg text-primary-light fw-semibold mb-2">{[user?.firstName??'', user?.lastName??''].join(' ')}</h6>
+                        <span className="text-secondary-light fw-medium text-sm">{__(get_user_role(user))}</span>
                     </div>
                     <button type="button" className="hover-text-danger">
                         <Cross className="icon text-xl" />
@@ -58,20 +64,23 @@ export default function ProfilePannel() {
                 </div>
                 <ul className="to-top-list">
                     <li>
-                        <Link to="/view-profile" className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-primary d-flex align-items-center gap-3"> 
+                        <Link to={ home_url(`/users/${user?.id??''}/view`) } className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-primary d-flex align-items-center gap-3"> 
                         <User className="icon text-xl" />  {__('My Profile')}</Link>
                     </li>
                     <li>
-                        <Link to="/email" className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-primary d-flex align-items-center gap-3"> 
+                        <Link to={ home_url('/email') } className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-primary d-flex align-items-center gap-3"> 
                         <MailCheck className="icon text-xl" />  {__('Inbox')}</Link>
                     </li>
                     <li>
-                        <Link to="/settings" className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-primary d-flex align-items-center gap-3"> 
+                        <Link to={ home_url('/settings') } className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-primary d-flex align-items-center gap-3"> 
                         <Settings className="icon text-xl" />  {__('Setting')}</Link>
                     </li>
                     <li>
-                        <Link to="/logout" className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-danger d-flex align-items-center gap-3"> 
-                        <Power className="icon text-xl" />  {__('Log Out')}</Link>
+                        <button
+                            onClick={logout}
+                            className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-danger d-flex align-items-center gap-3"
+                        > 
+                        <Power className="icon text-xl" />  {__('Log Out')}</button>
                     </li>
                 </ul>
             </div>

@@ -71,24 +71,33 @@ class Payment {
     public function create_subscription($args, $provider) {
         $post_id = $this->insert_record('subscription', $args, $provider);
         $subscription = apply_filters('partnersmanagerpayment/create_subscription', null, $args, $provider);
+        do_action('partnersmanagerpayment/subscription_created', $subscription, $args, $provider, $post_id);
         $this->update_record($post_id, ['subscription' => $subscription]);
         return $subscription;
     }
 
     public function pause_subscription($subscription_id, $provider) {
-        return apply_filters('partnersmanagerpayment/pause_subscription', false, $subscription_id, $provider);
+        $is_paused = apply_filters('partnersmanagerpayment/pause_subscription', false, $subscription_id, $provider);
+        do_action('partnersmanagerpayment/subscription_paused', $is_paused, $subscription_id, $provider);
+        return $is_paused;
     }
 
     public function resume_subscription($subscription_id, $provider) {
-        return apply_filters('partnersmanagerpayment/resume_subscription', false, $subscription_id, $provider);
+        $is_resumed = apply_filters('partnersmanagerpayment/resume_subscription', false, $subscription_id, $provider);
+        do_action('partnersmanagerpayment/subscription_resumed', $is_resumed, $subscription_id, $provider);
+        return $is_resumed;
     }
 
     public function cancel_subscription($subscription_id, $provider) {
-        return apply_filters('partnersmanagerpayment/cancel_subscription', false, $subscription_id, $provider);
+        $is_cancelled = apply_filters('partnersmanagerpayment/cancel_subscription', false, $subscription_id, $provider);
+        do_action('partnersmanagerpayment/subscription_cancelled', $is_cancelled, $subscription_id, $provider);
+        return $is_cancelled;
     }
 
     public function refund_payment($payment_id, $args, $provider) {
-        return apply_filters('partnersmanagerpayment/refund_payment', false, $payment_id, $args, $provider);
+        $is_refunded = apply_filters('partnersmanagerpayment/refund_payment', false, $payment_id, $args, $provider);
+        do_action('partnersmanagerpayment/subscription_refunded', $is_refunded, $subscription_id, $provider, $args);
+        return $is_refunded;
     }
 
     public function handle_webhook() {

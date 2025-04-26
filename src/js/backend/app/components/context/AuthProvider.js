@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { app_url, home_url, rest_url } from '@common/functions';
+import { home_route, home_url, rest_url } from '@common/functions';
 import { Eye, EyeOff, LockKeyhole, Mail, UserRound } from 'lucide-react';
 import { Link } from '@common/link';
 import { useSettings } from '@context/SettingsProvider';
@@ -47,8 +47,13 @@ export const AuthProvider = ({ children }) => {
         try {
             const { data } = await axios.post(rest_url('partnership/v1/token'), args);
             request.set('Authorization', data.token);setAuth(false);
-            setSession(prev => ({ ...prev, authToken: data.token }));
-            navigate('/');
+            setSession(prev => ({
+                ...prev,
+                authToken: data.token,
+                user_id: data.bearer,
+                user: data?.user
+            }));
+            navigate(home_route('/'));
             return data.token;
         } catch (err) {
             setAuth(true);
@@ -61,18 +66,25 @@ export const AuthProvider = ({ children }) => {
         setLoading(true);
         try {
             await login({
-                username, email, password, isSignUp,
+                username: isSignUp ? '' : username,
+                email, password, isSignUp,
                 firstName, lastName, password2
             });
         } catch (err) {
             console.error('Login failed', err);
             if (err?.response && err?.response?.data && err?.response?.data?.message) {
-                setError(err?.response?.data?.message);
+                setError([`${err?.response?.data?.message??''}`, `${err?.response?.data?.error??''}`].join(' '));
             }
         } finally {
             setLoading(false);
         }
     };
+
+    const logout = () => {
+        setAuth(true);
+        setSession(prev => ({ ...prev, authToken: null, user_id: null, user: null }));
+    }
+
 
     // const authenticatedRequest = async (url, options = {}) => {
     //     try {
@@ -102,7 +114,7 @@ export const AuthProvider = ({ children }) => {
     }, [isSignUp, navigate]);
 
     return (
-        <AuthContext.Provider value={{ auth, setAuth }}>
+        <AuthContext.Provider value={{ auth, setAuth, logout }}>
             {auth ? (
                 <section className="auth bg-base d-flex flex-wrap xpo_h-screen xpo_overflow-hidden xpo_overflow-y-auto">  
                     <div className="auth-left d-lg-block d-none">
@@ -120,7 +132,7 @@ export const AuthProvider = ({ children }) => {
                                 <h4 className="mb-12">{isSignUp ? __('Sign Up to your Account') : __('Sign In to your Account')}</h4>
                                 <p className="mb-32 text-secondary-light text-lg">{isSignUp ? __('Welcome! please enter your detail') : __('Welcome back! please enter your detail')}</p>
                                 {error && (
-                                    <div>
+                                    <div className="mb-16">
                                         <div class="alert alert-danger bg-transparent text-danger-600 border-danger-600 px-24 py-11 mb-0 fw-semibold text-lg radius-8 d-flex align-items-center justify-content-between" role="alert">
                                             <span dangerouslySetInnerHTML={{__html: error}}></span>
                                         </div>
@@ -226,8 +238,8 @@ export const AuthProvider = ({ children }) => {
                                                 <input className="form-check-input border border-neutral-300 mt-4" type="checkbox" value="" id="condition" />
                                                 <label className="form-check-label text-sm" htmlFor="condition" dangerouslySetInnerHTML={{__html: sprintf(
                                                     __('By creating an account means you agree to the %1$sTerms & Conditions%3$s and our %2$sPrivacy Policy%3$s.'),
-                                                    '<a href="#" className="text-primary-600 fw-semibold" target="_blank">',
-                                                    '<a href="#" className="text-primary-600 fw-semibold" target="_blank">',
+                                                    '<a href="'+ (settings?.pages?.terms??"#") +'" className="text-primary-600 fw-semibold" target="_blank">',
+                                                    '<a href="'+ (settings?.pages?.privacy??"#") +'" className="text-primary-600 fw-semibold" target="_blank">',
                                                     '</a>'
                                                 )}}>
                                                 </label>

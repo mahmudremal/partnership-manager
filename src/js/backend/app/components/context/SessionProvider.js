@@ -4,12 +4,12 @@ const SessionContext = createContext();
 
 export default function SessionProvider({ children, initial = {} }) {
   const [session, setSession] = useState(() => {
-    const saved = sessionStorage.getItem('app-session');
+    const saved = localStorage.getItem('app-session');
     return saved ? JSON.parse(saved) : initial;
   });
 
   useEffect(() => {
-    sessionStorage.setItem('app-session', JSON.stringify(session));
+    localStorage.setItem('app-session', JSON.stringify(session));
   }, [session]);
 
   return (

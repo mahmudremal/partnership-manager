@@ -40,32 +40,32 @@ export const Nav = () => {
       order: 1,
       class: 'sidebar-menu-group-title'
     },
-    {
-      label: __('Users'),
-      icon: Users,
-      route: '#',
-      order: 3,
-      childrens: [
-        {
-          label: __('Users List'),
-          route: '/users',
-          icon: LayoutList,
-          iconClass: 'text-primary-600'
-        },
-        // {
-        //   label: __('Users Grid'),
-        //   route: '/users-grid',
-        //   icon: LayoutGrid,
-        //   iconClass: 'text-warning-main'
-        // },
-        {
-          label: __('Add User'),
-          route: '/users/0/edit',
-          icon: UserRoundPlus,
-          iconClass: 'text-info-main'
-        }
-      ]
-    },
+    // {
+    //   label: __('Users'),
+    //   icon: Users,
+    //   route: '#',
+    //   order: 3,
+    //   childrens: [
+    //     {
+    //       label: __('Users List'),
+    //       route: '/users',
+    //       icon: LayoutList,
+    //       iconClass: 'text-primary-600'
+    //     },
+    //     // {
+    //     //   label: __('Users Grid'),
+    //     //   route: '/users-grid',
+    //     //   icon: LayoutGrid,
+    //     //   iconClass: 'text-warning-main'
+    //     // },
+    //     {
+    //       label: __('Add User'),
+    //       route: '/users/0/edit',
+    //       icon: UserRoundPlus,
+    //       iconClass: 'text-info-main'
+    //     }
+    //   ]
+    // },
     {
       label: __('Stores'),
       icon: Store,
@@ -95,24 +95,24 @@ export const Nav = () => {
         }
       ]
     },
-    {
-      label: __('Contracts'),
-      icon: Signature,
-      route: '#',
-      order: 6,
-      childrens: [
-        {
-          label: __('Active contracts'),
-          route: '/contracts/active',
-          icon: ToggleRight
-        },
-        {
-          label: __('Previous contracts'),
-          route: '/contracts/previous',
-          icon: ChevronFirst
-        }
-      ]
-    },
+    // {
+    //   label: __('Contracts'),
+    //   icon: Signature,
+    //   route: '#',
+    //   order: 6,
+    //   childrens: [
+    //     {
+    //       label: __('Active contracts'),
+    //       route: '/contracts/active',
+    //       icon: ToggleRight
+    //     },
+    //     {
+    //       label: __('Previous contracts'),
+    //       route: '/contracts/previous',
+    //       icon: ChevronFirst
+    //     }
+    //   ]
+    // },
     {
       label: __('Packages'),
       icon: Boxes,

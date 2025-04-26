@@ -2,7 +2,6 @@ import React, { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { home_route } from '@functions';
 
-
 // Lazy-loaded components
 const Home = lazy(() => import('./home'));
 const ErrorPage = lazy(() => import('./pages/error'));
@@ -21,20 +20,24 @@ const Settings = lazy(() => import('./pages/settings'));
 const PartnerDocs = lazy(() => import('./pages/resources/partner-docs'));
 const Supports = lazy(() => import('./pages/support/supports'));
 
+const Contracts_Actives = lazy(() => import('./pages/contracts/active'));
+const Contracts_Inactives = lazy(() => import('./pages/contracts/inactive'));
+
+const Packages = lazy(() => import('./pages/packages'));
+
+
 export default function Content() {
     return (
         <div className="xpo_w-full">
             <Suspense fallback={<div className="text-center p-4">Loading...</div>}>
                 <Routes>
-                    <Route path={'/'} element={<Home />} />
                     <Route path={home_route('/')} element={<Home />} />
                     <Route path={home_route('/sales')} element={<Home />} />
                     <Route path={home_route('/analytics')} element={<Home />} />
 
                     <Route path={home_route('/users')} element={<UsersList />} />
-                    <Route path={home_route('/users-grid')} element={<UsersGrid />} />
-                    <Route path={home_route('/:userprofile/:userId/view')} element={<UsersView />} />
-                    <Route path={home_route('/:userprofile/:userId/edit')} element={<UsersEdit />} />
+                    <Route path={home_route('/users/:userId/view')} element={<UsersView />} />
+                    <Route path={home_route('/users/:userId/edit')} element={<UsersEdit />} />
 
                     <Route path={home_route('/resources/partner-docs')} element={<PartnerDocs />} />
                     <Route path={home_route('/resources/service-docs')} element={<PartnerDocs />} />
@@ -44,10 +47,16 @@ export default function Content() {
                     <Route path={home_route('/referrals')} element={<ReferralsScreen />} />
                     <Route path={home_route('/referrals/active')} element={<Active_Referrals />} />
                     <Route path={home_route('/referrals/inactive')} element={<Inactive_Referrals />} />
+                    
+                    <Route path={home_route('/packages')} element={<Packages />} />
+                    
+                    <Route path={home_route('/contracts/active')} element={<Contracts_Actives />} />
+                    <Route path={home_route('/contracts/previous')} element={<Contracts_Inactives />} />
 
                     <Route path={home_route('/payouts')} element={<PayoutsScreen />} />
                     <Route path={home_route('/settings')} element={<Settings />} />
                     <Route path={home_route('/team')} element={<UsersGrid />} />
+
 
                     <Route path="*" element={<ErrorPage />} />
                 </Routes>

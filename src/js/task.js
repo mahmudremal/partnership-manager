@@ -1,4 +1,4 @@
-__webpack_public_path__ = 'https://tools4everyone.local/wp-content/plugins/partnership-manager/dist/';
+__webpack_public_path__ = `https://${location.host}/wp-content/plugins/partnership-manager/dist/`;
 
 // Scripts
 import '@js/tasks';

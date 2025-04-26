@@ -97,7 +97,11 @@ class Assets {
 			],
 			'locale'			=> get_user_meta(get_current_user_id(), 'partnership_dashboard_locale', true), // get_user_locale(),
 			'user_id'			=> get_current_user_id(),
-			'isSignUp'			=> strpos($_SERVER['REQUEST_URI'], 'signup') !== false
+			'isSignUp'			=> strpos($_SERVER['REQUEST_URI'], 'signup') !== false,
+			'pages'				=> [
+				'privacy'		=> get_the_permalink(apply_filters('pm_project/system/getoption', 'general-policy', null)),
+				'terms'			=> get_the_permalink(apply_filters('pm_project/system/getoption', 'general-policy', null)),
+			]
 		], (array) $args);
 	}
 

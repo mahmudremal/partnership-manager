@@ -2,6 +2,7 @@
 namespace PARTNERSHIP_MANAGER\inc;
 use PARTNERSHIP_MANAGER\inc\Traits\Singleton;
 use WP_REST_Request;
+use WP_Error;
 use WP_User;
 
 class Referral {
@@ -94,10 +95,10 @@ class Referral {
 	public function save_referral_code($user_id, $code) {
 		$existing = get_user_meta($user_id, 'referral_code', true);
 		if ($existing) {
-			return new \WP_Error('referral_code_exists', 'Referral code already settled for this user.');
+			return new WP_Error('referral_code_exists', 'Referral code already settled for this user.');
 		}
 		if ($this->referral_code_exists($code)) {
-			return new \WP_Error('referral_code_taken', 'Referral code is already in use by another user.');
+			return new WP_Error('referral_code_taken', 'Referral code is already in use by another user.');
 		}
 		update_user_meta($user_id, 'referral_code', $code);
 		return ['saved' => true];

@@ -140,7 +140,7 @@ class Users {
         return rest_ensure_response( $this->prepare_user_data_for_response( $user_data ) );
     }
     
-    private function prepare_user_data_for_response( $user ) {
+    public static function prepare_user_data_for_response( $user ) {
         return [
             'id'          => $user->ID,
             'phone'       => '',

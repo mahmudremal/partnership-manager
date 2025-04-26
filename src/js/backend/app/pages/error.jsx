@@ -19,9 +19,9 @@ export default function ErrorPage({ }) {
               error_platform: 'backend-interface',
               error_message: `Issue: "${location.pathname}" not found.\nFull URL: ${window.location.href}`
             }, request_headers());
-            notify.success(response?.data ?? __('Error report submitted!'));
+            notify.success(__(response?.data??'Error report submitted!'));
           } catch (error) {
-            notify.error(error?.message ?? __('Failed to report error.'));
+            notify.error(__(error?.message??'Failed to report error.'));
           } finally {
             // setLoading(false);
           }

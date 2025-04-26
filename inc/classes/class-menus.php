@@ -32,7 +32,7 @@ class Menus {
 	}
 	public function menus($args) {
 		// apply_filters('pm_project/system/isactive', 'general-paused')
-		// apply_filters('pm_project/system/getoption', 'general-paused')
+		// apply_filters('pm_project/system/getoption', 'general-paused', false)
 		$args['general']		= [
 			'title'							=> __('General', 'wp-partnershipm'),
 			'description'					=> __('General settings for teddy-bear customization popup.', 'wp-partnershipm'),
@@ -48,6 +48,22 @@ class Menus {
 					'id' 					=> 'general-screen',
 					'label'					=> __('dashboard screen', 'wp-partnershipm'),
 					'description'			=> __("Select a dashboard screen from where we'll apply the dashboard interface", 'wp-partnershipm'),
+					'type'					=> 'select',
+					'options'				=> $this->get_query(['post_type' => 'page', 'post_status' => 'any', 'type' => 'option', 'limit' => 50]),
+					'default'				=> false
+				],
+				[
+					'id' 					=> 'general-policy',
+					'label'					=> __('Privacy policy', 'wp-partnershipm'),
+					'description'			=> __("Select a privacy policy page.", 'wp-partnershipm'),
+					'type'					=> 'select',
+					'options'				=> $this->get_query(['post_type' => 'page', 'post_status' => 'any', 'type' => 'option', 'limit' => 50]),
+					'default'				=> false
+				],
+				[
+					'id' 					=> 'general-terms',
+					'label'					=> __('Terms & Condition', 'wp-partnershipm'),
+					'description'			=> __("Select a term and condition page", 'wp-partnershipm'),
 					'type'					=> 'select',
 					'options'				=> $this->get_query(['post_type' => 'page', 'post_status' => 'any', 'type' => 'option', 'limit' => 50]),
 					'default'				=> false

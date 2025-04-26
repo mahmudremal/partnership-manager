@@ -32,23 +32,25 @@ class Frontend {
 
     public function rewrite_rules_array($rules) {
         $new_rules = [
-            // 'partnership-dashboard/?$'          => 'index.php?mn_page=dashboard',
-            // '^partnership-dashboard(.*)$'       => 'index.php?mn_page=dashboard',
-            // '^signup(.*)$'       => 'index.php?mn_page=dashboard',
-            // '^signin(.*)$'       => 'index.php?mn_page=dashboard',
-            // '^forgot(.*)$'       => 'index.php?mn_page=dashboard',
             '^(partnership-dashboard|signup|signin|forgot)(.*)$' => 'index.php?mn_page=dashboard'
         ];
         return $new_rules + $rules;
     }
 
     public function template_redirect() {
-        $page = get_query_var('mn_page');
-        
-        if ($page == 'dashboard') {
-            include WP_PARTNERSHIPM_DIR_PATH . '/templates/dashboard/index.php';
-            die;
-        }
+        $requested_url = $_SERVER['REQUEST_URI'];
+        if (get_query_var('mn_page') != 'dashboard') {return;}
+        // if (
+        //     is_robots() ||
+        //     get_query_var('sitemap') || // Adjust based on your sitemap plugin
+        //     is_feed() ||
+        //     is_trackback() ||
+        //     is_customize_preview() ||
+        //     is_admin() ||
+        //     get_query_var('manifest_json')
+        // ) {return;}
+        // if (!is_front_page() || !is_404()) {return;}
+        include WP_PARTNERSHIPM_DIR_PATH . '/templates/dashboard/index.php';die;
     }
 
     public function after_switch_theme() {
