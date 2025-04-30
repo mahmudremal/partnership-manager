@@ -1,6 +1,9 @@
 <?php
 namespace PARTNERSHIP_MANAGER\inc;
 use PARTNERSHIP_MANAGER\inc\Traits\Singleton;
+use WP_REST_Response;
+use WP_REST_Request;
+use WP_Error;
 
 class Payment {
     use Singleton;
@@ -13,13 +16,71 @@ class Payment {
     }
 
     protected function setup_hooks() {
-        add_action('init', [ $this, 'register_post_type' ]);
-        add_action('init', [ $this, 'add_payment_pages' ]);
-        add_filter('query_vars', [ $this, 'query_vars' ]);
         add_filter('template_include', [ $this, 'payment_status_template' ]);
         add_action('wp_ajax_nopriv_payment_webhook', [ $this, 'handle_webhook' ]);
         add_action('wp_ajax_payment_webhook', [ $this, 'handle_webhook' ]);
+        add_action('rest_api_init', [$this, 'register_routes']);
+
+        add_action('init', [ $this, 'register_post_type' ]);
+        add_action('init', [ $this, 'add_payment_rewrite_rules' ]);
+        add_filter('query_vars', [ $this, 'payment_query_vars' ]);
+        add_filter('template_include', [ $this, 'payment_status_template' ]);
     }
+
+    public function add_payment_rewrite_rules() {
+        add_rewrite_rule(
+            '^partnership/payment/([^/]+)/status/?$',
+            'index.php?partnership_payment=$matches[1]&payment-status=true',
+            'top'
+        );
+    }
+
+    public function payment_query_vars($vars) {
+        $vars[] = 'partnership_payment';
+        $vars[] = 'payment-status';
+        return $vars;
+    }
+
+    public function payment_status_template($template) {
+        if (get_query_var('payment-status')) {
+            $file = WP_PARTNERSHIPM_DIR_PATH . '/templates/payment-status.php';
+            return file_exists($file) ? $file : $template;
+        }
+        return $template;
+    }
+
+    public function register_routes() {
+		register_rest_route('partnership/v1', '/payment/create', [
+			'methods' => 'POST',
+			'callback' => [$this, 'create_payment'],
+            'permission_callback' => [Security::get_instance(), 'permission_callback']
+		]);
+		register_rest_route('partnership/v1', '/payment/gateways', [
+			'methods' => 'GET',
+			'callback' => [$this, 'get_payment_gateways'],
+            'permission_callback' => [Security::get_instance(), 'permission_callback']
+		]);
+		register_rest_route('partnership/v1', '/payment/switch/(?P<gateway>[^/]+)', [
+			'methods' => 'GET',
+			'callback' => [$this, 'get_switch_gateway'],
+            'permission_callback' => [Security::get_instance(), 'permission_callback']
+		]);
+		register_rest_route('partnership/v1', '/payment/card/submit/(?P<gateway>[^/]+)', [
+			'methods' => 'POST',
+			'callback' => [$this, 'submit_payment_card'],
+            'permission_callback' => [Security::get_instance(), 'permission_callback']
+		]);
+		register_rest_route('partnership/v1', '/payment/card/(?P<card_id>\d+)/remove', [
+			'methods' => 'DELETE',
+			'callback' => [$this, 'remove_payment_card'],
+            'permission_callback' => [Security::get_instance(), 'permission_callback']
+		]);
+		register_rest_route('partnership/v1', '/payment/verify/(?P<gateway>[^/]+)/(?P<transection_id>[^/]+)', [
+			'methods' => 'GET',
+			'callback' => [$this, 'verify_payment_intend'],
+            'permission_callback' => [Security::get_instance(), 'permission_callback']
+		]);
+	}
 
     public function register_post_type() {
         register_post_type('partner_payments', [
@@ -28,23 +89,6 @@ class Payment {
             'show_ui'     => false,
             'supports'    => [],
         ]);
-    }
-
-    public function add_payment_pages() {
-        add_rewrite_endpoint('payment-status', EP_PAGES);
-    }
-
-    public function query_vars($vars) {
-        $vars[] = 'payment-status';
-        return $vars;
-    }
-
-    public function payment_status_template($template) {
-        if (get_query_var('payment-status') !== '') {
-            $file = plugin_dir_path(__DIR__) . 'templates/payment-status.php';
-            return file_exists($file) ? $file : $template;
-        }
-        return $template;
     }
 
     public function create_payment_intent($args, $provider) {
@@ -126,4 +170,108 @@ class Payment {
             update_post_meta($post_id, $key, $value);
         }
     }
+
+
+    public function create_payment(WP_REST_Request $request) {
+        $package_id = $request->get_param('package_id');
+		$pricing_plan = $request->get_param('pricing_plan');
+		$starting = $request->get_param('starting');
+		$gateway = $request->get_param('gateway');
+		$currency = $request->get_param('currency');
+		$card = $request->get_param('card');
+        // 
+        $packages = Contract::get_packages();
+        $found_index = array_search($package_id, array_column($packages, 'id'));
+        // 
+        if ($found_index === false) {
+            return new WP_Error('package_not_found', 'Package with the specified ID not found.', ['status' => 404]);
+        }
+        $package = $packages[$found_index];
+        $pricing_amount = (isset($package['pricing']) && isset($package['pricing'][$pricing_plan])) ? $package['pricing'][$pricing_plan] : null;
+        if (!$pricing_amount) {
+            return new WP_Error('plan_not_found', 'Pricing plan on the selected package not found.', ['status' => 404]);
+        }
+        if ($pricing_amount == 0) {
+            return rest_ensure_response(['payment_done' => true]);
+        }
+        $_intend = $this->create_payment_intent([
+            'issued_on' => time(),
+            'amount' => $pricing_amount,
+            'title' => $package['name'] . ' - ' . $package['packagefor'] . ' - ' . $pricing_plan,
+            'description' => $package['shortdesc'],
+
+            'card' => $card,
+
+            'save_card' => true,
+            'currency' => $currency,
+
+            'user' => Users::prepare_user_data_for_response(get_userdata(Security::get_instance()->user_id))
+        ], $gateway);
+        $response = $_intend;
+        // 
+		return rest_ensure_response($response);
+    }
+
+    public function get_payment_gateways(WP_REST_Request $request) {
+        $response = apply_filters('partnership/payment/gateways', []);
+        return rest_ensure_response($response);
+    }
+
+    public function get_switch_gateway(WP_REST_Request $request) {
+        $gateway = $request->get_param('gateway');
+        $user_id = Security::get_instance()->user_id;
+        $response = apply_filters('partnership/payment/gateway/switched', null, $gateway, $user_id);
+        return rest_ensure_response($response);
+    }
+
+    public function submit_payment_card(WP_REST_Request $request) {
+        $gateway = $request->get_param('gateway');
+        $params = $request->get_params();
+        $user_id = Security::get_instance()->user_id;
+        $response = apply_filters('partnership/payment/card/submit', null, $params, $gateway, $user_id);
+        return rest_ensure_response($response);
+    }
+    public function remove_payment_card(WP_REST_Request $request) {
+        global $wpdb;
+        $card_id = $request->get_param('card_id');
+        $user_id = Security::get_instance()->user_id;
+
+        if (!is_integer($user_id)) {
+            delete_transient($user_id . '_tap_stored_cards');
+        }
+        
+        $deleted = $wpdb->delete(
+            $wpdb->usermeta,
+            [
+                'umeta_id' => (int) $card_id,
+                'user_id'  => (int) $user_id
+            ],
+            ['%d', '%d']
+        );
+        if (false === $deleted) {
+            return new WP_REST_Response(
+                ['message' => __('Failed to delete payment card', 'wp-partnershipm')],
+                500 // Internal Server Error
+            );
+        } elseif ($deleted) {
+            return new WP_REST_Response(
+                ['message' => __('Payment card deleted successfully', 'wp-partnershipm')],
+                200 // OK
+            );
+        } else {
+            return new WP_REST_Response(
+                ['message' => __('Payment card not found or could not be deleted', 'wp-partnershipm')],
+                404 // Not Found
+            );
+        }
+    }
+    
+    public function verify_payment_intend(WP_REST_Request $request) {
+        $gateway = $request->get_param('gateway');
+        $transection_id = $request->get_param('transection_id');
+        $user_id = Security::get_instance()->user_id;
+        $response = apply_filters('partnership/payment/transection/verify', null, $transection_id, $gateway, $user_id);
+        return rest_ensure_response($response);
+    }
+
 }

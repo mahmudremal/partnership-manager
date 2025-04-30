@@ -5,19 +5,54 @@ use PARTNERSHIP_MANAGER\inc\Traits\Singleton;
 class Payment_Tap {
     use Singleton;
 
-    private $secret_key;
     private $api_base = 'https://api.tap.company/';
 
     protected function __construct() {
-        $this->secret_key = get_option('tap_secret_key');
         $this->setup_hooks();
     }
 
     protected function setup_hooks() {
         add_filter('partnersmanagerpayment/create_payment_intent', [ $this, 'tap_create_charge' ], 10, 3);
-        add_filter('partnersmanagerpayment/verify',                [ $this, 'tap_verify'        ], 10, 3);
+        add_filter('partnersmanagerpayment/verify',                [ $this, 'tap_verify'        ], 10, 4);
         add_filter('partnersmanagerpayment/refund_payment',        [ $this, 'tap_refund'        ], 10, 4);
         add_filter('partnersmanagerpayment/webhook',               [ $this, 'tap_handle_webhook'], 10, 1);
+        add_filter('partnership/payment/gateways',                 [ $this, 'push_gateways'], 10, 1);
+        add_filter('partnership/payment/gateway/switched',         [ $this, 'switch_gateways'], 10, 3);
+        add_filter('partnership/payment/card/submit',              [ $this, 'card_submit'], 10, 4);
+        add_filter('partnership/payment/transection/verify',       [ $this, 'transection_verify'], 10, 4);
+    }
+
+    private function secret_key() {
+        return apply_filters('pm_project/system/getoption', 'payment-tap-secretkey', null);
+    }
+    private function public_key() {
+        return apply_filters('pm_project/system/getoption', 'payment-tap-publickey', null);
+    }
+
+    public function push_gateways($gateways) {
+        $gateways['tap'] = [
+            'title' => __('Tap', 'wp-partnershipm'),
+            'icon' => WP_PARTNERSHIPM_BUILD_URI . '/icons/tap.svg',
+        ];
+        return $gateways;
+    }
+
+    public function switch_gateways($return, $gateway, $user_id) {
+        if ($gateway == 'tap') {
+            $return = [
+                'type'          => 'card',
+                'cards'         => $this->get_stored_cards($user_id),
+                'customer_id'   => $this->get_customer_id(Users::prepare_user_data_for_response(get_userdata($user_id)))
+            ];
+        }
+        return $return;
+    }
+
+    public function transection_verify($return, $transection_id, $gateway, $user_id) {
+        if ($gateway == 'tap') {
+            $return = $this->tap_verify(['status' => false], ['id' => $transection_id], 'tap', true);
+        }
+        return $return;
     }
 
     private function request(string $path, array $data = [], string $method = 'POST') {
@@ -25,7 +60,7 @@ class Payment_Tap {
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer ' . $this->secret_key,
+            'Authorization: Bearer ' . $this->secret_key(),
             'Content-Type: application/json',
         ]);
         if ($method === 'POST') {
@@ -40,29 +75,78 @@ class Payment_Tap {
     }
 
     public function tap_create_charge($null, $args, $provider) {
+        global $wpdb;
         if ($provider !== 'tap') {
             return $null;
         }
+        if (isset($args['user']) && isset($args['user']['id'])) {
+            $cards = $this->get_stored_cards($args['user']['id']);
+            $found_index = array_search((int) $args['card'], array_column($cards, 'id'));
+            $card = $cards[$found_index] ?? null;
+            if (!$card) {return $null;}
+        }
+
         $payload = [
             'amount'            => $args['amount'],
             'currency'          => $args['currency'],
             'customer_initiated'=> $args['customer_initiated'] ?? true,
-            'threeDSecure'      => $args['threeDSecure']       ?? false,
+            'threeDSecure'      => $args['threeDSecure']       ?? true,
             'save_card'         => $args['save_card']          ?? false,
             'description'       => $args['description']        ?? '',
             'metadata'          => $args['metadata']           ?? [],
-            'reference'         => $args['reference']          ?? [],
-            'receipt'           => $args['receipt']            ?? [],
+            'reference'         => $args['reference']          ?? [
+                'product_info' => $args['title'],
+                'customer_id' => $args['user']['id'] ?? 0,
+                'card_id'   => $card['id'],
+                'invoice_id' => wp_unique_id('invc')
+            ],
+            'receipt' => $args['receipt']            ?? [
+                'email' => true,
+                'sms' => false
+            ],
+            'customer' => $args['customer'] ?? null,
+            'source' => $args['source'] ?? null,
+            'post' => ['url' => admin_url('admin-ajax.php?action=payment_webhook')],
+            'redirect' => null
         ];
-        return $this->request('v2/charges', $payload);  // :contentReference[oaicite:0]{index=0}
+        if (! $payload['customer']) {$payload['customer']['id'] = $this->get_customer_id($args['user']);}
+        if (! $payload['source']) {$payload['source']['id'] = $this->createCard2Token($card, $args['user']);}
+        if (! $payload['redirect']) {$payload['redirect'] = ['url' => site_url("/partnership/payment/{$payload['reference']['invoice_id']}/status")];}
+        // return $payload;
+        $response = $this->request('v2/charges', $payload);  // :contentReference[oaicite:0]{index=0}
+        if ($response && isset($response['id'])) {
+            if (isset($response['id']['save_card']) && $response['id']['save_card']) {
+            }
+            unset($card['token']);
+            $updated = $wpdb->update(
+                $this->usermeta,
+                ['meta_value' => maybe_serialize($card)],
+                ['umeta_id' => (int) $card['id']],
+                ['%s'], ['%d']
+            );
+        }
+        return $response;
     }
 
-    public function tap_verify($verified, $data, $provider) {
+    public function tap_verify($verified, $data, $provider, $return = false) {
         if ($provider !== 'tap') {
             return $verified;
         }
-        $resp = $this->request("v2/charges/{$data['id']}", [], 'GET');  // :contentReference[oaicite:1]{index=1}
-        return isset($resp['status']) && $resp['status'] === 'CAPTURED';
+        $charge_id = $data['tap_id'] ?? $data['id'] ?? $data['charge_id'] ?? null;
+        $resp = $this->request("v2/charges/{$charge_id}", [], 'GET');  // :contentReference[oaicite:1]{index=1}
+        $_is_completed = isset($resp['status']) && $resp['status'] === 'CAPTURED' || $resp['status'] === 'AUTHORIZED';
+
+        if (isset($data['invoice_id']) && !empty($data['invoice_id']) && $data['invoice_id'] !== 0) {
+            Invoice::get_instance()->mark_paid_invoice($data['invoice_id']);
+        }
+        
+        if ($_is_completed && isset($resp['card']) && isset($resp['card']['id'])) {
+            // store card
+        }
+
+        if ($return) {return ['success' => $_is_completed, 'transection' => $resp];}
+
+        return $_is_completed;
     }
 
     public function tap_refund($false, $payment_id, $args, $provider) {
@@ -83,214 +167,80 @@ class Payment_Tap {
         do_action('partnersmanagerpayment/tap_event', $event, $headers);  // :contentReference[oaicite:3]{index=3}
         return $payload;
     }
+
+    private function createCard2Token($card, $user) {
+        $payload = [
+            'saved_card' => [
+                'card_id' => $card['card_id'],
+                'customer_id' => $this->get_customer_id($user)
+            ],
+            'client_ip' => Users::get_the_user_ip()
+        ];
+        $payload['client_ip'] = $payload['client_ip'] == '::1' ? '127.0.0.1' : $payload['client_ip'];
+        return $payload;
+        $resp = $this->request("v2/tokens", $payload);
+        return $resp;
+    }
+
+    public function card_submit($return, $params, $gateway, $user_id) {
+        if ($gateway == 'tap') {
+            $_updated = set_transient($user_id . '_tap_stored_cards', $params, 1 * HOUR_IN_SECONDS);
+            if ($_updated) {
+                $return = $this->get_stored_cards($user_id);
+            }
+        }
+        return $return;
+    }
+    
+    private function get_customer_id($user) {
+        $_id = get_user_meta($user['id'], '_tap_customer_id', true);
+        if (empty($_id)) {
+            $_id = $this->create_customer_id($user);
+        }
+        return $_id;
+    }
+    
+    private function create_customer_id($user) {
+        $payload = [
+            'first_name' => $user['firstName'] ?? '',
+            'middle_name' => $user['middleName'] ?? '',
+            'last_name' => $user['lastName'] ?? '',
+            'email' => $user['email'] ?? '',
+            'phone' => [
+                'country_code' => (int) $user['phone_country_code'] ?? '965',
+                'number' => (int) $user['phone'] ?? '51234567'
+            ]
+        ];
+        $res = $this->request("v2/customers", $payload);
+        update_user_meta((int) $user['id'], '_tap_customer_id', $res['id']);
+        return $res['id'];
+    }
+    private function get_stored_cards($user_id) {
+        global $wpdb;
+
+        $cards = get_transient($user_id . '_tap_stored_cards');
+        return ($cards) ? [$cards] : [];
+    
+        $cards = [];
+        $results = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT umeta_id, meta_value
+                FROM {$wpdb->usermeta}
+                WHERE user_id = %d AND meta_key = %s",
+                (int) $user_id,
+                '_tap_stored_cards'
+            )
+        );
+    
+        if (empty($results)) {return [];}
+
+        foreach ($results as $row) {
+            $card_data = maybe_unserialize(maybe_unserialize($row->meta_value));
+            $card_data['id'] = $row->umeta_id;
+            $cards[] = $card_data;
+        }
+    
+        return $cards;
+    }
+
 }
-
-
-
-
-
-// namespace PARTNERSHIP_MANAGER\inc;
-// use PARTNERSHIP_MANAGER\inc\Traits\Singleton;
-
-// class Payment_Tap {
-//     use Singleton;
-
-//     private $secret_key;
-//     private $api_base = 'https://api.tap.company/';
-
-//     protected function __construct() {
-//         $this->secret_key = get_option('tap_secret_key');
-//         $this->setup_hooks();
-//     }
-
-//     protected function setup_hooks() {
-//         add_filter('partnersmanagerpayment/create_payment_intent',   [ $this, 'tap_create_charge'           ], 10, 3);
-//         add_filter('partnersmanagerpayment/verify',                  [ $this, 'tap_verify'                  ], 10, 3);
-//         add_filter('partnersmanagerpayment/refund_payment',          [ $this, 'tap_refund'                  ], 10, 4);
-//         add_filter('partnersmanagerpayment/create_subscription',     [ $this, 'tap_create_subscription'     ], 10, 3);
-//         add_filter('partnersmanagerpayment/pause_subscription',      [ $this, 'tap_pause_subscription'      ], 10, 2);
-//         add_filter('partnersmanagerpayment/resume_subscription',     [ $this, 'tap_resume_subscription'     ], 10, 2);
-//         add_filter('partnersmanagerpayment/cancel_subscription',     [ $this, 'tap_cancel_subscription'     ], 10, 2);
-//         add_filter('cron_schedules',                                  [ $this, 'add_cron_schedules'          ]);
-//         add_action('partnersmanagerpayment/tap_recurring_charge',    [ $this, 'tap_process_recurring_charge'], 10, 1);
-//     }
-
-//     // expose daily, weekly, monthly intervals
-//     public function add_cron_schedules($schedules) {
-//         $schedules['weekly']  = ['interval' => 7 * 24 * 3600,   'display' => 'Once Weekly'];
-//         $schedules['monthly'] = ['interval' => 30 * 24 * 3600,  'display' => 'Once Monthly'];
-//         return $schedules;
-//     }
-
-//     private function request(string $path, array $data = [], string $method = 'POST') {
-//         $url = rtrim($this->api_base, '/') . '/' . ltrim($path, '/');
-//         $ch = curl_init($url);
-//         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-//         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-//             'Authorization: Bearer ' . $this->secret_key,
-//             'Content-Type: application/json',
-//         ]);
-//         if ($method === 'POST') {
-//             curl_setopt($ch, CURLOPT_POST, true);
-//             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-//         } elseif ($method === 'GET') {
-//             curl_setopt($ch, CURLOPT_HTTPGET, true);
-//         }
-//         $resp = curl_exec($ch);
-//         curl_close($ch);
-//         return json_decode($resp, true);
-//     }
-
-//     public function tap_create_charge($null, $args, $provider) {
-//         if ($provider !== 'tap') {
-//             return $null;
-//         }
-//         $payload = [
-//             'amount'            => $args['amount'],
-//             'currency'          => $args['currency'],
-//             'save_card'         => $args['save_card']    ?? false,   // :contentReference[oaicite:0]{index=0}
-//             'threeDSecure'      => $args['threeDSecure'] ?? false,
-//             'customer'          => $args['customer']     ?? [],
-//             'metadata'          => $args['metadata']     ?? [],
-//         ];
-//         return $this->request('v2/charges', $payload);
-//     }
-
-//     public function tap_verify($verified, $data, $provider) {
-//         if ($provider !== 'tap') {
-//             return $verified;
-//         }
-//         $resp = $this->request("v2/charges/{$data['id']}", [], 'GET');  // :contentReference[oaicite:1]{index=1}
-//         return isset($resp['status']) && $resp['status'] === 'CAPTURED';
-//     }
-
-//     public function tap_refund($false, $payment_id, $args, $provider) {
-//         if ($provider !== 'tap') {
-//             return $false;
-//         }
-//         $payload = [
-//             'charge_id' => $payment_id,
-//             'amount'    => $args['amount'],
-//             'reason'    => $args['reason'] ?? '',
-//         ];
-//         return $this->request('v2/refunds', $payload);  // 
-//     }
-
-//     public function tap_create_subscription($null, $args, $provider) {
-//         if ($provider !== 'tap') {
-//             return $null;
-//         }
-//         // initial charge and save card for recurring :contentReference[oaicite:2]{index=2}
-//         $payload = [
-//             'amount'       => $args['amount'],
-//             'currency'     => $args['currency'],
-//             'save_card'    => true,
-//             'threeDSecure' => false,
-//             'customer'     => $args['customer']  ?? [],
-//             'metadata'     => ['interval' => $args['interval']],
-//         ];
-//         $resp = $this->request('v2/charges', $payload);
-
-//         // extract saved card & customer
-//         $card_id     = $resp['card']['id']     ?? null;
-//         $customer_id = $resp['customer']['id'] ?? null;
-
-//         // record subscription in WP
-//         $post_id = wp_insert_post([
-//             'post_type'   => 'partner_payments',
-//             'post_title'  => 'tap_sub_' . uniqid(),
-//             'post_status' => 'publish',
-//         ]);
-//         update_post_meta($post_id, 'type',        'subscription');
-//         update_post_meta($post_id, 'provider',    'tap');
-//         update_post_meta($post_id, 'amount',      $args['amount']);
-//         update_post_meta($post_id, 'currency',    $args['currency']);
-//         update_post_meta($post_id, 'interval',    $args['interval']);
-//         update_post_meta($post_id, 'card_id',     $card_id);
-//         update_post_meta($post_id, 'customer_id', $customer_id);
-//         update_post_meta($post_id, 'status',      'active');
-
-//         // schedule first recurring charge
-//         $when = time() + $this->interval_to_seconds($args['interval']);
-//         wp_schedule_event($when, $args['interval'], 'partnersmanagerpayment/tap_recurring_charge', [ $post_id ]);
-
-//         return $resp;
-//     }
-
-//     public function tap_process_recurring_charge($post_id) {
-//         $status   = get_post_meta($post_id, 'status', true);
-//         if ($status !== 'active') {
-//             return;
-//         }
-//         $amount   = get_post_meta($post_id, 'amount', true);
-//         $currency = get_post_meta($post_id, 'currency', true);
-//         $card_id  = get_post_meta($post_id, 'card_id', true);
-//         $customer = ['id' => get_post_meta($post_id, 'customer_id', true)];
-
-//         $payload = [
-//             'amount'       => $amount,
-//             'currency'     => $currency,
-//             'customer'     => $customer,
-//             'card'         => ['id' => $card_id],
-//             'save_card'    => false,
-//             'threeDSecure' => false,
-//         ];
-//         $charge = $this->request('v2/charges', $payload);
-//         // log this attempt
-//         update_post_meta($post_id, 'last_charge', $charge);
-
-//         // schedule next run
-//         $interval = get_post_meta($post_id, 'interval', true);
-//         $next     = time() + $this->interval_to_seconds($interval);
-//         wp_schedule_event($next, $interval, 'partnersmanagerpayment/tap_recurring_charge', [ $post_id ]);
-//     }
-
-//     public function tap_pause_subscription($false, $subscription_id, $provider) {
-//         if ($provider !== 'tap') {
-//             return $false;
-//         }
-//         $post_id = $subscription_id;
-//         update_post_meta($post_id, 'status', 'paused');
-//         wp_clear_scheduled_hook('partnersmanagerpayment/tap_recurring_charge', [ $post_id ]);
-//         return true;
-//     }
-
-//     public function tap_resume_subscription($false, $subscription_id, $provider) {
-//         if ($provider !== 'tap') {
-//             return $false;
-//         }
-//         $post_id = $subscription_id;
-//         update_post_meta($post_id, 'status', 'active');
-//         $interval = get_post_meta($post_id, 'interval', true);
-//         $when     = time() + $this->interval_to_seconds($interval);
-//         wp_schedule_event($when, $interval, 'partnersmanagerpayment/tap_recurring_charge', [ $post_id ]);
-//         return true;
-//     }
-
-//     public function tap_cancel_subscription($false, $subscription_id, $provider) {
-//         if ($provider !== 'tap') {
-//             return $false;
-//         }
-//         $post_id = $subscription_id;
-//         update_post_meta($post_id, 'status', 'cancelled');
-//         wp_clear_scheduled_hook('partnersmanagerpayment/tap_recurring_charge', [ $post_id ]);
-//         return true;
-//     }
-
-//     private function interval_to_seconds($interval) {
-//         switch ($interval) {
-//             case 'hourly':  return 3600;
-//             case 'daily':   return 24 * 3600;
-//             case 'weekly':  return 7 * 24 * 3600;
-//             case 'monthly': return 30 * 24 * 3600;
-//             default:        return intval($interval);
-//         }
-//     }
-
-//     public function tap_handle_webhook($payload) {
-//         $event   = json_decode($payload, true);
-//         $headers = function_exists('getallheaders') ? getallheaders() : [];
-//         do_action('partnersmanagerpayment/tap_event', $event, $headers);
-//         return $payload;
-//     }
-// }

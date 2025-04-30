@@ -1,4 +1,3 @@
-// https://randomuser.me/api/portraits/men/1.jpg
 import React, { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 import { Link } from "@common/link";

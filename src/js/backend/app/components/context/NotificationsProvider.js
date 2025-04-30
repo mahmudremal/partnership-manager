@@ -14,10 +14,9 @@ export default function NotificationsProvider({ children, config = {} }) {
   const fetchNotifications = async (page = 1) => {
     if (!session?.user_id) return;
     try {
-      const url = rest_url(`/partnership/v1/notifications/${session.user_id}/${page}`);
-      const data = await request(url);
-      setNotifications(data.list || []);
-      setPagination(data.pagination || {});
+      // const data = await request(rest_url(`/partnership/v1/notifications/${session.user_id}/${page}`));
+      // setNotifications(data.list || []);
+      // setPagination(data.pagination || {});
     } catch (error) {
       console.error('Failed to load notifications:', error);
     }

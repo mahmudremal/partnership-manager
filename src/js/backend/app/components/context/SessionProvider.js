@@ -1,5 +1,5 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
-
+import request from '@common/request';
 const SessionContext = createContext();
 
 export default function SessionProvider({ children, initial = {} }) {
@@ -9,7 +9,14 @@ export default function SessionProvider({ children, initial = {} }) {
   });
 
   useEffect(() => {
-    localStorage.setItem('app-session', JSON.stringify(session));
+    try {
+      localStorage.setItem('app-session', JSON.stringify(session));
+      if (session?.authToken) {
+        request.set('Authorization', session?.authToken);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   }, [session]);
 
   return (

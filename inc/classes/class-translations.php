@@ -41,12 +41,12 @@ class Translations {
                 'language' => [
                     'required'    => true,
                     'type'        => 'string',
-                    'description' => __('The language code for the translation.', 'domain'),
+                    'description' => __('The language code for the translation.', 'wp-partnershipm'),
                 ],
                 'list'    => [
                     'required'    => true,
                     'type'        => ['array', 'object'],
-                    'description' => __('An list object of languages as per key: value structure.', 'domain'),
+                    'description' => __('An list object of languages as per key: value structure.', 'wp-partnershipm'),
                 ]
             ]
 		]);
@@ -58,12 +58,12 @@ class Translations {
                 'language' => [
                     'required'    => true,
                     'type'        => 'string',
-                    'description' => __('The language code for the translation.', 'domain'),
+                    'description' => __('The language code for the translation.', 'wp-partnershipm'),
                 ],
                 'user_id'    => [
                     'required'    => true,
                     'type'        => 'integer',
-                    'description' => __('User id to set that language as default language.', 'domain'),
+                    'description' => __('User id to set that language as default language.', 'wp-partnershipm'),
                 ]
             ]
 		]);

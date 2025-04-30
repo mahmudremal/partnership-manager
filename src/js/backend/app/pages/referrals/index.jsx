@@ -40,7 +40,7 @@ const Referrals = ({ filters = 'any' }) => {
                 join_date: parseInt(r.meta['wp_user-settings-time'].join('')),
                 status: r.converted ? 'active' : 'inactive',
                 converted: r.converted,
-                avatar: `https://randomuser.me/api/portraits/men/${r.id}.jpg`
+                avatar: r.avater
                 // map the response as needed
             }));
             setReferrals(referralList);

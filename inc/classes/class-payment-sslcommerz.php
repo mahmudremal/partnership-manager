@@ -30,6 +30,15 @@ class Payment_Sslcommerz {
         add_filter('partnersmanagerpayment/verify',                [ $this, 'verify_transaction'  ], 10, 3);
         add_filter('partnersmanagerpayment/refund_payment',        [ $this, 'refund_transaction'  ], 10, 4);
         add_filter('partnersmanagerpayment/webhook',               [ $this, 'handle_webhook'      ], 10, 1);
+        add_filter('partnership/payment/gateways',                 [ $this, 'push_gateways'], 10, 1);
+    }
+
+    public function push_gateways($gateways) {
+        $gateways['sslcommerz'] = [
+            'title' => __('SslCommerz', 'wp-partnershipm'),
+            'icon' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAb1BMVEX////7/P3g5fDi5/EATaICT6MMUKMTUqTJ0eSHnccdV6YsXqkARp/X3utsiL0jWaeBmMVyjL+VqM0dVqarudbx8/gASqHN1ea0wdszYqtlg7oANZo9aK5ff7jDzeFIb7FTd7SbrNB3kcG6xd0AQJ3ihWIJAAAA8UlEQVR4AYXQBQKDMBBE0QlOlBSv2/3PWFwT+irIXxQN4li46LieH5j5YYRGTJkVFwCkYlYqAaCPBjSAU8qsggxAXoRLlM1SjQbyqFd2f1U6d4mVEg1Sz/2MtUvZ9Kua+g0bXnHHY+p01+GxcNGfMAzM1NTNA/SBwwFl7MSb+hUGEaaBBzH0l54G1NvQKx7Dt75C4FOouDuDojRN02J7kXvBaEy+9eOmk/iVVffIxVJZMEZPsBJNZ+oWv+WtFqbusZZqhI6hu4sXKLPXmgvkAZupdIWmBcGVHQlLsH8D6t+ATNmBwgV04fkWHk/QILkVAX6QaiG2LYx6UQAAAABJRU5ErkJggg==',
+        ];
+        return $gateways;
     }
 
     private function curl($url, $params = [], $method = 'POST') {

@@ -37,8 +37,8 @@ class Assets {
 
 		// Enqueue styles.
 		$version = $this->filemtime(WP_PARTNERSHIPM_BUILD_CSS_DIR_PATH . '/public.css');
-		wp_enqueue_style('wp-partnershipm-public', WP_PARTNERSHIPM_BUILD_CSS_URI . '/public.css', [], $version, 'all');
-		wp_enqueue_style('wp-partnershipm-admin', WP_PARTNERSHIPM_BUILD_CSS_URI . '/admin.css', [], $this->filemtime(WP_PARTNERSHIPM_BUILD_CSS_DIR_PATH . '/admin.css'), 'all');
+		wp_register_style('wp-partnershipm-public', WP_PARTNERSHIPM_BUILD_CSS_URI . '/public.css', [], $version, 'all');
+		wp_register_style('wp-partnershipm-admin', WP_PARTNERSHIPM_BUILD_CSS_URI . '/admin.css', [], $this->filemtime(WP_PARTNERSHIPM_BUILD_CSS_DIR_PATH . '/admin.css'), 'all');
 	}
 
 	/**
@@ -48,7 +48,7 @@ class Assets {
 		if (!apply_filters('partnership_manager_screen_active', false)) {return;}
 
 		// Enqueue scripts.
-		wp_register_script('wp-partnershipm-public', WP_PARTNERSHIPM_BUILD_JS_URI . '/public.js', [ 'wp-partnershipm-admin' ], $this->filemtime(WP_PARTNERSHIPM_BUILD_JS_DIR_PATH . '/public.js'), true);
+		wp_register_script('wp-partnershipm-public', WP_PARTNERSHIPM_BUILD_JS_URI . '/public.js', [], $this->filemtime(WP_PARTNERSHIPM_BUILD_JS_DIR_PATH . '/public.js'), true);
 		$this->admin_enqueue_scripts(false);
 	}
 
@@ -67,6 +67,7 @@ class Assets {
 		wp_enqueue_style('wp-partnershipm-tailwind');
 		wp_enqueue_style('wp-partnershipm-admin');
 		wp_enqueue_script('wp-partnershipm-admin');
+		wp_enqueue_style('wp-partnershipm-public');
 	}
 
 	/**
@@ -95,7 +96,7 @@ class Assets {
 			'i18n'				=> [
 				'pls_wait'		=> __('Please wait...', 'wp-partnershipm'),
 			],
-			'locale'			=> get_user_meta(get_current_user_id(), 'partnership_dashboard_locale', true), // get_user_locale(),
+			// 'locale'			=> get_user_meta(get_current_user_id(), 'partnership_dashboard_locale', true), // get_user_locale(),
 			'user_id'			=> get_current_user_id(),
 			'isSignUp'			=> strpos($_SERVER['REQUEST_URI'], 'signup') !== false,
 			'pages'				=> [

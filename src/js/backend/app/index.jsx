@@ -35,11 +35,11 @@ export default function App({ config = {} }) {
     return (
         <SessionProvider>
             <ThemeProvider>
-                <LanguageProvider config={config}>
-                    <SettingsProvider config={config}>
-                        <LoadingProvider>
-                            <PopupProvider>
-                                <BrowserRouter>
+                <BrowserRouter>
+                    <LanguageProvider config={config}>
+                        <SettingsProvider config={config}>
+                            <LoadingProvider>
+                                <PopupProvider>
                                     <NotificationsProvider>
                                         <LoadStyles />
                                         <AuthProvider>
@@ -60,11 +60,11 @@ export default function App({ config = {} }) {
                                             </MainLayout>
                                         </AuthProvider>
                                     </NotificationsProvider>
-                                </BrowserRouter>
-                            </PopupProvider>
-                        </LoadingProvider>
-                    </SettingsProvider>
-                </LanguageProvider>
+                                </PopupProvider>
+                            </LoadingProvider>
+                        </SettingsProvider>
+                    </LanguageProvider>
+                </BrowserRouter>
             </ThemeProvider>
         </SessionProvider>
     );

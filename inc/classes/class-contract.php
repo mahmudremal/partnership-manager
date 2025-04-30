@@ -20,14 +20,128 @@ class Contract {
 	public function register_routes() {
 		register_rest_route('partnership/v1', '/contracts/packages', [
 			'methods' => 'GET',
-			'callback' => [$this, 'get_contracts_packages']
+			'callback' => [$this, 'get_contracts_packages'],
+            'permission_callback' => [Security::get_instance(), 'permission_callback']
+		]);
+		register_rest_route('partnership/v1', '/contracts/packages/(?P<package_id>\d+)', [
+			'methods' => 'GET',
+			'callback' => [$this, 'get_contracts_package'],
+            'permission_callback' => [Security::get_instance(), 'permission_callback']
 		]);
 	}
 
     public function get_contracts_packages(WP_REST_Request $request) {
-        $response = [];
         // 
+        $response = $this->get_packages();
         // 
         return rest_ensure_response($response);
+    }
+    
+    public function get_contracts_package(WP_REST_Request $request) {
+        $package_id = (int) $request->get_param('package_id');
+        // 
+        $packages = $this->get_packages();
+        $found_index = array_search($package_id, array_column($packages, 'id'));
+        // 
+        if ($found_index !== false) {
+            $response = $packages[$found_index];
+        } else {
+            $response = new WP_Error('package_not_found', 'Package with the specified ID not found.', ['status' => 404]);
+        }
+        // 
+        return rest_ensure_response($response);
+    }
+    
+    public static function get_packages() {
+        return [
+            [
+                'id' => 1,
+                'name' => 'Ecommerce',
+                'packagefor' => 'Startup',
+                'shortdesc' => 'Customer who just started their business and try to grow',
+                'list_title' => "What's included:",
+                'icon' => '',
+                'list' => [
+                    'Social Media Ads Management (1 platform)',
+                    'Google Ads Management',
+                    'All Conversion Setup',
+                    'All Pixel Setup',
+                    '5 Post Design / 2 Motion Video',
+                    'Whatsapp Marketing',
+                    'Email Marketing',
+                    'SEO'
+                ],
+                'pricing' => [
+                    'Weekly' => 500,
+                    'Quarterly' => 800,
+                    'Monthly' => 1500,
+                    'Yearly' => 15000,
+                    'Lifetime' => 150000
+                ]
+            ],
+            [
+                'id' => 2,
+                'name' => 'Business',
+                'packagefor' => 'Small Business',
+                'shortdesc' => 'The business who has stable condition but still trying to grow.',
+                'list_title' => "What's included:",
+                'icon' => '',
+                'list' => [
+                    'Social Media Ads Management (1 platform)',
+                    'Google Ads Management',
+                    'All Conversion Setup',
+                    'All Pixel Setup',
+                    '10 Post Design / 4 Motion Graphics',
+                    'Whatsapp marketing',
+                    'Email Marketing',
+                    'SEO'
+                ],
+                'pricing' => [
+                    'Weekly' => 800,
+                    'Quarterly' => 1300,
+                    'Monthly' => 2500,
+                    'Yearly' => 25000,
+                    'Lifetime' => 250000,
+                ]
+            ],
+            [
+                'id' => 3,
+                'name' => 'Corporate',
+                'packagefor' => 'Corporate Ecommerce',
+                'shortdesc' => 'Corporate business packages',
+                'list_title' => "What's included:",
+                'icon' => '',
+                'list' => [
+                    'Social Media Ads Management (1 platform)',
+                    'Google Ads Management',
+                    'All Conversion Setup',
+                    'All Pixel Setup',
+                    '15 Post Design',
+                    '5 Motion Videos',
+                    'Whatsapp Marketing',
+                    'Email Marketing',
+                    'SEO'
+                ],
+                'pricing' => [
+                    'Weekly' => 1300,
+                    'Quarterly' => 2500,
+                    'Monthly' => 5000,
+                    'Yearly' => 50000,
+                    'Lifetime' => 500000,
+                ]
+            ],
+            [
+                'id' => 4,
+                'name' => 'Custom',
+                'packagefor' => 'Custom Package',
+                'shortdesc' => "Let's discuss your plan of choice",
+                'list_title' => "What's included:",
+                'icon' => '',
+                'list' => [
+                    'Custom setup, account provisioning, and dedicated support for complex needs.'
+                ],
+                'pricing' => []
+            ],
+        ];
     }
 }

@@ -24,6 +24,11 @@ const Contracts_Actives = lazy(() => import('./pages/contracts/active'));
 const Contracts_Inactives = lazy(() => import('./pages/contracts/inactive'));
 
 const Packages = lazy(() => import('./pages/packages'));
+const Checkout = lazy(() => import('./pages/packages/checkout'));
+
+
+const Invoices = lazy(() => import('./pages/invoices'));
+const InvoiceEdit = lazy(() => import('./pages/invoices/edit'));
 
 
 export default function Content() {
@@ -36,8 +41,8 @@ export default function Content() {
                     <Route path={home_route('/analytics')} element={<Home />} />
 
                     <Route path={home_route('/users')} element={<UsersList />} />
-                    <Route path={home_route('/users/:userId/view')} element={<UsersView />} />
-                    <Route path={home_route('/users/:userId/edit')} element={<UsersEdit />} />
+                    <Route path={home_route('/users/:userid/view')} element={<UsersView />} />
+                    <Route path={home_route('/users/:userid/edit')} element={<UsersEdit />} />
 
                     <Route path={home_route('/resources/partner-docs')} element={<PartnerDocs />} />
                     <Route path={home_route('/resources/service-docs')} element={<PartnerDocs />} />
@@ -49,6 +54,7 @@ export default function Content() {
                     <Route path={home_route('/referrals/inactive')} element={<Inactive_Referrals />} />
                     
                     <Route path={home_route('/packages')} element={<Packages />} />
+                    <Route path={home_route('/packages/:package_id/:pricing_plan/checkout')} element={<Checkout />} />
                     
                     <Route path={home_route('/contracts/active')} element={<Contracts_Actives />} />
                     <Route path={home_route('/contracts/previous')} element={<Contracts_Inactives />} />
@@ -57,6 +63,9 @@ export default function Content() {
                     <Route path={home_route('/settings')} element={<Settings />} />
                     <Route path={home_route('/team')} element={<UsersGrid />} />
 
+
+                    <Route path={home_route('/invoices')} element={<Invoices />} />
+                    <Route path={home_route('/invoices/:invoice_id/view')} element={<InvoiceEdit />} />
 
                     <Route path="*" element={<ErrorPage />} />
                 </Routes>

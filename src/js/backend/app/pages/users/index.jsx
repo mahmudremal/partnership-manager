@@ -41,7 +41,7 @@ export default function Users({ viewType = 'list' }) {
                 department: 'N/A',
                 designation: 'N/A',
                 status: 'active',
-                avatar: `https://randomuser.me/api/portraits/men/${r.id}.jpg`
+                avater: r.avater
             }))
             setUsers(sortedUsers || []);
             setTotalPages(res.total_pages || 1);
@@ -149,7 +149,7 @@ export default function Users({ viewType = 'list' }) {
                                             <td>{dayjs.unix(user.join_date).utc().format('DD MMM YYYY')}</td>
                                             <td>
                                                 <div className="d-flex align-items-center">
-                                                    <img src={user.avatar} alt="" className="w-40-px h-40-px rounded-circle me-12" />
+                                                    <img src={user.avater} alt="" className="w-40-px h-40-px rounded-circle me-12" />
                                                     <span>{user.name}</span>
                                                 </div>
                                             </td>

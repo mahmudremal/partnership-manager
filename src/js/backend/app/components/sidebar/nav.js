@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-// import { Icon } from '@iconify/react';
 import { Link } from '../common/link';
 import { Outlet } from "react-router-dom";
 import { useTranslation } from "@context/LanguageProvider";
 
 
-import { Bolt, BookMarked, BookOpenText, Boxes, ChartNoAxesCombined, ChartSpline, ChevronFirst, ChevronRight, CreditCard, Crosshair, HeartHandshake, LayoutDashboard, LayoutGrid, LayoutList, LifeBuoy, Network, Signature, Store, TicketPlus, ToggleLeft, ToggleRight, UserRoundPlus, Users, UsersRound } from 'lucide-react';
+import { Bolt, BookMarked, BookOpenText, Boxes, ChartNoAxesCombined, ChartSpline, ChevronRight, CreditCard, HeartHandshake, LayoutDashboard, LifeBuoy, Network, Receipt, Store, TicketPlus, ToggleLeft, ToggleRight, UsersRound } from 'lucide-react';
 import { home_url } from '../common/functions';
 
 const Icon = ({ icon: IconComponent, ...attrs }) => {
@@ -52,12 +51,6 @@ export const Nav = () => {
     //       icon: LayoutList,
     //       iconClass: 'text-primary-600'
     //     },
-    //     // {
-    //     //   label: __('Users Grid'),
-    //     //   route: '/users-grid',
-    //     //   icon: LayoutGrid,
-    //     //   iconClass: 'text-warning-main'
-    //     // },
     //     {
     //       label: __('Add User'),
     //       route: '/users/0/edit',
@@ -88,11 +81,11 @@ export const Nav = () => {
           route: '/referrals/inactive',
           icon: ToggleLeft
         },
-        {
-          label: __('Retargetting'),
-          route: '/referrals/retargetting',
-          icon: Crosshair
-        }
+        // {
+        //   label: __('Retargetting'),
+        //   route: '/referrals/retargetting',
+        //   icon: Crosshair
+        // }
       ]
     },
     // {
@@ -117,6 +110,12 @@ export const Nav = () => {
       label: __('Packages'),
       icon: Boxes,
       route: '/packages',
+      order: 7
+    },
+    {
+      label: __('Invoices'),
+      icon: Receipt,
+      route: '/invoices',
       order: 7
     },
     {

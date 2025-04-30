@@ -109,7 +109,8 @@ class Notifications {
 	public function register_routes() {
 		register_rest_route('partnership/v1', '/notifications/(?P<user_id>\d+)/(?P<page>\d+)', [
 			'methods' => 'GET',
-			'callback' => [$this, 'get_notifications']
+			'callback' => [$this, 'get_notifications'],
+			'permission_callback' => [Security::get_instance(), 'permission_callback']
 		]);
 	}
 

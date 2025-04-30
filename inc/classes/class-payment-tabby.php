@@ -21,6 +21,15 @@ class Payment_Tabby {
         add_filter('partnersmanagerpayment/verify',                [ $this, 'verify_payment'   ], 10, 3);
         add_filter('partnersmanagerpayment/refund_payment',        [ $this, 'refund_payment'   ], 10, 4);
         add_filter('partnersmanagerpayment/webhook',               [ $this, 'handle_webhook'   ], 10, 1);
+        add_filter('partnership/payment/gateways',                 [ $this, 'push_gateways'], 10, 1);
+    }
+
+    public function push_gateways($gateways) {
+        $gateways['tabby'] = [
+            'title' => __('Tabby', 'wp-partnershipm'),
+            'icon' => WP_PARTNERSHIPM_BUILD_URI . '/icons/tabby.svg',
+        ];
+        return $gateways;
     }
 
     private function curl($path, $params = [], $method = 'POST') {

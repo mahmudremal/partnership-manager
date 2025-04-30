@@ -30,13 +30,11 @@ export const AuthProvider = ({ children }) => {
         settings?.isSignUp
     );
     const [showPass, setShowPass] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
     const [auth, setAuth] = useState(!(
         // settings?.loggedin && 
         session?.authToken
     ));
     // const [auth, setAuth] = useState(settings?.loggedin === true);
-    const [token, setToken] = useState(null);
     const [error, setError] = useState(null);
 
     
@@ -46,7 +44,7 @@ export const AuthProvider = ({ children }) => {
     const login = async (args) => {
         try {
             const { data } = await axios.post(rest_url('partnership/v1/token'), args);
-            request.set('Authorization', data.token);setAuth(false);
+            setAuth(false);
             setSession(prev => ({
                 ...prev,
                 authToken: data.token,
@@ -84,6 +82,8 @@ export const AuthProvider = ({ children }) => {
         setAuth(true);
         setSession(prev => ({ ...prev, authToken: null, user_id: null, user: null }));
     }
+
+    request.setAuth = setAuth;
 
 
     // const authenticatedRequest = async (url, options = {}) => {

@@ -8,6 +8,7 @@ class Security {
 	use Singleton;
 
 	private $secret = 'your-secret-key';
+	public $user_id = null;
 
 	protected function __construct() {
 		$this->setup_hooks();
@@ -59,11 +60,11 @@ class Security {
 				}
 				$user_id = username_exists( $username );
 				if ($user_id || email_exists( $email )) {
-					return new WP_REST_Response(['message' => __('User already exists.', 'domain')], 403);
+					return new WP_REST_Response(['message' => __('User already exists.', 'wp-partnershipm')], 403);
 				}
 				$created = wp_create_user( $username, $password, $email );
 				if (!$created || is_wp_error($created)) {
-					return new WP_REST_Response(['message' => __('Failed to create account!', 'domain'), 'error' => $created->get_error_message()], 403);
+					return new WP_REST_Response(['message' => __('Failed to create account!', 'wp-partnershipm'), 'error' => $created->get_error_message()], 403);
 				}
 				$user_id = $created;
 				update_user_meta($user_id, 'first_name', $firstName);
@@ -98,9 +99,9 @@ class Security {
 		return ['valid' => true, 'user_id' => $data['user_id']];
 	}
 
-	public function permission_callback() {
-		return true;
+	public function permission_callback($return = false) {
 		$data = $this->decode_token($this->get_token_from_header());
+		if ($return) {return $data;}
 		return $data !== false;
 	}
 
@@ -125,6 +126,10 @@ class Security {
 		$payload = json_decode(base64_decode($body_b64), true);
 		if (!$payload || time() > $payload['exp']) {return false;}
 
+		if (isset($payload['user_id']) && !empty($payload['user_id'])) {
+			$this->user_id = $payload['user_id'];
+		}
+		
 		return $payload;
 	}
 

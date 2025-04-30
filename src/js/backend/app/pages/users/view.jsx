@@ -10,19 +10,19 @@ import request from "@common/request";
 export default function UsersView() {
     const { __ } = useTranslation();
     const { setLoading } = useLoading();
-    const { userId } = useParams();
+    const { userid } = useParams();
     const [user, setUser] = useState({});
     const [activeTab, setActiveTab] = useState('edit');
 
     
     const fetchUsers = async () => {
         setLoading(true);
-        const url = rest_url(`/partnership/v1/users/${userId}`);
+        const url = rest_url(`/partnership/v1/users/${userid}`);
         try {
             const res = await request(url);
             setUser(res);
         } catch (error) {
-            console.error(`Error fetching user ${userId}:`, error);
+            console.error(`Error fetching user ${userid}:`, error);
         } finally {
             setLoading(false);
         }
@@ -40,7 +40,7 @@ export default function UsersView() {
 
     useEffect(() => {
         fetchUsers();
-    }, [userId]);
+    }, [userid]);
 
     return (
         <div>

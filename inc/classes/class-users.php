@@ -35,23 +35,23 @@ class Users {
                         'default'           => 1,
                         'sanitize_callback' => 'absint',
                         'validate_callback' => function ($v) {return is_numeric($v);},
-                        'description'       => __( 'Page number.', 'domain' ),
+                        'description'       => __( 'Page number.', 'wp-partnershipm' ),
                     ),
                     's'        => array(
                         'default'           => '',
                         'sanitize_callback' => 'sanitize_text_field',
-                        'description'       => __( 'Search keyword.', 'domain' ),
+                        'description'       => __( 'Search keyword.', 'wp-partnershipm' ),
                     ),
                     'status'   => array(
                         'default'           => '',
                         'sanitize_callback' => 'sanitize_text_field',
-                        'description'       => __( 'User status (e.g., pending, approved).', 'domain' ),
+                        'description'       => __( 'User status (e.g., pending, approved).', 'wp-partnershipm' ),
                     ),
                     'per_page' => array(
                         'default'           => 10,
                         'sanitize_callback' => 'absint',
                         'validate_callback' => function ($v) {return is_numeric($v);},
-                        'description'       => __( 'Number of users per page.', 'domain' ),
+                        'description'       => __( 'Number of users per page.', 'wp-partnershipm' ),
                     ),
                 ),
                 'permission_callback' => [Security::get_instance(), 'permission_callback']
@@ -112,8 +112,8 @@ class Users {
                 'email'      => $user->user_email,
                 'first_name' => $user->first_name,
                 'last_name'  => $user->last_name,
-
                 'meta'       => get_user_meta( $user->ID ),
+                ...$this->prepare_user_data_for_response( $user )
             );
         }
 
@@ -144,16 +144,27 @@ class Users {
         return [
             'id'          => $user->ID,
             'phone'       => '',
+            'roles'       => $user->roles,
             'username'    => $user->user_login,
             'email'       => $user->user_email,
             'firstName'   => $user->first_name,
             'lastName'    => $user->last_name,
             'displayName' => $user->display_name,
-            'roles'       => $user->roles,
             'avater'      => 'https://randomuser.me/api/portraits/men/' . $user->ID . '.jpg',
-            'locale'      => get_user_meta($user->ID, 'partnership_dashboard_locale', true)
+            'locale'      => get_user_meta($user->ID, 'partnership_dashboard_locale', true),
+            ...(array) $user
         ];
     }
 
+    public static function get_the_user_ip() {
+        if ( ! empty( $_SERVER['HTTP_CLIENT_IP'] ) ) {
+            $ip = $_SERVER['HTTP_CLIENT_IP'];
+        } elseif ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } else {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        }
+        return $ip;
+    }
 
 }

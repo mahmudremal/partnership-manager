@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 // import { Link } from "react-router-dom";
 import { Nav } from '@components/sidebar/nav';
 import { Link } from '@common/link';
-import { app_url } from '@functions';
+import { home_url } from '@functions';
 import Footer from '@components/element/Footer';
 import { ChevronRight, Home, Menu, MoonStar, Search, SunMedium, X } from 'lucide-react';
 import LanguageSwitcher from '@components/element/LanguageSwitcher';
@@ -35,7 +35,7 @@ const MainLayout = ({ children }) => {
                     <X />
                 </button>
                 <div>
-                    <Link to="/" className="sidebar-logo">
+                    <Link to={ home_url('/') } className="sidebar-logo">
                         <img src={ logo } alt={__('Site logo')} className="light-logo" />
                         <img src={ logoLight } alt={__('Site logo')} className="dark-logo" />
                         <img src={ logoIcon } alt={__('Site logo')} className="logo-icon" />

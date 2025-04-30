@@ -56,7 +56,7 @@ export const UserCard = ({ user, index }) => {
                     >
                         <li>
                             <Link
-                                to={ home_url(`/users-grid/${user.id}/edit`) }
+                                to={ home_url(`/users/${user.id}/edit`) }
                                 className="dropdown-item px-16 py-8 rounded text-secondary-light bg-hover-neutral-200 text-hover-neutral-900 d-flex align-items-center gap-10"
                             >
                                 {__('Edit')}
@@ -76,7 +76,7 @@ export const UserCard = ({ user, index }) => {
 
             <div className="ps-16 pb-16 pe-16 text-center mt--50">
                 <img
-                    src={ `https://randomuser.me/api/portraits/men/${user.id}.jpg` }
+                    src={ user?.avater??'' }
                     alt=""
                     className="border br-white border-width-2-px w-100-px h-100-px rounded-circle object-fit-cover"
                 />
@@ -95,7 +95,7 @@ export const UserCard = ({ user, index }) => {
                 </div>
 
                 <Link
-                    to={home_url(`/users-grid/${user.id}/view`)}
+                    to={home_url(`/users/${user.id}/view`)}
                     className="bg-primary-50 text-primary-600 bg-hover-primary-600 hover-text-white p-10 text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center justify-content-center mt-16 fw-medium gap-2 w-100"
                 >
                     {__('View Profile')}

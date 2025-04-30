@@ -1,4 +1,5 @@
 // import axios from 'axios';
+import Application from './invoice';
 
 class Frontend {
     constructor() {
@@ -11,6 +12,7 @@ class Frontend {
         this.setup_hooks();
     }
     setup_hooks() {
+        this.invoice_setup();
         this.add_necessery_css();
         this.register_service_worker();
         this.initialize_install_button();
@@ -166,6 +168,10 @@ class Frontend {
         } catch (error) {
             console.error("Error:", error);
         }
+    }
+
+    invoice_setup() {
+        Application(this.config);
     }
     
 }

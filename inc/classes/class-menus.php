@@ -70,6 +70,42 @@ class Menus {
 				],
 			]
 		];
+		$args['payment']		= [
+			'title'							=> __('Payment', 'wp-partnershipm'),
+			'description'					=> __('Payment configurations, gateway setups and all necessery things will be done form here.', 'wp-partnershipm'),
+			'fields'						=> [
+				[
+					'id' 					=> 'payment-paused',
+					'label'					=> __('Pause', 'wp-partnershipm'),
+					'description'			=> __('Mark to pause the application unconditionally.', 'wp-partnershipm'),
+					'type'					=> 'checkbox',
+					'default'				=> false
+				],
+				[
+					'id' 					=> 'payment-tap-secretkey',
+					'label'					=> __('Secret key', 'wp-partnershipm'),
+					'description'			=> __('Provide tap secret key.', 'wp-partnershipm'),
+					'type'					=> 'password',
+					'default'				=> ''
+				],
+				[
+					'id' 					=> 'payment-tap-publickey',
+					'label'					=> __('Public key', 'wp-partnershipm'),
+					'description'			=> __('Provide tap public key.', 'wp-partnershipm'),
+					'type'					=> 'password',
+					'default'				=> ''
+				],
+
+
+				[
+					'id' 					=> 'payment-invoice-bg',
+					'label'					=> __('Invoice background', 'wp-partnershipm'),
+					'description'			=> __('Provide here an image url that will work as an background image of anonymouse payment background.', 'wp-partnershipm'),
+					'type'					=> 'url',
+					'default'				=> ''
+				],
+			]
+		];
 
 		return $args;
 	}

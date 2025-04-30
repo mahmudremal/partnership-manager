@@ -4,7 +4,7 @@ import { useTranslation } from "@context/LanguageProvider";
 import { Camera } from "lucide-react";
 
 export default function UsersEdit({ viewType = 'list' }) {
-    const { userId } = useParams();
+    const { userid } = useParams();
     const { __ } = useTranslation();
     const [formData, setFormData] = useState({
         name: '',
