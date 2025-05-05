@@ -110,27 +110,27 @@ export default function InvoiceEdit() {
               <div className="row gy-3">
                 <div className="col-sm-6">
                   <label className="form-label">{__('First Name')}</label>
-                  <input type="text" className="form-control" value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
+                  <input type="text" className="form-control" value={form?.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
                 </div>
                 <div className="col-sm-6">
                   <label className="form-label">{__('Middle Name')}</label>
-                  <input type="text" className="form-control" value={form.middle_name} onChange={(e) => setForm({ ...form, middle_name: e.target.value })} />
+                  <input type="text" className="form-control" value={form?.middle_name} onChange={(e) => setForm({ ...form, middle_name: e.target.value })} />
                 </div>
                 <div className="col-sm-6">
                   <label className="form-label">{__('Last Name')}</label>
-                  <input type="text" className="form-control" value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} />
+                  <input type="text" className="form-control" value={form?.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} />
                 </div>
                 <div className="col-sm-6">
                   <label className="form-label">{__('Email')}</label>
-                  <input type="email" className="form-control" value={form.client_email} onChange={(e) => setForm({ ...form, client_email: e.target.value })} />
+                  <input type="email" className="form-control" value={form?.client_email} onChange={(e) => setForm({ ...form, client_email: e.target.value })} />
                 </div>
                 <div className="col-sm-6">
                   <label className="form-label">{__('Phone')}</label>
-                  <PhoneInput country={'us'} value={form.client_phone} onChange={(phone) => setForm({ ...form, client_phone: phone })} inputClass="form-control w-100" />
+                  <PhoneInput country={'us'} value={form?.client_phone} onChange={(phone) => setForm({ ...form, client_phone: phone })} inputClass="form-control w-100" />
                 </div>
                 <div className="col-sm-6">
                   <label className="form-label">{__('Currency')}</label>
-                  <select className="form-control" value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })}>
+                  <select className="form-control" value={form?.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })}>
                     <option value="USD">USD</option>
                     <option value="EUR">EUR</option>
                     <option value="INR">INR</option>

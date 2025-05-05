@@ -1,0 +1,243 @@
+{
+    "message": "You are an expert SEO Engineer specializing in WordPress and Yoast SEO Pro. Your primary goal is to analyze the provided post data and generate a comprehensive and actionable SEO optimization plan as a structured JSON object. Focus on providing specific and optimized values for all relevant SEO fields, including the slug, meta title, meta description, Open Graph title and description, and Twitter card title and description. Ensure these are compelling and keyword-rich based on thorough keyword research and understanding of the post content. While you should consider Yoast SEO best practices, the priority is to populate these fields with optimized content, not just provide general advice or scores. You should also recommend a canonical URL if necessary and configure the robots meta directives appropriately. Your output MUST be a valid JSON object conforming to the specified schema.",
+    "format": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "description": "The optimized URL slug for the post."
+          },
+          "metadata": {
+            "type": "object",
+            "description": "SEO metadata for the post.",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "The optimized meta title."
+              },
+              "description": {
+                "type": "string",
+                "description": "The optimized meta description."
+              },
+              "canonical_url": {
+                "type": "string",
+                "description": "The recommended canonical URL (if different)."
+              },
+              "robots": {
+                "type": "object",
+                "description": "Robots meta directives.",
+                "properties": {
+                  "index": {
+                    "type": "boolean",
+                    "description": "Should search engines index this page?"
+                  },
+                  "follow": {
+                    "type": "boolean",
+                    "description": "Should search engines follow links on this page?"
+                  },
+                  "advanced": {
+                    "type": "object",
+                    "description": "Advanced robots meta directives.",
+                    "properties": {
+                      "noindex": {
+                        "type": "boolean"
+                      },
+                      "nofollow": {
+                        "type": "boolean"
+                      },
+                      "noarchive": {
+                        "type": "boolean"
+                      },
+                      "nosnippet": {
+                        "type": "boolean"
+                      },
+                      "noodp": {
+                        "type": "boolean"
+                      },
+                      "noydir": {
+                        "type": "boolean"
+                      },
+                      "noimageindex": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "index",
+                  "follow",
+                  "advanced"
+                ]
+              }
+            },
+            "required": [
+              "title",
+              "description"
+            ]
+          },
+          "og": {
+            "type": "object",
+            "description": "Open Graph meta properties.",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "The optimized Open Graph title."
+              },
+              "description": {
+                "type": "string",
+                "description": "The optimized Open Graph description."
+              },
+              "image": {
+                "type": "string",
+                "description": "The recommended Open Graph image URL."
+              },
+              "type": {
+                "type": "string",
+                "description": "The Open Graph object type (e.g., article)."
+              }
+            },
+            "required": [
+              "title",
+              "description",
+              "type"
+            ]
+          },
+          "twitter": {
+            "type": "object",
+            "description": "Twitter Card meta properties.",
+            "properties": {
+              "card": {
+                "type": "string",
+                "description": "The Twitter card type (e.g., summary_large_image)."
+              },
+              "title": {
+                "type": "string",
+                "description": "The optimized Twitter title."
+              },
+              "description": {
+                "type": "string",
+                "description": "The optimized Twitter description."
+              },
+              "image": {
+                "type": "string",
+                "description": "The recommended Twitter image URL."
+              }
+            },
+            "required": [
+              "card",
+              "title",
+              "description"
+            ]
+          },
+          "schema": {
+            "type": "object",
+            "description": "Schema.org markup recommendations.",
+            "properties": {
+              "article_type": {
+                "type": "string",
+                "description": "The recommended Article schema type (e.g., BlogPosting)."
+              },
+              "enable_schema": {
+                "type": "boolean",
+                "description": "Should schema.org markup be implemented?"
+              },
+              "custom_schema": {
+                "type": "string",
+                "description": "Any custom JSON-LD schema to include."
+              }
+            }
+          },
+          "focus_keyword": {
+            "type": "string",
+            "description": "The primary focus keyword for the post."
+          },
+          "related_keywords": {
+            "type": "array",
+            "description": "A list of semantically related keywords to target.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "analysis": {
+            "type": "object",
+            "description": "Detailed SEO and readability analysis feedback.",
+            "properties": {
+              "overall_score": {
+                "type": "string",
+                "description": "An overall SEO score or rating (e.g., Good, Average, Needs Improvement)."
+              },
+              "readability": {
+                "type": "object",
+                "description": "Readability analysis details.",
+                "properties": {
+                  "score": {
+                    "type": "string",
+                    "description": "A readability score (e.g., Flesch Reading Ease score)."
+                  },
+                  "feedback": {
+                    "type": "array",
+                    "description": "Specific feedback on readability aspects and how to improve them.",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "score",
+                  "feedback"
+                ]
+              },
+              "seo": {
+                "type": "object",
+                "description": "Specific SEO analysis feedback.",
+                "properties": {
+                  "score": {
+                    "type": "string",
+                    "description": "An SEO score or rating."
+                  },
+                  "feedback": {
+                    "type": "array",
+                    "description": "Specific feedback on SEO elements (e.g., keyword density, internal/external linking, image optimization) and how to improve them.",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "score",
+                  "feedback"
+                ]
+              }
+            },
+            "required": [
+              "readability",
+              "seo"
+            ]
+          },
+          "advanced": {
+            "type": "object",
+            "description": "Advanced SEO settings.",
+            "properties": {
+              "redirect_url": {
+                "type": "string",
+                "description": "A recommended redirect URL (if needed)."
+              },
+              "breadcrumb_title": {
+                "type": "string",
+                "description": "The title to use in breadcrumbs."
+              }
+            }
+          }
+        },
+        "required": [
+          "slug",
+          "metadata",
+          "og",
+          "twitter",
+          "schema",
+          "focus_keyword",
+          "related_keywords",
+          "analysis"
+        ]
+    }
+}

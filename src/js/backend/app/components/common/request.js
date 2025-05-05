@@ -43,12 +43,14 @@ function request(url, options = {}) {
     // })
 
     return fetch(url, finalOptions)
-    .then(res => {
-        if (!res.ok) {
-            const error = new Error(`HTTP error ${res.status}`);
-            error.response = res;throw error;
+    .then(response => {
+        if (!response.ok) {
+            const error = new Error(`HTTP error ${response.status}`);
+            error.response = response;throw error;
         }
-        return res.json();
+        const total = response.headers.get('x-wp-total');
+        const totalPages = response.headers.get('x-wp-totalpages');
+        return response.json().then(data => (total && totalPages) ? ({list: data, total, totalPages}) : data);
     })
     .then(data => {
         cacheStore.set(cacheKey, {

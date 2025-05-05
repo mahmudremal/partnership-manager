@@ -38,6 +38,7 @@ class Assets {
 		// Enqueue styles.
 		$version = $this->filemtime(WP_PARTNERSHIPM_BUILD_CSS_DIR_PATH . '/public.css');
 		wp_register_style('wp-partnershipm-public', WP_PARTNERSHIPM_BUILD_CSS_URI . '/public.css', [], $version, 'all');
+		wp_register_style('wp-partnershipm-pricing', WP_PARTNERSHIPM_BUILD_CSS_URI . '/pricing.css', [], $version, 'all');
 		wp_register_style('wp-partnershipm-admin', WP_PARTNERSHIPM_BUILD_CSS_URI . '/admin.css', [], $this->filemtime(WP_PARTNERSHIPM_BUILD_CSS_DIR_PATH . '/admin.css'), 'all');
 	}
 
@@ -49,6 +50,7 @@ class Assets {
 
 		// Enqueue scripts.
 		wp_register_script('wp-partnershipm-public', WP_PARTNERSHIPM_BUILD_JS_URI . '/public.js', [], $this->filemtime(WP_PARTNERSHIPM_BUILD_JS_DIR_PATH . '/public.js'), true);
+		wp_register_script('wp-partnershipm-pricing', WP_PARTNERSHIPM_BUILD_JS_URI . '/pricing.js', [], $this->filemtime(WP_PARTNERSHIPM_BUILD_JS_DIR_PATH . '/pricing.js'), true);
 		$this->admin_enqueue_scripts(false);
 	}
 

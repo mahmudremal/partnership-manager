@@ -192,9 +192,9 @@ class Invoice {
         ];
         // $_updated = $this->create_invoice($payload);
         // 
-        // $response = $this->get_invoice($invoice_id);
+        $response = $this->get_invoice($invoice_id);
         // 
-		return rest_ensure_response($_POST);
+		return rest_ensure_response($response);
 	}
 	public function api_get_invoice(WP_REST_Request $request) {
 		$invoice_id = $request->get_param('invoice_id');
@@ -241,6 +241,18 @@ class Invoice {
             ],
         ];
         $response = Payment::get_instance()->create_payment_intent($payload, $request->get_param('provider'));
+        // 
+        $customer = $response['customer'] ?? [];
+        $_user_created = Referral::get_instance()->maybe_create_user([
+            'email' => $customer['client_email'] ?? $customer['email'] ?? '',
+            'first_name' => $customer['first_name'] ?? '',
+            'last_name' => $customer['last_name'] ?? '',
+            'meta_data' => [
+                '_tap_customer_id' => $customer['id'] ?? null
+            ]
+        ]);
+        $response['respective_user'] = $_user_created;
+        // 
         if (isset($response['transaction']) && isset($response['transaction']['url'])) {
             $response = [
                 ...$response,
@@ -254,8 +266,8 @@ class Invoice {
     public function create_invoice($args) {
         global $wpdb;
 
-        if (empty($args['invoice_id']) || $args['invoice_id'] == 0) {
-            $args['invoice_id'] = wp_unique_id('inv');
+        if (!isset($args['invoice_id']) || empty($args['invoice_id']) || $args['invoice_id'] == 0) {
+            $args['invoice_id'] = uniqid('inv');
         }
         $invoice_id = sanitize_title($args['invoice_id']);
         $client_email = sanitize_email($args['client_email'] ?? '');
@@ -264,6 +276,7 @@ class Invoice {
 
         $wpdb->insert($this->invoice_table, [
             'invoice_id' => $invoice_id,
+            'currency' => $args['currency'] ?? 'USD',
             'client_email' => $client_email,
             'total' => $total,
             'status' => 'unpaid'
@@ -293,17 +306,31 @@ class Invoice {
         $item_query = $wpdb->prepare("SELECT * FROM {$this->item_table} WHERE invoice_id = %d", $invoice_data['id']);
         $items = $wpdb->get_results($item_query, ARRAY_A);
         $invoice_data['items'] = $items;
+
+        if (isset($invoice_data['status']) && !in_array($invoice_data['status'], ['paid', 'cancelled'])) {
+            $invoice_data['invoice_link'] = site_url(sprintf('/invoice/%s/pay/', $invoice_id));
+        }
+        
         return $invoice_data;
     }
     public function mark_paid_invoice($invoice_id) {
         global $wpdb;
-        $invoice_query = $wpdb->prepare("SELECT * FROM {} WHERE invoice_id = %s", $invoice_id);
+        $invoice = $this->get_invoice($invoice_id);
         $_updated = $wpdb->update(
             $this->invoice_table,
             ['status' => 'paid'],
             ['invoice_id' => $invoice_id],
             ['%s'], ['%s']
         );
+        $user = get_user_by('email', $invoice['client_email']);
+        if ($user) {
+            $ref = $_COOKIE['ref'] ?? null;
+            if ($ref && !empty($ref)) {
+                $referrer_id = Referral::get_instance()->check_referral_code($ref);
+                $post_id = do_action('create_referral_record', $referrer_id, $user->ID);
+                // update_post_meta($post_id, 'converted', false);
+            }
+        }
         return $_updated;
     }
 

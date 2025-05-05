@@ -29,7 +29,7 @@ export default function InvoicesList({  }) {
         setLoading(true);
         try {
             const res = await request(rest_url(`/partnership/v1/invoice/list?page=${page}&s=${search}&status=${status}&per_page=${perPage}`));
-            setInvoices(res || []);
+            setInvoices(res?.list??[]);
             setTotalPages(res.total_pages || 1);
             setTotalEntries(res.total || 0);
         } catch (error) {
@@ -132,11 +132,11 @@ export default function InvoicesList({  }) {
                                         </td>
                                         <td className="text-center">
                                             <div className="d-flex align-items-center gap-10 justify-content-center">
-                                                <Link to={ home_url(`/invoices/${invoice.invoice_id}/view`) } className="bg-info-focus text-info-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center" ><Eye className="icon text-xl" /></Link>
-                                                <button
+                                                <a href={ home_url(`../invoice/${invoice.invoice_id}/pay`) } className="bg-info-focus text-info-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center" target="_blank"><Eye className="icon text-xl" /></a>
+                                                <Link
+                                                    to={ home_url(`/invoices/${invoice.invoice_id}/view`) }
                                                     className="bg-success-focus text-success-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center"
-                                                    onClick={() => setPopup(<div>Hello from popup!</div>)}
-                                                ><SquarePen className="icon" /></button>
+                                                ><SquarePen className="icon" /></Link>
                                                 <button
                                                     className="bg-danger-focus text-danger-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center"
                                                     onClick={() => setPopup(<div>Hello from popup!</div>)}

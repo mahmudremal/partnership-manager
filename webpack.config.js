@@ -15,6 +15,7 @@ const SRC_DIR = path.resolve(__dirname, 'src');
 
 module.exports = {
   entry: {
+    pricing: JS_DIR + '/pricing.js',
     public: JS_DIR + '/public.js',
     admin: JS_DIR + '/admin.js',
     task: JS_DIR + '/task.js',

@@ -33,17 +33,7 @@ const Referrals = ({ filters = 'any' }) => {
         const url = rest_url(`/partnership/v1/referrals?page=${page}&s=${search}&status=${status}&per_page=${perPage}`);
         try {
             const res = await request(url);
-            const referralList = res.map(r => ({
-                id: r.id,
-                referrer_id: r.referrer_id,
-                user_id: r.user_id,
-                join_date: parseInt(r.meta['wp_user-settings-time'].join('')),
-                status: r.converted ? 'active' : 'inactive',
-                converted: r.converted,
-                avatar: r.avater
-                // map the response as needed
-            }));
-            setReferrals(referralList);
+            setReferrals(res?.list??[]);
             setTotalPages(res.total_pages || 1);
             setTotalEntries(res.total || 0);
         } catch (error) {
@@ -126,13 +116,13 @@ const Referrals = ({ filters = 'any' }) => {
                             </thead>
                             <tbody>
                                 {referrals.length > 0 ? referrals.map((referral, index) => (
-                                    <tr key={referral.id}>
+                                    <tr key={index}>
                                         <td>{(page - 1) * perPage + index + 1}</td>
                                         <td>{dayjs.unix(referral.join_date).utc().format('DD MMM YYYY')}</td>
-                                        <td>{referral.referrer_id}</td>
+                                        <td>{referral.id}</td>
                                         <td>{referral.user_id}</td>
                                         <td className="text-center">
-                                            {referral.status === 'active' ? (
+                                            {referral.converted === 'active' ? (
                                                 <span className="bg-success-focus text-success-600 border border-success-main px-24 py-4 radius-4 fw-medium text-sm">{__('Active')}</span>
                                             ) : (
                                                 <span className="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">{__('Inactive')}</span>

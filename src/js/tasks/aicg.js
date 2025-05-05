@@ -1,0 +1,486 @@
+const schemas_dir = 'https://tools4everyone.local/wp-content/plugins/partnership-manager/src/js/tasks/schemas';
+
+class LLM {
+    constructor(endpoint, model, tools = {}) {
+      this.endpoint = endpoint;
+      this.model = model;
+      this.tools = tools;
+      this.context = [];
+      this.system = null;
+      this.format = null;
+    }
+
+    setSystemPrompt(args) {
+      const { message, format = null } = args;
+      this.system = message;
+      if (format) {this.format = format;}
+    }
+
+    clearSystem() {
+      this.system = this.format = null;
+    }
+
+    async _callLLM(messages, tool_choice) {
+      if (this.system) {messages = [{role: 'system', content: this.system}, ...messages];}
+      const requestBody = {
+        model: this.model,
+        messages: messages,
+        stream: false,
+      };
+      if (tool_choice) requestBody.tool_choice = tool_choice;
+      if (Object.keys(this.tools).length > 0) {
+        requestBody.tools = Object.values(this.tools).map(tool => ({
+          type: "function",
+          function: {
+            name: tool.name,
+            description: tool.description,
+            parameters: tool.parameters,
+          }
+        }));
+      }
+      if (this.format) {
+        requestBody.format = this.format;
+      }
+      // generate
+      const response = await fetch(`${this.endpoint}/api/chat`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(requestBody),
+      });
+      if (!response.ok) throw new Error(`LLM API error: ${response.statusText}`);
+      const data = await response.json();
+      return data?.message??(data?.response);
+    }
+
+    async aask(userInput) {
+      this.context.push({"role": "user", "content": userInput});
+      let llmResponse = await this._callLLM(this.context);
+      this.context.push(llmResponse);
+      while (llmResponse.tool_calls?.length) {
+        const newToolMessages = [];
+        for (const toolCall of llmResponse.tool_calls) {
+          const functionToCall = this.tools[toolCall.function.name];
+          if (functionToCall) {
+            try {
+              const result = await functionToCall.execute(JSON.parse(toolCall.function.arguments));
+              newToolMessages.push({"role": "tool", "tool_call_id": toolCall.id, "content": JSON.stringify(result)});
+            } catch (error) {
+              newToolMessages.push({"role": "tool", "tool_call_id": toolCall.id, "content": JSON.stringify({error: error.message})});
+            }
+          } else {
+            newToolMessages.push({"role": "tool", "tool_call_id": toolCall.id, "content": JSON.stringify({error: "Tool not found"})});
+          }
+        }
+        this.context.push(...newToolMessages);
+        llmResponse = await this._callLLM(this.context);
+        this.context.push(llmResponse);
+      }
+      return llmResponse.content;
+    }
+
+    add_tool(toolDefinition) {
+      if (toolDefinition.name && toolDefinition.description && toolDefinition.parameters && typeof toolDefinition.execute === 'function') {
+        this.tools[toolDefinition.name] = toolDefinition;
+      }
+    }
+
+    clearContext() {
+      this.context = [];
+    }
+
+    getContext() {
+      return [...this.context];
+    }
+
+    async forceToolCall(userInput, toolName, toolArguments) {
+      this.context.push({"role": "user", "content": userInput});
+      const toolToForce = this.tools[toolName];
+      if (!toolToForce) throw new Error(`Tool "${toolName}" not found.`);
+      let llmResponse = await this._callLLM(this.context, { name: toolName });
+      this.context.push(llmResponse);
+      if (llmResponse.tool_calls?.length) {
+        const toolCall = llmResponse.tool_calls[0];
+        if (toolCall.function.name === toolName) {
+          try {
+            const result = await toolToForce.execute(toolArguments);
+            this.context.push({"role": "tool", "tool_call_id": toolCall.id, "content": JSON.stringify(result)});
+            const finalLlmResponse = await this._callLLM(this.context);
+            this.context.push(finalLlmResponse);
+            return finalLlmResponse.content;
+          } catch (error) {
+            this.context.push({"role": "tool", "tool_call_id": toolCall.id, "content": JSON.stringify({error: error.message})});
+            const finalLlmResponse = await this._callLLM(this.context);
+            this.context.push(finalLlmResponse);
+            return finalLlmResponse.content;
+          }
+        }
+      }
+      return llmResponse.content;
+    }
+}
+
+async function main() {
+  const llm = new LLM("http://localhost:11434", "romi"); // llama3.1 | romi | deepseek-r1:1.5b
+  llm.add_tool({
+    name: "get_current_weather",
+    description: "Get the current weather in a given location",
+    parameters: {
+      type: "object",
+      properties: {
+        location: { type: "string", description: "The city and state, e.g. San Francisco, CA" },
+        unit: { type: "string", enum: ["celsius", "fahrenheit"] }
+      },
+      required: ["location"]
+    },
+    execute: async (args) => (args.location.toLowerCase().includes("bashikpur")) ? { temperature: 30, unit: "celsius", description: "Clear sky" } : { temperature: 25, unit: "celsius", description: "Partly cloudy" }
+  });
+  const response1 = await llm.aask("What's the weather like in Bashikpur?");
+  console.log("LLM Response 1:", response1);
+  const response2 = await llm.aask("How does that compare to London?");
+  console.log("LLM Response 2:", response2);
+  const forcedResponse = await llm.forceToolCall("Tell me the weather in Tokyo.", "get_current_weather", { location: "Tokyo, Japan", unit: "fahrenheit" });
+  console.log("Forced Tool Call Response:", forcedResponse);
+  llm.clearContext();
+  const response3 = await llm.aask("What is the capital of France?");
+  console.log("LLM Response 3 (new context):", response3);
+}
+// main().catch(console.error);
+
+class ContentGenerator extends LLM {
+  constructor(llmEndpoint, llmModel) {
+    super(llmEndpoint, llmModel);
+    this.contentType = "post";
+    this.promptContext = "";
+  }
+  setContentType(type) {
+    this.contentType = type;
+  }
+  setPromptContext(context) {
+    this.promptContext = context;
+  }
+
+  trimJsonResponse(res) {
+    let match;
+    if (match = res.match(/```json\s*([\s\S]*?)\s*```/) && match?.[1]) {
+      return match[1];
+    }
+    return res;
+  }
+  
+  createPostData(title, content, featuredImageId = null, categories = [], tags = []) {
+    const postData = {
+      title: title,
+      content: content,
+      status: 'publish',
+    };
+
+    if (featuredImageId) {
+      postData.featured_media = featuredImageId;
+    }
+    if (categories && categories.length > 0) {
+      postData.categories = categories;
+    }
+    if (tags && tags.length > 0) {
+      postData.tags = tags;
+    }
+    return postData;
+  }
+  async uploadMedia(file, restRoot) {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const wpResponse = await fetch(`${restRoot}/media`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${btoa('admin:password')}`,
+        },
+        body: formData,
+      });
+
+      if (!wpResponse.ok) {
+        const errorData = await wpResponse.json();
+        console.error('WordPress Media API Error:', errorData);
+        throw new Error(`WordPress Media API Error: ${wpResponse.statusText} - ${errorData.message || 'No details'}`);
+      }
+      const media = await wpResponse.json();
+      return media;
+    } catch (error) {
+      console.error('Error uploading media to WordPress:', error);
+      throw error;
+    }
+  }
+  createContent(task) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const task_desc = task?.task_desc;
+        const { title = '', context = null, featuredImage = null, categories = [], tags = [] } = task?.task_object;
+
+        this.setSystemPrompt({message: `You're a good content writter. you write content with a proper planning, reseach based and informative.
+          when you want to put an image inside anywhere on your content, you put a shortcode [media type="image/png" title="filename" prompt="prompt to generate image/video"], that autometically replace with an ai generated image/video based on the prompt in it. You always ensure readbility, perfection, tone balance. If SEO is applicable (e.g., for articles or blogs), pre-plan concise, high-ranking, low competition keywords. Also, design relevant SEO elements like Meta Description, Focus Keywords, and schema for best results.`});
+          // 
+
+        // Step 1: Set prompt context and include the task description
+        if (context) {this.setPromptContext(context);}
+
+        // Step 2: Generate a planning phase based on task_desc
+        const planningPrompt = `${this.promptContext}\nTask Description: "${task_desc}"`;
+
+        
+        
+        const prevFormat = this.format;this.format = await fetch(`${schemas_dir}/${task.task_type}.json`).then(d => d.json());
+        const planningOutput = this.trimJsonResponse(await this.aask(planningPrompt));
+        this.format = null; // prevFormat
+        console.log("Generated Planning Output:", planningOutput);
+
+        // Step 3: Parse the planning output
+        const parsedPlanning = JSON.parse(planningOutput);
+        const { contentType, keywords, metaDescription, outline } = parsedPlanning;
+
+        // Step 4: Generate content based on the outline's key points
+        let fullContent = `<h2>${title}</h2>`;
+        for (const point of outline?.keyPoints??[]) {
+          const pointPrompt = this.promptContext + `\nGenerate detailed content for the following point for ${contentType}:\n${point}`;
+          const pointContent = await this.aask(pointPrompt);
+
+          // Step 4.1: Replace shortcode with media elements
+          fullContent += `\n\n${this.replaceShortcodes(pointContent)}`;
+          console.log(`Generated content for point: ${point}`);
+        }
+
+        // Step 5: Prepare the FormData object to send to the server
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('content', fullContent);
+        if (featuredImage) {
+          formData.append('featuredImage', featuredImage); // Include media as part of FormData
+        }
+        if (categories.length > 0) {
+          formData.append('categories', JSON.stringify(categories)); // Include categories
+        }
+        if (tags.length > 0) {
+          formData.append('tags', JSON.stringify(tags)); // Include tags
+        }
+        if (keywords && keywords.length > 0) {
+          formData.append('keywords', JSON.stringify(keywords)); // Include keywords
+        }
+        if (metaDescription) {
+          formData.append('metaDescription', metaDescription); // Include meta description if applicable
+        }
+        // Step 6: Resolve with the constructed FormData object for server
+        resolve(formData);
+      } catch (error) {
+        console.error('Error in generation:', error);
+        // throw error; // Handle error gracefully
+        reject(error);
+      }
+    });
+  }
+
+  // Step 4.1 Implementation: Function to replace shortcodes with media elements
+  async replaceShortcodes(content) {
+    // Match shortcode pattern and extract properties
+    const mediaRegex = /\[media type="(\w+)" title="([^"]+)" prompt="([^"]+)"\]/g;
+    const mediaPromises = [];
+
+    const replacedContent = content.replace(mediaRegex, (match, mediaType, title, prompt) => {
+      // Generate media item based on prompt
+      if (mediaType === 'image') {
+        const mediaPromise = this.generateMedia({mediaType, title, prompt}).then(imageUrl => {
+          return `<img src="${imageUrl}" alt="${title}" title="${title}">`;
+        });
+        mediaPromises.push(mediaPromise);
+        return ''; // Keep the placeholder for now
+      }
+      // Handle other media types like video, audio, etc. (implement as needed)
+      return match; // Return the original match for unsupported types
+    });
+
+    // Wait for all media generation to complete
+    return Promise.all(mediaPromises).then(mediaElements => {
+      // Replace each shortcode with the corresponding media element
+      return replacedContent + mediaElements.join(''); // Append generated media elements
+    });
+  }
+
+  // Function to generate media based on prompt
+  async generateMedia(media) {
+    const mediasGenerated = ['https://images.unsplash.com/photo-1697660125394-e857584ea92a?auto=format&fit=crop&q=80&w=1974&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGElMjBiZWF1dGlmdWwlMjB3b21lbnxlbnwwfHwwfHx8MA%3D%3D', 'https://images.unsplash.com/photo-1742038106844-d976720a45df?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 'https://images.unsplash.com/photo-1737536229149-f82dc23fb2b9?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']; // await this.aask(prompt);
+    const imageUrl = mediasGenerated[Math.floor(Math.random() * mediasGenerated.length)];
+    return imageUrl;
+  }
+}
+class TaskHandler {
+  constructor(restRoot, llmEndpoint, llmModel) {
+    this.restRoot = restRoot;
+    this.contentGenerator = new ContentGenerator(llmEndpoint, llmModel);
+    this.task = null;
+  }
+  async getTask() {
+    try {
+      const response = await fetch(`${this.restRoot}/partnership/v1/tasks/search?status=pending`);
+      if (!response.ok) {
+        throw new Error(`Task API error: ${response.statusText}`);
+      }
+      const task = await response.json();
+      return task;
+    } catch (error) {
+      console.error('Error fetching task:', error);
+      throw error;
+    }
+  }
+  processTask() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const task = this.task = await this.getTask();
+        if (!task || !task.task_type) {
+          console.log('No task available or invalid task format.');
+          this.proceed = false;
+          return;
+        }
+        const taskObject = task.task_object;
+
+        switch (task.task_type) {
+          case 'create_content':
+              this.contentGenerator.createContent(task).then(postData => {
+                console.log('Content generated and post created:', postData);
+                postData.append('task_id', task?.id);
+                resolve(postData);
+              })
+              .catch(e => reject(e));
+            break;
+          default:
+            // console.warn(`Unknown task type: ${task.task_type}`);
+            // reject(`Unknown task type: ${task.task_type}`);
+            fetch(`${schemas_dir}/${task.task_type}.json`)
+            .then(d => d.json())
+            .then(async json_schema => {
+              let post = null;const postData = new FormData();
+              this.contentGenerator.setSystemPrompt(json_schema);
+              // 
+              // resolve(postData);return;
+              // 
+              if (taskObject?.post_type && taskObject?.post_id) {
+                post = await fetch(`${this.restRoot}/partnership/v1/post-table/${taskObject?.post_type}/${taskObject?.post_id}`).then(d => d.json()).then(d => JSON.stringify(d));
+              }
+              const response = await this.contentGenerator.aask(`${task?.task_desc??'Data'}: ${post ? post : JSON.stringify({'Task description': task?.task_desc, data: taskObject})}`);
+              const response_json = JSON.parse(response);
+              postData.append('task_id', task?.id);
+              postData.append('data', response_json);
+              resolve(postData);
+            })
+            .catch(e => {throw e;});
+            break;
+        }
+      } catch (error) {
+        this.proceed = false;
+        console.error('Error processing content creation task:', error);
+        reject(`Error processing content creation task: ${error?.message??''}`);
+      }
+    });
+  }
+  submitTask(data) {
+    return new Promise(async (resolve, reject) => {
+      const task_id = data.get('task_id');
+      if (!task_id) {reject(new Error('Task identification data missing'));return;}
+      fetch(`${this.restRoot}/partnership/v1/tasks/${task_id}/submit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${btoa('admin:password')}`,
+        },
+        body: data, // JSON.stringify(data)
+      })
+      .then(async res => {
+        if (!res.ok) {
+          return res.json().then(errorData => {
+            throw new Error(`WordPress API error: ${res.statusText} - ${errorData.message || 'No details available'}`);
+          });
+        }
+        return res.json();
+      })
+      .then(data => {
+        resolve(data);
+      })
+      .catch(error => {
+        console.error('Fetch error:', error);
+        reject(error);
+      });
+    });
+  }
+
+  async processJobs() {
+    this.proceed = true;
+    while (this.proceed) {
+      await this.processTask()
+      .then(async r => await this.submitTask(r))
+      .then(r => this.proceed = false)
+      .catch(e => {
+        this.proceed = false;
+        console.error(e);
+      });
+    }
+  }
+}
+const taskHandler = new TaskHandler('https://tools4everyone.local/wp-json', 'http://localhost:11434', 'romi');
+taskHandler.processJobs();
+
+// 
+// taskHandler.contentGenerator.aask('Why the sky blue?');
+// 
+
+
+
+
+/**
+ * TO update post data
+ */
+function updatePostData(postType, postId, dataToUpdate) {
+    return new Promise(async (resolve, reject) => {
+      const apiUrl = `/wp-json/partnership/v1/post-table/${postType}/${postId}`;
+  
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(dataToUpdate),
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          reject({ success: false, error: errorData });
+          return;
+        }
+  
+        const responseData = await response.json();
+        resolve({ success: true, data: responseData });
+  
+      } catch (error) {
+        reject({ success: false, error: { message: error.message } });
+      }
+    });
+}
+
+// const updateTitlePayload = {post_title: 'New Updated Title'};
+// updatePostData('post', 123, updateTitlePayload).then(response => console.log('Update Success:', response)).catch(error => console.error('Update Error:', error));
+
+// const updateMetaPayload = {meta_input: {custom_field: 'new meta value'}};
+
+// updatePostData('post', 123, updateMetaPayload).then(response => console.log('Meta Update Success:', response)).catch(error => console.error('Meta Update Error:', error));
+
+// const updateContentPayload = {post_content: 'This is the new content of the post.'};
+
+// updatePostData('post', 123, updateContentPayload).then(response => console.log('Content Update Success:', response)).catch(error => console.error('Content Update Error:', error));
+
+// const createPagePayload = {post_title: 'New Page Title',post_content: 'Content of the new page.',post_status: 'draft'};
+
+// updatePostData('page', 0, createPagePayload).then(response => console.log('Create Success:', response)).catch(error => console.error('Create Error:', error));
+
+
+
+
+
+
+// (function(){function l(u,c){var d=document,t='script',o=d.createElement(t),s=d.getElementsByTagName(t)[0];o.async=true;o.src=u;if(c)o.onload=c;s.parentNode.insertBefore(o,s);}l('https://tools4everyone.local/wp-content/plugins/partnership-manager/src/js/tasks/aicg.js');})();

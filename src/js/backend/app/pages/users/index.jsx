@@ -33,7 +33,7 @@ export default function Users({ viewType = 'list' }) {
         const url = rest_url(`/partnership/v1/users?page=${page}&s=${search}&status=${status}&per_page=${perPage}`);
         try {
             const res = await request(url);
-            const sortedUsers = res.map(r => ({
+            const sortedUsers = (res?.list??[]).map(r => ({
                 id: r.id,
                 email: r.email,
                 name: `${r.first_name} ${r.last_name}`,

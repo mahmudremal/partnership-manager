@@ -2,8 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import logo from '@img/logo.png';
 
-const Invoice = ({ publicKey = null, bgImage = '' }) => {
+const Checkout = ({ publicKey = null, bgImage = '' }) => {
   const cardRef = useRef(null);
   const [tap, setTap] = useState(null);
   const [elements, setElements] = useState(null);
@@ -81,42 +82,7 @@ const Invoice = ({ publicKey = null, bgImage = '' }) => {
     if (successUrl) {
       const win = window.open(successUrl, '_blank', 'width=600,height=800');
       const checkClosed = setInterval(() => {
-        if (win?.closed) {
-          clearInterval(checkClosed);
-          // Verify transaction
-          // request(rest_url(`/partnership/v1/payment/verify/tap/${transactionId}`))
-          // .then(verify => {
-          //     if (verify?.success) {
-          //         setPopup(
-          //             <div className="text-center xpo_p-8">
-          //                 <span className="w-100-px h-100-px bg-success-600 rounded-circle d-inline-flex justify-content-center align-items-center text-2xxl mb-32 text-white">
-          //                     <Check />
-          //                 </span>
-          //                 <h5 className="mb-8 text-2xl">{__('Payment Successful')}</h5>
-          //                 <p className="text-neutral-500 mb-0">{__('Thank you for your payment!')}</p>
-          //             </div>
-          //         );
-          //     } else {
-          //         setPopup(
-          //             <div className="text-center xpo_p-8">
-          //                 <span className="w-100-px h-100-px bg-danger-600 rounded-circle d-inline-flex justify-content-center align-items-center text-2xxl mb-32 text-white">
-          //                     <X />
-          //                 </span>
-          //                 <h5 className="mb-8 text-2xl">{__('Payment Failed')}</h5>
-          //                 <p className="text-neutral-500 mb-0">{__('The transaction could not be completed.')}</p>
-          //             </div>
-          //         );
-          //     }
-          // })
-          // .catch(() => {
-          //     setPopup(
-          //         <div className="text-center xpo_p-8">
-          //             <h5 className="mb-8 text-2xl">{__('Error')}</h5>
-          //             <p className="text-neutral-500">{__('Failed to verify payment. Please try again.')}</p>
-          //         </div>
-          //     );
-          // });
-        }
+        if (win?.closed) {clearInterval(checkClosed);}
       }, 500);
     }
   }, [successUrl]);
@@ -224,89 +190,91 @@ const Invoice = ({ publicKey = null, bgImage = '' }) => {
   }
 
   return (
-    <div className="xpo_min-h-screen xpo_bg-cover xpo_bg-center xpo_flex xpo_items-center xpo_justify-center xpo_px-4" style={{ backgroundImage: bgImage ? `url(${bgImage})` : 'unset' }}>
-      <div
-        // id="bookContainer"
-        // onClick={(event) => event.target.parentElement.classList.toggle('closed')}
-        className="xpo_bg-white xpo_shadow-2xl xpo_rounded-xl xpo_max-w-3xl xpo_w-full xpo_flex xpo_flex-col md:xpo_flex-row"
-      >
-        {invoiceError ?
-          <div className="xpo_w-full md:xpo_w-1/2 xpo_flex xpo_items-center xpo_justify-center xpo_bg-white">
-            <div className="xpo_bg-red-100 xpo_text-red-800 xpo_p-4 xpo_rounded-lg xpo_border xpo_border-red-300 xpo_mb-4">
-              <div className="xpo_flex xpo_items-start">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="xpo_h-5 xpo_w-5 xpo_mt-1 xpo_mr-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.07 5.07a10 10 0 1113.86 13.86A10 10 0 015.07 5.07z" />
-                </svg>
-                <span>{invoiceError}</span>
+    <div className="xpo_min-h-screen xpo_bg-cover xpo_bg-center xpo_flex xpo_items-center xpo_justify-center" style={{ backgroundImage: bgImage ? `url(${bgImage})` : 'unset' }}>
+      <div className="xpo_bg-white xpo_shadow-2xl xpo_w-full xpo_h-screen xpo_flex xpo_flex-col">
+        <div className="xpo_flex xpo_justify-center xpo_py-3 xpo_border-solid xpo_border-b-2 xpo_border-slate-700">
+          <a href="#" className="xpo_relative">
+            <img
+              className="xpo_max-h-20 xpo_w-auto"
+              src={ logo }
+              alt={'Logo'}
+            />
+            <div className="xpo_absolute xpo_h-full xpo_w-full xpo_top-0 xpo_left-0"></div>
+          </a>
+        </div>
+        <div className="xpo_flex xpo_flex-col md:xpo_flex-row xpo_max-w-screen-xl xpo_mx-auto">
+          {invoiceError ?
+            <div className="xpo_w-full md:xpo_w-1/2 xpo_flex xpo_items-center xpo_justify-center xpo_bg-white">
+              <div className="xpo_bg-red-100 xpo_text-red-800 xpo_p-4 xpo_rounded-lg xpo_border xpo_border-red-300 xpo_mb-4">
+                <div className="xpo_flex xpo_items-start">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="xpo_h-5 xpo_w-5 xpo_mt-1 xpo_mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.07 5.07a10 10 0 1113.86 13.86A10 10 0 015.07 5.07z" />
+                  </svg>
+                  <span>{invoiceError}</span>
+                </div>
               </div>
             </div>
-          </div>
-          :
-          <div className="xpo_w-full md:xpo_w-1/2 xpo_p-8">
-            <h2 className="xpo_text-3xl xpo_font-bold xpo_mb-6">Complete Your Payment</h2>
-            <form onSubmit={handleSubmit} className="xpo_space-y-4">
-              <div className="xpo_grid xpo_grid-cols-1 md:xpo_grid-cols-3 xpo_gap-4">
-                <input name="firstName" placeholder="First Name" required className="xpo_input" value={formData.firstName} onChange={handleInputChange} />
-                <input name="middleName" placeholder="Middle Name" className="xpo_input" value={formData.middleName} onChange={handleInputChange} />
-                <input name="lastName" placeholder="Last Name" required className="xpo_input" value={formData.lastName} onChange={handleInputChange} />
-              </div>
-              <input name="email" type="email" placeholder="Email" required className="xpo_input" value={formData.email} onChange={handleInputChange} />
-              <PhoneInput
-                country={formData.countryCode}
-                value={formData.phone}
-                onChange={handlePhoneChange}
-                inputClass="xpo_input"
-                containerClass="xpo_w-full"
-                enableSearch
-              />
-              <div>
-                <label className="xpo_block xpo_mb-1 xpo_font-medium">Card Details</label>
-                <div ref={cardRef} id="tap-element-container" className="xpo_p-3 xpo_border xpo_rounded xpo_bg-gray-50" />
-              </div>
-              {error && <div className="xpo_text-red-600">{error}</div>}
-              <button type="submit" className="xpo_btn xpo_btn-primary" disabled={loading}>
-                {loading ? 'Processing...' : 'Pay Now'}
-              </button>
-            </form>
+            :
+            <div className="xpo_w-full md:xpo_w-1/2 xpo_p-8">
+              <h2 className="xpo_text-3xl xpo_font-bold xpo_mb-6">Complete Your Payment</h2>
+              <form onSubmit={handleSubmit} className="xpo_space-y-4">
+                <div className="xpo_grid xpo_grid-cols-1 md:xpo_grid-cols-2 xpo_gap-4">
+                  <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" name="firstName" placeholder="First Name" required value={formData.firstName} onChange={handleInputChange} />
+                  {/* <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" name="middleName" placeholder="Middle Name" value={formData.middleName} onChange={handleInputChange} /> */}
+                  <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" name="lastName" placeholder="Last Name" required value={formData.lastName} onChange={handleInputChange} />
+                </div>
+                <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" name="email" type="email" placeholder="Email" required value={formData.email} onChange={handleInputChange} />
+                <PhoneInput
+                  country={formData.countryCode}
+                  value={formData.phone}
+                  onChange={handlePhoneChange}
+                  containerClass="xpo_w-full"
+                  inputClass="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block !xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500"
+                  enableSearch
+                />
+                <div>
+                  <label className="xpo_block xpo_mb-1 xpo_font-medium">Card Details</label>
+                  <div ref={cardRef} id="tap-element-container" className="xpo_p-3 xpo_border xpo_rounded xpo_bg-gray-50" />
+                </div>
+                {error && <div className="xpo_text-red-600">{error}</div>}
+                <button type="submit" className=" xpo_text-white xpo_bg-gradient-to-r xpo_from-red-400 xpo_via-red-500 xpo_to-red-600 hover:xpo_bg-gradient-to-br focus:xpo_ring-4 focus:xpo_outline-none focus:xpo_ring-red-300 dark:focus:xpo_ring-red-800 xpo_font-medium xpo_rounded-lg xpo_text-sm xpo_px-5 xpo_py-2.5 xpo_text-center xpo_me-2 xpo_mb-2" disabled={loading}>
+                  {loading ? 'Processing...' : 'Pay Now'}
+                </button>
+              </form>
 
-            {successUrl && (
-              <div className="xpo_mt-4">
-                <a href={successUrl} target="_blank" rel="noopener noreferrer" className="xpo_text-blue-600 xpo_underline">
-                  Click here to complete payment
-                </a>
-              </div>
-            )}
-          </div>
-        }
-
-        {invoiceData && (
-          <div
-            // id="rightPage"
-            className="xpo_w-full md:xpo_w-1/2 xpo_bg-gray-50 xpo_p-8 xpo_border-l"
-          >
-            <h3 className="xpo_text-xl xpo_font-semibold xpo_mb-4">Invoice Summary</h3>
-            <ul className="xpo_space-y-2">
-              {(invoiceData.items??[]).map((item, idx) => (
-                <li key={idx} className="xpo_flex xpo_justify-between">
-                  <span>{item.label}</span>
-                  <span>{item.price} {invoiceData.currency}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="xpo_border-t xpo_mt-4 xpo_pt-4 xpo_text-right xpo_font-bold">
-              Total: {invoiceData.total} {invoiceData.currency}
+              {successUrl && (
+                <div className="xpo_mt-4">
+                  <a href={successUrl} target="_blank" rel="noopener noreferrer" className="xpo_text-blue-600 xpo_underline">
+                    Click here to complete payment
+                  </a>
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          }
+
+          {invoiceData && (
+            <div
+              // id="rightPage"
+              className="xpo_w-full md:xpo_w-1/2 xpo_bg-gray-50 xpo_p-8 xpo_border-l"
+            >
+              <h3 className="xpo_text-xl xpo_font-semibold xpo_mb-4">Invoice Summary</h3>
+              <ul className="xpo_space-y-2">
+                {(invoiceData.items??[]).map((item, idx) => (
+                  <li key={idx} className="xpo_flex xpo_justify-between">
+                    <span>{item.label}</span>
+                    <span>{item.price} {invoiceData.currency}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="xpo_border-t xpo_mt-4 xpo_pt-4 xpo_text-right xpo_font-bold">
+                Total: {invoiceData.total} {invoiceData.currency}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
-export default Invoice;
+export default Checkout;

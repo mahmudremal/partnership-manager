@@ -53,12 +53,13 @@ class Task {
 
     public function rest_api_init() {
         register_rest_route('partnership/v1', '/tasks/search', [
-            'methods' => 'GET',
-            'callback' => [$this, 'tasks_search']
+            'methods' => 'GET', 'callback' => [$this, 'tasks_search']
         ]);
         register_rest_route('partnership/v1', '/tasks/(?P<task_id>\d+)', [
-            'methods' => 'POST',
-            'callback' => [$this, 'tasks_update']
+            'methods' => 'POST', 'callback' => [$this, 'task_update']
+        ]);
+        register_rest_route('partnership/v1', '/tasks/(?P<task_id>\d+)/submit', [
+            'methods' => 'POST', 'callback' => [$this, 'task_submit']
         ]);
         register_rest_route('partnership/v1', '/post-table/(?P<post_type>[a-zA-Z0-9_-]+)/(?P<post_id>\d+)', [
             'methods'  => 'GET',
@@ -142,7 +143,7 @@ class Task {
         }
         return new WP_REST_Response($latest_task, 200);
     }
-    public function tasks_update( WP_REST_Request $request ) {
+    public function task_update( WP_REST_Request $request ) {
         global $wpdb;
     
         $task_id = $request->get_param( 'task_id' );
@@ -168,6 +169,22 @@ class Task {
         }
     
         return new WP_Error( 'rest_post_processing_failed', 'Failed to update query', [ 'status' => 500 ] );
+    }
+    public function task_submit( WP_REST_Request $request ) {
+        global $wpdb;
+    
+        $task_id = $request->get_param( 'task_id' );
+        $params = $request->get_params();
+
+        $updated = $wpdb->update(
+            $this->table,
+            [ 'status' => 'completed' ],
+            [ 'id' => (int) $task_id ],
+            [ '%s' ],
+            [ '%d' ]
+        );
+    
+        return rest_ensure_response($params);
     }
     public function get_post_data( WP_REST_Request $request ) {
         $post_type = $request->get_param( 'post_type' );

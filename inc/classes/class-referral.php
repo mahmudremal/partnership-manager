@@ -2,6 +2,7 @@
 namespace PARTNERSHIP_MANAGER\inc;
 use PARTNERSHIP_MANAGER\inc\Traits\Singleton;
 use WP_REST_Request;
+use WP_Query;
 use WP_Error;
 use WP_User;
 
@@ -12,6 +13,7 @@ class Referral {
 		$this->setup_hooks();
 	}
 	protected function setup_hooks() {
+		add_filter('query_vars', [ $this, 'query_vars' ]);
 		add_action('rest_api_init', [$this, 'rest_api_init']);
 		add_action('init', [$this, 'register_referral_post_type']);
         add_action('template_redirect', [$this, 'maybe_set_referral_cookie']);
@@ -72,14 +74,20 @@ class Referral {
 			'permission_callback' => [Security::get_instance(), 'permission_callback']
 		]);
 	}
+
+	public function query_vars($vars) {
+        $vars[] = 'ref';
+        return $vars;
+    }
 	
-	public function get_referral_link($user_id) {
+	public function get_referral_link(WP_REST_Request $request) {
+		$user_id = Security::get_instance()->user_id;
 		$code = get_user_meta($user_id, 'referral_code', true);
 		if (!$code) {
 			$code = substr(md5(uniqid()), 0, 4);
 			update_user_meta($user_id, 'referral_code', $code);
 		}
-		return ['link' => add_query_arg('ref', $code, site_url())];
+		return ['link' => add_query_arg('ref', $code, site_url('/pricing'))];
 	}
 	
 	public function check_referral_code($code) {
@@ -89,7 +97,7 @@ class Referral {
 			'number' => 1,
 			'fields' => 'ID',
 		]);
-		return ['exists' => !empty($users)];
+		return ['exists' => !empty($users), 'user' => $users[0]];
 	}
 	
 	public function save_referral_code($user_id, $code) {
@@ -105,33 +113,80 @@ class Referral {
 	}
 	
     public function maybe_set_referral_cookie() {
-        if (isset($_GET['ref']) && is_numeric($_GET['ref'])) {
-            setcookie('ref', absint($_GET['ref']), time() + (30 * DAY_IN_SECONDS), COOKIEPATH, COOKIE_DOMAIN);
-            $_COOKIE['ref'] = absint($_GET['ref']);
-			wp_redirect(home_url('/dashboard/'));die;
+		$ref = get_query_var('ref');
+        if ($ref && !empty($ref) && !isset($_COOKIE['ref'])) {
+			// 
+			$_validate = $this->check_referral_code($ref);
+			if ($_validate['exists']) {
+				setcookie('ref', $ref, time() + (30 * DAY_IN_SECONDS), COOKIEPATH, COOKIE_DOMAIN);$_COOKIE['ref'] = $ref;
+			}
+			// wp_redirect(home_url('/dashboard/'));die;
         }
     }
 	public function get_referrals(WP_REST_Request $request) {
-		$author = $request->get_param('author');
-		$args = [
-			'post_type' => 'referral',
-			'post_status' => 'publish',
-			'meta_key' => 'referrer_id',
-			'meta_value' => $author,
-		];
-		$query = new \WP_Query($args);
-		$data = [];
-		foreach ($query->posts as $post) {
-			$data[] = [
-				'id' => $post->ID,
-				'title' => $post->post_title,
-				'referrer_id' => get_post_meta($post->ID, 'referrer_id', true),
-				'user_id' => get_post_meta($post->ID, 'user_id', true),
-				'converted' => get_post_meta($post->ID, 'converted', true),
-			];
+		global $wpdb;
+		$user_id  = Security::get_instance()->user_id;
+		$page     = max(1, (int) $request->get_param('page'));
+		$search   = (string) $request->get_param('s');
+		$status   = (string) $request->get_param('status');
+		$per_page = max(1, (int) $request->get_param('per_page'));
+		$offset   = ($page - 1) * $per_page;
+	
+		$referral_code = get_user_meta($user_id, 'referral_code', true);
+	
+		$where = $wpdb->prepare(
+			"WHERE pm_referrer.meta_key = %s
+			AND pm_referrer.meta_value = %s
+			AND p.post_type = %s
+			AND pm_user.meta_key = %s",
+			'referrer_id',
+			$referral_code,
+			'referral',
+			'user_id'
+		);
+	
+		if (!empty($status) && $status !== 'any') {
+			$where .= $wpdb->prepare(" AND u.user_status = %d", $status == 'active');
 		}
-		return rest_ensure_response($data);
+	
+		if (!empty($search)) {
+			$where .= $wpdb->prepare(" AND (u.display_name LIKE %s OR u.user_email LIKE %s)", "%{$search}%", "%{$search}%");
+		}
+	
+		$query = "SELECT SQL_CALC_FOUND_ROWS
+			u.ID as user_id,
+			u.display_name,
+			u.user_email,
+			u.user_registered as join_date,
+			u.user_status as verified,
+			p.ID as id,
+			p.post_date as issued_at,
+			(SELECT meta_value FROM {$wpdb->postmeta} WHERE meta_key = 'converted' AND post_id = p.ID) AS converted
+			FROM {$wpdb->postmeta} pm_referrer
+			LEFT JOIN {$wpdb->posts} p ON p.ID = pm_referrer.post_id
+			LEFT JOIN {$wpdb->postmeta} pm_user ON p.ID = pm_user.post_id
+			LEFT JOIN {$wpdb->users} u ON pm_user.meta_value = u.ID
+			$where
+			ORDER BY p.post_date DESC
+			LIMIT %d OFFSET %d";
+	
+		$prepared_query = $wpdb->prepare($query, $per_page, $offset);
+		$response_data = $wpdb->get_results($prepared_query, ARRAY_A);
+	
+		$total_found = $wpdb->get_var("SELECT FOUND_ROWS()");
+		$max_pages = ceil($total_found / $per_page);
+	
+		foreach ($response_data as $index => $row) {
+			$response_data[$index]['join_date'] = strtotime($row['join_date']);
+		}
+	
+		$response = rest_ensure_response($response_data);
+		$response->header('X-WP-Total', $total_found);
+		$response->header('X-WP-TotalPages', $max_pages);
+	
+		return $response;
 	}
+	
 	public function create_referral(WP_REST_Request $request) {
 		$referrer_id = $request->get_param('referrer_id');
 		$user_id = $request->get_param('user_id');
@@ -165,7 +220,7 @@ class Referral {
 	}
 	public function track_referral_on_register($user_id) {
 		if (!isset($_COOKIE['ref'])) return;
-		$referrer_id = absint($_COOKIE['ref']);
+		$referrer_id = $_COOKIE['ref'];
 		$post_id = wp_insert_post([
 			'post_type' => 'referral',
 			'post_title' => 'Referral register ' . $user_id,
@@ -178,7 +233,7 @@ class Referral {
 	public function track_referral_on_order($order_id) {
 		$order = wc_get_order($order_id);
 		$user_id = $order->get_user_id();
-		$query = new \WP_Query([
+		$query = new WP_Query([
 			'post_type' => 'referral',
 			'meta_query' => [
 				[
@@ -208,5 +263,43 @@ class Referral {
         }
         return false;
     }
+
+	public function maybe_create_user( $args ) {
+		if ( ! isset( $args['email'] ) || empty( $args['email'] ) ) {
+			return new WP_Error( 'email_required', __( 'Email is required.', 'domain' ) );
+		}
+	
+		$email = sanitize_email( $args['email'] );
+	
+		$user = get_user_by( 'email', $email );
+	
+		if ( $user ) {
+			return $user->ID;
+		} else {
+			$userdata = array(
+				'user_email'  => $email,
+				'user_login'  => $email,
+				'user_pass'   => wp_generate_password(),
+				'first_name'  => isset( $args['first_name'] ) ? sanitize_text_field( $args['first_name'] ) : '',
+				'last_name'   => isset( $args['last_name'] ) ? sanitize_text_field( $args['last_name'] ) : '',
+				'role'        => 'subscriber',
+			);
+	
+			$user_id = wp_insert_user( $userdata );
+	
+			if ( is_wp_error( $user_id ) ) {
+				return $user_id;
+			}
+	
+			if ( isset( $args['meta_data'] ) && is_array( $args['meta_data'] ) ) {
+				foreach ( $args['meta_data'] as $meta_key => $meta_value ) {
+					update_user_meta( $user_id, sanitize_key( $meta_key ), maybe_serialize( $meta_value ) );
+				}
+			}
+	
+			return $user_id;
+		}
+	}
+	
 	
 }

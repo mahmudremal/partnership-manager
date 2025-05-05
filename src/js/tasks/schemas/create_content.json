@@ -1,0 +1,91 @@
+{
+    "type": "object",
+    "properties": {
+      "contentType": {
+        "type": "string",
+        "example": "article"
+      },
+      "keywords": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "example": ["Starlink satellite internet", "global internet access", "Elon Musk satellite technology"]
+      },
+      "metaDescription": {
+        "type": "string",
+        "example": "An overview of Starlink, its technology, global coverage, and implications for internet accessibility."
+      },
+      "slug": {
+        "type": "string",
+        "example": "starlink-satellite-internet-access"
+      },
+      "focusKeywords": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "example": ["Starlink", "satellite internet", "internet accessibility"]
+      },
+      "schema": {
+        "type": "object",
+        "properties": {
+          "headline": {
+            "type": "string",
+            "example": "Overview of Starlink Satellite Network"
+          },
+          "description": {
+            "type": "string",
+            "example": "This article discusses the technology, global coverage, and impact of Starlink on internet accessibility."
+          }
+        }
+      },
+      "outline": {
+        "type": "object",
+        "properties": {
+          "headings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "Introduction",
+              "Purpose of Starlink",
+              "Technology Behind Starlink",
+              "Global Coverage",
+              "Impacts on Internet Accessibility",
+              "Challenges Faced by Starlink",
+              "Conclusion"
+            ]
+          },
+          "keyPoints": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "point": {
+                  "type": "string"
+                },
+                "explanation": {
+                  "type": "string"
+                }
+              },
+              "example": {
+                "point": "Introduction",
+                "explanation": "Introduce Starlink, its beginnings, and its strategic importance."
+              }
+            }
+          }
+        }
+      }
+    },
+    "required": [
+      "contentType",
+      "keywords",
+      "metaDescription",
+      "slug",
+      "focusKeywords",
+      "schema",
+      "outline"
+    ]
+}

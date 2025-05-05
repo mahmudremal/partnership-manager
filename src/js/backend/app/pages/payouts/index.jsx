@@ -35,8 +35,7 @@ export default function Payouts({ maxAmount = 0, viewType = 'list' }) {
         const url = rest_url(`/partnership/v1/finance/transactions?user_id=${userId}&page=${page}&s=${search}&status=${status}&per_page=${perPage}`);
         try {
             const res = await request(url);
-            const sortedList = res.map(r => r);
-            setTransactions(sortedList || []);
+            setTransactions(res?.list??[]);
             setTotalPages(res.total_pages || 1);
             setTotalEntries(res.total || 0);
         } catch (error) {
