@@ -33,6 +33,10 @@ class Payment_Tap {
         $gateways['tap'] = [
             'title' => __('Tap', 'wp-partnershipm'),
             'icon' => WP_PARTNERSHIPM_BUILD_URI . '/icons/tap.svg',
+            'description' => __('Fill your card information below. This is secure, and are handled and resposibility by the payment provider. Now US. We never store your card information.', 'wp-partnershipm'),
+            'fields' => [
+                ['type' => 'cards', 'required' => true]
+            ]
         ];
         return $gateways;
     }
@@ -76,7 +80,7 @@ class Payment_Tap {
 
     public function tap_create_charge($null, $args, $provider) {
         global $wpdb;
-        if ($provider !== 'tap') {
+        if (!apply_filters('payment/provider/match', $provider === 'tap', 'tap', $provider)) {
             return $null;
         }
         if (isset($args['user']) && isset($args['user']['id'])) {
@@ -92,7 +96,7 @@ class Payment_Tap {
             'customer_initiated'=> $args['customer_initiated'] ?? true,
             'threeDSecure'      => $args['threeDSecure']       ?? true,
             'save_card'         => $args['save_card']          ?? false,
-            'description'       => $args['description']        ?? '',
+            'description'       => $args['description']        ?? 'N/A',
             'metadata'          => $args['metadata']           ?? [],
             'reference'         => $args['reference']          ?? [
                 'product_info' => $args['title'],
@@ -106,13 +110,18 @@ class Payment_Tap {
             ],
             'customer' => $args['customer'] ?? null,
             'source' => $args['source'] ?? null,
+            
             'post' => ['url' => admin_url('admin-ajax.php?action=payment_webhook')],
             'redirect' => null
         ];
         if (! $payload['customer']) {$payload['customer']['id'] = $this->get_customer_id($args['user']);}
         if (! $payload['source']) {$payload['source']['id'] = $this->createCard2Token($card, $args['user']);}
         if (! $payload['redirect']) {$payload['redirect'] = ['url' => site_url("/partnership/payment/{$payload['reference']['invoice_id']}/status")];}
+
+        $payload = apply_filters('tap/payment/charge/payload', $payload, $args, $provider);
+
         // return $payload;
+        
         $response = $this->request('v2/charges', $payload);  // :contentReference[oaicite:0]{index=0}
         if ($response && isset($response['id'])) {
             if (isset($response['id']['save_card']) && $response['id']['save_card']) {
@@ -129,7 +138,7 @@ class Payment_Tap {
     }
 
     public function tap_verify($verified, $data, $provider, $return = false) {
-        if ($provider !== 'tap') {
+        if (!apply_filters('payment/provider/match', $provider === 'tap', 'tap', $provider)) {
             return $verified;
         }
         $charge_id = $data['tap_id'] ?? $data['id'] ?? $data['charge_id'] ?? null;
@@ -150,7 +159,7 @@ class Payment_Tap {
     }
 
     public function tap_refund($false, $payment_id, $args, $provider) {
-        if ($provider !== 'tap') {
+        if (!apply_filters('payment/provider/match', $provider === 'tap', 'tap', $provider)) {
             return $false;
         }
         $payload = [
@@ -192,7 +201,7 @@ class Payment_Tap {
         return $return;
     }
     
-    private function get_customer_id($user) {
+    public function get_customer_id($user) {
         $_id = get_user_meta($user['id'], '_tap_customer_id', true);
         if (empty($_id)) {
             $_id = $this->create_customer_id($user);

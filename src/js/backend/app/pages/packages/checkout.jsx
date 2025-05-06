@@ -8,9 +8,10 @@ import { useTranslation } from '@context/LanguageProvider';
 import { BriefcaseBusiness, Check, ChevronDown, ChevronRight, Loader, Package, Play, X } from "lucide-react";
 import { useParams } from "react-router-dom";
 import CreditCard from "@components/element/CreditCard";
-
+import { useCurrency } from "@context/CurrencyProvider";
 
 export default function Checkout() {
+    const { print_money } = useCurrency();
     const { __ } = useTranslation();
     const { setPopup } = usePopup();
     const { setLoading } = useLoading();
@@ -47,6 +48,7 @@ export default function Checkout() {
 
     useEffect(() => {
         if (!gateways[selectedGateWay]?.id) {return;}
+        setMethodOpen(false);
         request(rest_url(`/partnership/v1/payment/switch/${gateways[selectedGateWay]?.id}`)).then(data => {
             if (!data) {return;}
             switch (data?.type) {
@@ -58,6 +60,9 @@ export default function Checkout() {
                     setstoredCards(cards?.length ? cards : []);
                     break;
                 default:
+                    setShowCardForm(false);
+                    setAllowProceed(true);
+                    setstoredCards([]);
                     break;
             }
         }).catch(err => console.error(err));
@@ -200,7 +205,7 @@ export default function Checkout() {
                             <div className="xpo_flex xpo_flex-col xpo_gap-5 xpo_justify-between">
                                 <div>
                                     <div className="text-center mt-24">
-                                        <h3 className="text-neutral-400 mb-16">${(pricing?.pricing?.[pricing_plan]??0).toFixed(2)}</h3>
+                                        <h3 className="text-neutral-400 mb-16">{print_money((pricing?.pricing?.[pricing_plan]??0).toFixed(2))}</h3>
                                         <span className="text-neutral-500 text-sm">{__('You can upgrade/downgrade later.')}</span>
                                     </div>
                                     <div className="mt-24 border radius-8 position-relative">

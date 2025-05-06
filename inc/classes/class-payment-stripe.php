@@ -48,7 +48,7 @@ class Payment_Stripe {
     }
 
     public function stripe_create_intent($null, $args, $provider) {
-        if ($provider !== 'stripe') return $null;
+        if (!apply_filters('payment/provider/match', $provider === 'stripe', 'stripe', $provider)) return $null;
         $params = [
             'amount'   => $args['amount'],
             'currency' => $args['currency'],
@@ -58,13 +58,13 @@ class Payment_Stripe {
     }
 
     public function stripe_verify($verified, $data, $provider) {
-        if ($provider !== 'stripe') return $verified;
+        if (!apply_filters('payment/provider/match', $provider === 'stripe', 'stripe', $provider)) return $verified;
         $intent = $this->curl('payment_intents/' . $data['id'], [], 'GET');
         return isset($intent['status']) && $intent['status'] === 'succeeded';
     }
 
     public function stripe_create_sub($null, $args, $provider) {
-        if ($provider !== 'stripe') return $null;
+        if (!apply_filters('payment/provider/match', $provider === 'stripe', 'stripe', $provider)) return $null;
         $params = [
             'customer'    => $args['customer_id'],
             'items[0]'    => 'price_' . $args['price_id'],

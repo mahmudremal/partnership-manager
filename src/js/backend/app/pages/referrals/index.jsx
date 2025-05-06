@@ -34,7 +34,7 @@ const Referrals = ({ filters = 'any' }) => {
         try {
             const res = await request(url);
             setReferrals(res?.list??[]);
-            setTotalPages(res.total_pages || 1);
+            setTotalPages(res.totalPages || 1);
             setTotalEntries(res.total || 0);
         } catch (error) {
             console.error("Error fetching referrals:", error);
@@ -120,9 +120,9 @@ const Referrals = ({ filters = 'any' }) => {
                                         <td>{(page - 1) * perPage + index + 1}</td>
                                         <td>{dayjs.unix(referral.join_date).utc().format('DD MMM YYYY')}</td>
                                         <td>{referral.id}</td>
-                                        <td>{referral.user_id}</td>
+                                        <td>{referral.display_name } #{referral.user_id}</td>
                                         <td className="text-center">
-                                            {referral.converted === 'active' ? (
+                                            {referral.converted == true || referral.verified == true ? (
                                                 <span className="bg-success-focus text-success-600 border border-success-main px-24 py-4 radius-4 fw-medium text-sm">{__('Active')}</span>
                                             ) : (
                                                 <span className="bg-neutral-200 text-neutral-600 border border-neutral-400 px-24 py-4 radius-4 fw-medium text-sm">{__('Inactive')}</span>

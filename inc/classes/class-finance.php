@@ -24,7 +24,7 @@ class Finance {
 	public function register_activation_hook() {
 		global $wpdb;
 		$charset_collate = $wpdb->get_charset_collate();
-		$sql = "CREATE TABLE {$this->table} (
+		$sql = "CREATE TABLE IF NOT EXISTS {$this->table} (
 			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			user_id BIGINT(20) UNSIGNED NOT NULL,
 			amount DECIMAL(10,2) NOT NULL,

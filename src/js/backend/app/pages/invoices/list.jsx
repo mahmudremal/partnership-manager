@@ -3,6 +3,7 @@ import { Link } from '@common/link';
 import request from "@common/request";
 import { home_url, rest_url } from "@functions";
 import { usePopup } from '@context/PopupProvider';
+import { useCurrency } from "@context/CurrencyProvider";
 import { useTranslation } from '@context/LanguageProvider';
 import { Trash2, SquarePen, Eye, Plus, Search, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { sprintf } from 'sprintf-js';
@@ -14,6 +15,7 @@ const PER_PAGE_OPTIONS = [5, 10, 20, 50];
 const STATUS_OPTIONS = ["any", "active", "inactive"];
 
 export default function InvoicesList({  }) {
+    const { print_money } = useCurrency();
     const { __ } = useTranslation();
     const { setPopup } = usePopup();
     const [invoices, setInvoices] = useState([]);
@@ -30,7 +32,7 @@ export default function InvoicesList({  }) {
         try {
             const res = await request(rest_url(`/partnership/v1/invoice/list?page=${page}&s=${search}&status=${status}&per_page=${perPage}`));
             setInvoices(res?.list??[]);
-            setTotalPages(res.total_pages || 1);
+            setTotalPages(res.totalPages || 1);
             setTotalEntries(res.total || 0);
         } catch (error) {
             console.error("Error fetching invoices:", error);
@@ -125,10 +127,11 @@ export default function InvoicesList({  }) {
                                         </td>
                                         <td>{invoice.client_email}</td>
                                         <td>{dayjs.unix(invoice.created_at).utc().format('DD MMM YYYY')}</td>
-                                        <td>{invoice.currency} {invoice.total}</td>
+                                        <td>{print_money(invoice.total, invoice.currency)}</td>
                                         <td className="text-center">
-                                            {/* invoice.status === 'paid' && 'warning' */}
-                                            <span className="bg-success-focus text-success-600 border border-success-main text-success-main px-24 py-4 radius-4 fw-medium text-sm xpo_capitalize">{__(invoice.status)}</span>
+                                            <span
+                                                className={ `border ${invoice.status === 'paid' ? 'bg-success-focus text-success-600 border-success-main text-success-main' : 'bg-warning-focus text-warning-600 border-warning-main text-warning-main'} px-24 py-4 radius-4 fw-medium text-sm xpo_capitalize'` }
+                                            >{__(invoice.status)}</span>
                                         </td>
                                         <td className="text-center">
                                             <div className="d-flex align-items-center gap-10 justify-content-center">
@@ -160,22 +163,25 @@ export default function InvoicesList({  }) {
                         totalEntries
                     )}</span>
                     <ul className="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
-                        <li className="page-item">
-                            <button onClick={() => handlePageChange(page - 1)} className="page-link bg-neutral-200"> <ChevronsLeft /> </button>
-                        </li>
+                        {page > 1 && (
+                            <li key="prev" className="page-item">
+                                <button onClick={() => handlePageChange(page - 1)} className="page-link bg-neutral-200"> <ChevronsLeft /> </button>
+                            </li>
+                        )}
                         {[...Array(totalPages)].map((_, i) => (
                             <li key={i + 1} className="page-item">
                                 <button
                                     onClick={() => handlePageChange(i + 1)}
                                     className={`page-link ${page === i + 1 ? 'bg-primary-600 text-white' : 'bg-neutral-200'}`}
-                                >
-                                    {i + 1}
-                                </button>
+                                >{i + 1}</button>
                             </li>
                         ))}
-                        <li className="page-item">
-                            <button onClick={() => handlePageChange(page + 1)} className="page-link bg-neutral-200"> <ChevronsRight /> </button>
-                        </li>
+                        {page < totalPages && (
+                            <li key="next" className="page-item">
+                                <button onClick={() => handlePageChange(page + 1)} className="page-link bg-neutral-200"> <ChevronsRight /> </button>
+                            </li>
+                        )}
+                        
                     </ul>
                 </div>
             </div>

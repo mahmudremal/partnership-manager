@@ -44,7 +44,7 @@ export default function Users({ viewType = 'list' }) {
                 avater: r.avater
             }))
             setUsers(sortedUsers || []);
-            setTotalPages(res.total_pages || 1);
+            setTotalPages(res.totalPages || 1);
             setTotalEntries(res.total || 0);
         } catch (error) {
             console.error("Error fetching users:", error);

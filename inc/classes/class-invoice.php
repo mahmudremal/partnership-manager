@@ -11,11 +11,13 @@ class Invoice {
 
     protected $invoice_table;
     protected $item_table;
+    protected $meta_table;
 
     protected function __construct() {
         global $wpdb;
         $this->invoice_table = $wpdb->prefix . 'partnership_invoices';
         $this->item_table = $wpdb->prefix . 'partnership_invoice_items';
+        $this->meta_table = $wpdb->prefix . 'partnership_invoice_meta';
         $this->setup_hooks();
     }
 
@@ -76,7 +78,7 @@ class Invoice {
         global $wpdb;
         $charset_collate = $wpdb->get_charset_collate();
 
-        $sql_invoice = "CREATE TABLE {$this->invoice_table} (
+        $sql_invoice = "CREATE TABLE IF NOT EXISTS {$this->invoice_table} (
             id BIGINT NOT NULL AUTO_INCREMENT,
             invoice_id VARCHAR(100) NOT NULL,
             status VARCHAR(50) DEFAULT 'unpaid',
@@ -89,7 +91,7 @@ class Invoice {
             UNIQUE(invoice_id)
         ) $charset_collate;";
 
-        $sql_items = "CREATE TABLE {$this->item_table} (
+        $sql_items = "CREATE TABLE IF NOT EXISTS {$this->item_table} (
             id BIGINT NOT NULL AUTO_INCREMENT,
             invoice_id BIGINT NOT NULL,
             label VARCHAR(255) NOT NULL,
@@ -97,9 +99,18 @@ class Invoice {
             PRIMARY KEY (id)
         ) $charset_collate;";
 
+        $sql_metas = "CREATE TABLE IF NOT EXISTS {$this->meta_table} (
+            id BIGINT NOT NULL AUTO_INCREMENT,
+            invoice_id BIGINT NOT NULL,
+            meta_key VARCHAR(255) NOT NULL,
+            meta_value TEXT NOT NULL DEFAULT '',
+            PRIMARY KEY (id)
+        ) $charset_collate;";
+
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta($sql_invoice);
         dbDelta($sql_items);
+        dbDelta($sql_metas);
 
         flush_rewrite_rules();
     }
@@ -218,7 +229,7 @@ class Invoice {
             'amount'            => (float) $invoice['total'],
             'currency'          => $invoice['currency'],
             'save_card'         => true,
-            'description'       => '',
+            'description'       => 'N/A',
             'metadata'          => $metadata,
             'reference'         => [
                 'product_info' => $args['title'],
@@ -232,7 +243,7 @@ class Invoice {
                 'last_name' => $request->get_param('lastName'),
                 'email' => $request->get_param('email'),
                 'phone' => [
-                    'country_code' => $request->get_param('countryCode'),
+                    'country_code' => strtoupper($request->get_param('countryCode')),
                     'number' => $request->get_param('phone')
                 ]
             ],
@@ -247,11 +258,18 @@ class Invoice {
             'email' => $customer['client_email'] ?? $customer['email'] ?? '',
             'first_name' => $customer['first_name'] ?? '',
             'last_name' => $customer['last_name'] ?? '',
+            ...$payload['customer'],
             'meta_data' => [
-                '_tap_customer_id' => $customer['id'] ?? null
+                'converted' => true,
+                'phone' => $customer['phone']['number'] ?? '',
+                '_tap_customer_id' => $customer['id'] ?? null,
+                'middle_name' => $customer['middle_name'] ?? '',
+                'phone_code' => $customer['phone']['country_code'] ?? '',
             ]
         ]);
-        $response['respective_user'] = $_user_created;
+        if ($_user_created && !is_wp_error($_user_created) && is_int($_user_created)) {
+            $response['respective_user'] = $_user_created;
+        }
         // 
         if (isset($response['transaction']) && isset($response['transaction']['url'])) {
             $response = [
@@ -328,7 +346,7 @@ class Invoice {
             if ($ref && !empty($ref)) {
                 $referrer_id = Referral::get_instance()->check_referral_code($ref);
                 $post_id = do_action('create_referral_record', $referrer_id, $user->ID);
-                // update_post_meta($post_id, 'converted', false);
+                update_post_meta($post_id, 'converted', true);
             }
         }
         return $_updated;

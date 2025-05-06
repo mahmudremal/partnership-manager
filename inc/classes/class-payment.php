@@ -58,7 +58,7 @@ class Payment {
 		register_rest_route('partnership/v1', '/payment/gateways', [
 			'methods' => 'GET',
 			'callback' => [$this, 'get_payment_gateways'],
-            'permission_callback' => [Security::get_instance(), 'permission_callback']
+            // 'permission_callback' => [Security::get_instance(), 'permission_callback']
 		]);
 		register_rest_route('partnership/v1', '/payment/switch/(?P<gateway>[^/]+)', [
 			'methods' => 'GET',
@@ -221,6 +221,7 @@ class Payment {
         $gateway = $request->get_param('gateway');
         $user_id = Security::get_instance()->user_id;
         $response = apply_filters('partnership/payment/gateway/switched', null, $gateway, $user_id);
+        if (! $response) {$response = ['type' => 'none'];}
         return rest_ensure_response($response);
     }
 

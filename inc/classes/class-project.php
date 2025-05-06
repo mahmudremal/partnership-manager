@@ -34,13 +34,14 @@ class Project {
 		Frontend::get_instance();
 		Contract::get_instance();
 		Manifest::get_instance();
+		Currency::get_instance();
 		Shortcode::get_instance();
 		Admin_Menu::get_instance();
 		Translations::get_instance();
 		Notifications::get_instance();
 
 		Payment_Tap::get_instance();
-		// Payment_Tabby::get_instance();
+		Payment_Tabby::get_instance();
 		// Payment_Stripe::get_instance();
 		// Payment_Sslcommerz::get_instance();
         // 

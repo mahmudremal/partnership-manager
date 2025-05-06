@@ -32,7 +32,7 @@ class Task {
     public function register_activation_hook() {
         global $wpdb;
         $charset_collate = $wpdb->get_charset_collate();
-        $sql = "CREATE TABLE {$this->table} (
+        $sql = "CREATE TABLE IF NOT EXISTS {$this->table} (
             id INT NOT NULL AUTO_INCREMENT,
             task_type VARCHAR(255) NOT NULL,
             status VARCHAR(50) DEFAULT 'pending',

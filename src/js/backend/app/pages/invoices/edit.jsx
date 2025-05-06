@@ -7,8 +7,11 @@ import { usePopup } from "@context/PopupProvider";
 import { useTranslation } from "@context/LanguageProvider";
 import { useLoading } from "@context/LoadingProvider";
 import { sprintf } from "sprintf-js";
+import { useCurrency } from "@context/CurrencyProvider";
+
 
 export default function InvoiceEdit() {
+  const { print_money } = useCurrency();
   const { __ } = useTranslation();
   const { setPopup } = usePopup();
   const { setLoading } = useLoading();
@@ -164,7 +167,7 @@ export default function InvoiceEdit() {
                 </div>
                 <div className="col-12 d-flex justify-content-between align-items-center">
                   <strong>{__('Total')}:</strong>
-                  <span className="text-xl fw-bold">{form.total.toFixed(2)} {form.currency}</span>
+                  <span className="text-xl fw-bold">{print_money(form.total.toFixed(2), form.currency)}</span>
                 </div>
                 <div className="form-group d-flex align-items-center justify-content-end gap-8">
                   <button type="button" className="form-wizard-previous-btn btn btn-neutral-500 border-neutral-100 px-32" onClick={() => setStep(1)}>{__('Back')}</button>
@@ -207,7 +210,7 @@ export default function InvoiceEdit() {
                 </div>
                 <div className="col-12 d-flex justify-content-between border-top pt-3 mt-3">
                   <strong>{__('Total')}</strong>
-                  <span>{form.total.toFixed(2)} {form.currency}</span>
+                  <span>{print_money(form.total.toFixed(2), form.currency)}</span>
                 </div>
               </div>
               <div className="form-group d-flex align-items-center justify-content-end gap-8 mt-4">

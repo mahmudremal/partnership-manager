@@ -36,7 +36,7 @@ class Manifest {
             $manifest = [
                 'name' => 'Partnership Dashboard',
                 'short_name' => 'Partnership',
-                'start_url' => get_the_permalink((int) apply_filters('pm_project/system/getoption', 'general-screen', 0)),
+                'start_url' => site_url('/partnership-dashboard'), // get_the_permalink((int) apply_filters('pm_project/system/getoption', 'general-screen', 0)),
                 'display' => 'standalone',
                 'background_color' => '#fdedef',
                 'theme_color' => '#e63f51',

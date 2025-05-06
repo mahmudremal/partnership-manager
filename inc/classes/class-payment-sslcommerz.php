@@ -60,7 +60,7 @@ class Payment_Sslcommerz {
     }
 
     public function create_intent($null, $args, $provider) {
-        if ($provider !== 'sslcommerz') {
+        if (!apply_filters('payment/provider/match', $provider === 'sslcommerz', 'sslcommerz', $provider)) {
             return $null;
         }
         $post_data = [
@@ -83,7 +83,7 @@ class Payment_Sslcommerz {
     }
 
     public function verify_transaction($verified, $data, $provider) {
-        if ($provider !== 'sslcommerz') {
+        if (!apply_filters('payment/provider/match', $provider === 'sslcommerz', 'sslcommerz', $provider)) {
             return $verified;
         }
         $params = [
@@ -99,7 +99,7 @@ class Payment_Sslcommerz {
     }
 
     public function refund_transaction($false, $payment_id, $args, $provider) {
-        if ($provider !== 'sslcommerz') {
+        if (!apply_filters('payment/provider/match', $provider === 'sslcommerz', 'sslcommerz', $provider)) {
             return $false;
         }
         $params = [

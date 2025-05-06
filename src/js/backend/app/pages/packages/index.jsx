@@ -6,8 +6,10 @@ import { usePopup } from '@context/PopupProvider';
 import { useLoading } from '@context/LoadingProvider';
 import { useTranslation } from '@context/LanguageProvider';
 import { Check } from "lucide-react";
+import { useCurrency } from "@context/CurrencyProvider";
 
 export default function Packages({ viewType = 'list' }) {
+    const { print_money } = useCurrency();
     const { __ } = useTranslation();
     const { setLoading } = useLoading();
     const { setPopup } = usePopup();
@@ -74,7 +76,7 @@ export default function Packages({ viewType = 'list' }) {
                                             </div>
                                         </div>
                                         <p className="mt-16 mb-0 text-secondary-light mb-28">{__(pack?.shortdesc??'')}</p>
-                                        {pack?.pricing?.[plan] && <h3 className="mb-24">${pack?.pricing?.[plan]??0} <span className="fw-medium text-md text-secondary-light xpo_lowercase">/{plan}</span></h3>}
+                                        {pack?.pricing?.[plan] && <h3 className="mb-24">{print_money(pack?.pricing?.[plan]??0)} <span className="fw-medium text-md text-secondary-light xpo_lowercase">/{plan}</span></h3>}
                                         <span className="mb-20 fw-medium">{__(pack?.list_title??'What’s included')}</span>
                                         <ul>
                                             {pack.list.map((itemTitle, itemIndex) => 

@@ -36,7 +36,7 @@ export default function Payouts({ maxAmount = 0, viewType = 'list' }) {
         try {
             const res = await request(url);
             setTransactions(res?.list??[]);
-            setTotalPages(res.total_pages || 1);
+            setTotalPages(res.totalPages || 1);
             setTotalEntries(res.total || 0);
         } catch (error) {
             console.error("Error fetching transactions:", error);
