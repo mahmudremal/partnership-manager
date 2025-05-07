@@ -77,163 +77,224 @@ async function siderAIStream(text, token = null, cid = "681978e6b26b631bde86cd3a
     });
   }
 }
-const schemas_dir = 'https://tools4everyone.local/wp-content/plugins/partnership-manager/src/js/tasks/schemas';
+const schemas_dir = 'https://tools4everyone.local/wp-json/partnership/v1/tasks/attachments/schemas';
 
-class LLM {
-    constructor(endpoint, model, tools = {}) {
-      this.endpoint = endpoint;
-      this.model = model;
-      this.tools = tools;
-      this.context = [];
-      this.system = null;
-      this.format = null;
-    }
+class System {
+  constructor() {
+    // 
+    this.cpu = {previousIdleTime: 0, previousTotalTime: 0};
+  }
+  async get_cpu() {
+  
+    return new Promise((resolve, reject) => {
+        chrome.system.cpu.getInfo((info) => {
+            const cores = info.numCores;
+            const currentTimes = info.cores.map(core => core.times);
+            
+            let idleTime = 0;
+            let totalTime = 0;
 
-    setSystemPrompt(args) {
-      const { message, format = null } = args;
-      this.system = message;
-      if (format) {this.format = format;}
-    }
+            currentTimes.forEach(times => {
+                idleTime += times.idle;
+                totalTime += times.idle + times.user + times.nice + times.sys + times.irq;
+            });
+            if (this.cpu.previousTotalTime !== 0 && this.cpu.previousIdleTime !== 0) {
+                const deltaIdle = idleTime - this.cpu.previousIdleTime;
+                const deltaTotal = totalTime - this.cpu.previousTotalTime;
 
-    clearSystem() {
-      this.system = this.format = null;
-    }
+                const cpuUsage = (1 - deltaIdle / deltaTotal) * 100;
+                
+                this.cpu.previousIdleTime = idleTime;
+                this.cpu.previousTotalTime = totalTime;
+                
+                const cpuTemperature = "50°C";
+                // chrome.runtime.sendNativeMessage("com.yournativeapp", { get_cpu_temp: true }, (response) => {
+                //   if (chrome.runtime.lastError) {
+                //     console.error("Error: ", chrome.runtime.lastError);
+                //     resolve({ ...info, usage: cpuUsage.toFixed(2), temperature: -1 });
+                //   } else {
+                //     resolve({ ...info, usage: cpuUsage.toFixed(2), temperature: response.cpu_temperature });
+                //   }
+                // });
 
-    async _callLLM(messages, tool_choice) {
-      if (this.system) {messages = [{role: 'system', content: this.system}, ...messages];}
-      const requestBody = {
-        model: this.model,
-        messages: messages,
-        stream: false,
-      };
-      if (tool_choice) requestBody.tool_choice = tool_choice;
-      if (Object.keys(this.tools).length > 0) {
-        requestBody.tools = Object.values(this.tools).map(tool => ({
-          type: "function",
-          function: {
-            name: tool.name,
-            description: tool.description,
-            parameters: tool.parameters,
-          }
-        }));
-      }
-      if (this.format) {
-        requestBody.format = this.format;
-      }
-      // generate
-      // const response = await fetch(`${this.endpoint}/api/chat`, {
-      //   method: 'POST',
-      //   headers: {'Content-Type': 'application/json'},
-      //   body: JSON.stringify(requestBody),
-      // });
-
-      // const response = await siderAIStream()
-
-      if (!response.ok) throw new Error(`LLM API error: ${response.statusText}`);
-      const data = await response.json();
-      return data?.message??(data?.response);
-    }
-
-    async aask(userInput) {
-      this.context.push({"role": "user", "content": userInput});
-      let llmResponse = await this._callLLM(this.context);
-      this.context.push(llmResponse);
-      while (llmResponse.tool_calls?.length) {
-        const newToolMessages = [];
-        for (const toolCall of llmResponse.tool_calls) {
-          const functionToCall = this.tools[toolCall.function.name];
-          if (functionToCall) {
-            try {
-              const result = await functionToCall.execute(JSON.parse(toolCall.function.arguments));
-              newToolMessages.push({"role": "tool", "tool_call_id": toolCall.id, "content": JSON.stringify(result)});
-            } catch (error) {
-              newToolMessages.push({"role": "tool", "tool_call_id": toolCall.id, "content": JSON.stringify({error: error.message})});
+                resolve({ ...info, usage: cpuUsage.toFixed(2), temperature: cpuTemperature });
+            } else {
+                this.cpu.previousIdleTime = idleTime;
+                this.cpu.previousTotalTime = totalTime;
+                resolve({ ...info, usage: -1, temperature: -1 });
             }
-          } else {
-            newToolMessages.push({"role": "tool", "tool_call_id": toolCall.id, "content": JSON.stringify({error: "Tool not found"})});
-          }
+        });
+    });
+  }
+
+}
+
+class LLM extends System {
+  constructor(endpoint, model, tools = {}) {
+    super();
+    this.endpoint = endpoint;
+    this.model = model;
+    this.tools = tools;
+    this.context = [];
+    this.system = null;
+    this.format = null;
+  }
+
+  setSystemPrompt(args) {
+    const { message, format = null } = args;
+    this.system = message;
+    if (format) {this.format = format;}
+  }
+
+  clearSystem() {
+    this.system = this.format = null;
+  }
+
+  async _callLLM(messages, tool_choice) {
+    if (this.system) {messages = [{role: 'system', content: this.system}, ...messages];}
+    const requestBody = {
+      model: this.model,
+      messages: messages,
+      stream: false,
+    };
+    if (tool_choice) requestBody.tool_choice = tool_choice;
+    if (Object.keys(this.tools).length > 0) {
+      requestBody.tools = Object.values(this.tools).map(tool => ({
+        type: "function",
+        function: {
+          name: tool.name,
+          description: tool.description,
+          parameters: tool.parameters,
         }
-        this.context.push(...newToolMessages);
-        llmResponse = await this._callLLM(this.context);
-        this.context.push(llmResponse);
-      }
-      return llmResponse.content;
+      }));
     }
-
-    add_tool(toolDefinition) {
-      if (toolDefinition.name && toolDefinition.description && toolDefinition.parameters && typeof toolDefinition.execute === 'function') {
-        this.tools[toolDefinition.name] = toolDefinition;
-      }
+    if (this.format) {
+      requestBody.format = this.format;
     }
+    // generate
+    const response = await fetch(`${this.endpoint}/api/chat`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(requestBody),
+    });
 
-    clearContext() {
-      this.context = [];
-    }
+    // const trimmed = this.trimMessages(messages, 32768);
+    // const prompt = this.convertMessagesToPrompt(trimmed);
+    // const response = await siderAIStream(prompt)
 
-    getContext() {
-      return [...this.context];
-    }
+    if (!response.ok) throw new Error(`LLM API error: ${response.statusText}`);
+    const data = await response.json();
+    return data?.message??(data?.response);
+  }
 
-    async forceToolCall(userInput, toolName, toolArguments) {
-      this.context.push({"role": "user", "content": userInput});
-      const toolToForce = this.tools[toolName];
-      if (!toolToForce) throw new Error(`Tool "${toolName}" not found.`);
-      let llmResponse = await this._callLLM(this.context, { name: toolName });
-      this.context.push(llmResponse);
-      if (llmResponse.tool_calls?.length) {
-        const toolCall = llmResponse.tool_calls[0];
-        if (toolCall.function.name === toolName) {
+  async aask(userInput) {
+    this.context.push({"role": "user", "content": userInput});
+    let llmResponse = await this._callLLM(this.context);
+    this.context.push(llmResponse);
+    while (llmResponse.tool_calls?.length) {
+      const newToolMessages = [];
+      for (const toolCall of llmResponse.tool_calls) {
+        const functionToCall = this.tools[toolCall.function.name];
+        if (functionToCall) {
           try {
-            const result = await toolToForce.execute(toolArguments);
-            this.context.push({"role": "tool", "tool_call_id": toolCall.id, "content": JSON.stringify(result)});
-            const finalLlmResponse = await this._callLLM(this.context);
-            this.context.push(finalLlmResponse);
-            return finalLlmResponse.content;
+            const result = await functionToCall.execute(JSON.parse(toolCall.function.arguments));
+            newToolMessages.push({"role": "tool", "tool_call_id": toolCall.id, "content": JSON.stringify(result)});
           } catch (error) {
-            this.context.push({"role": "tool", "tool_call_id": toolCall.id, "content": JSON.stringify({error: error.message})});
-            const finalLlmResponse = await this._callLLM(this.context);
-            this.context.push(finalLlmResponse);
-            return finalLlmResponse.content;
+            newToolMessages.push({"role": "tool", "tool_call_id": toolCall.id, "content": JSON.stringify({error: error.message})});
           }
+        } else {
+          newToolMessages.push({"role": "tool", "tool_call_id": toolCall.id, "content": JSON.stringify({error: "Tool not found"})});
         }
       }
-      return llmResponse.content;
+      this.context.push(...newToolMessages);
+      llmResponse = await this._callLLM(this.context);
+      this.context.push(llmResponse);
     }
-}
+    return llmResponse.content;
+  }
 
-async function main() {
-  const llm = new LLM("http://localhost:11434", "romi"); // llama3.1 | romi | deepseek-r1:1.5b
-  llm.add_tool({
-    name: "get_current_weather",
-    description: "Get the current weather in a given location",
-    parameters: {
-      type: "object",
-      properties: {
-        location: { type: "string", description: "The city and state, e.g. San Francisco, CA" },
-        unit: { type: "string", enum: ["celsius", "fahrenheit"] }
-      },
-      required: ["location"]
-    },
-    execute: async (args) => (args.location.toLowerCase().includes("bashikpur")) ? { temperature: 30, unit: "celsius", description: "Clear sky" } : { temperature: 25, unit: "celsius", description: "Partly cloudy" }
-  });
-  const response1 = await llm.aask("What's the weather like in Bashikpur?");
-  console.log("LLM Response 1:", response1);
-  const response2 = await llm.aask("How does that compare to London?");
-  console.log("LLM Response 2:", response2);
-  const forcedResponse = await llm.forceToolCall("Tell me the weather in Tokyo.", "get_current_weather", { location: "Tokyo, Japan", unit: "fahrenheit" });
-  console.log("Forced Tool Call Response:", forcedResponse);
-  llm.clearContext();
-  const response3 = await llm.aask("What is the capital of France?");
-  console.log("LLM Response 3 (new context):", response3);
+  add_tool(toolDefinition) {
+    if (toolDefinition.name && toolDefinition.description && toolDefinition.parameters && typeof toolDefinition.execute === 'function') {
+      this.tools[toolDefinition.name] = toolDefinition;
+    }
+  }
+
+  clearContext() {
+    this.context = [];
+  }
+
+  getContext() {
+    return [...this.context];
+  }
+
+  async forceToolCall(userInput, toolName, toolArguments) {
+    this.context.push({"role": "user", "content": userInput});
+    const toolToForce = this.tools[toolName];
+    if (!toolToForce) throw new Error(`Tool "${toolName}" not found.`);
+    let llmResponse = await this._callLLM(this.context, { name: toolName });
+    this.context.push(llmResponse);
+    if (llmResponse.tool_calls?.length) {
+      const toolCall = llmResponse.tool_calls[0];
+      if (toolCall.function.name === toolName) {
+        try {
+          const result = await toolToForce.execute(toolArguments);
+          this.context.push({"role": "tool", "tool_call_id": toolCall.id, "content": JSON.stringify(result)});
+          const finalLlmResponse = await this._callLLM(this.context);
+          this.context.push(finalLlmResponse);
+          return finalLlmResponse.content;
+        } catch (error) {
+          this.context.push({"role": "tool", "tool_call_id": toolCall.id, "content": JSON.stringify({error: error.message})});
+          const finalLlmResponse = await this._callLLM(this.context);
+          this.context.push(finalLlmResponse);
+          return finalLlmResponse.content;
+        }
+      }
+    }
+    return llmResponse.content;
+  }
+
+  estimateTokens(text) {
+    // Rough average: 1 token ≈ 4 characters for English
+    return Math.ceil(text.trim().length / 4);
+  }
+
+  trimMessages(messages, maxTokens = 3000) {
+    const reversed = [...messages].reverse();
+    let total = 0;
+    const selected = [];
+  
+    for (const msg of reversed) {
+      const line = `${msg.role}: ${msg.content}`;
+      const tokenEstimate = this.estimateTokens(line);
+      if (total + tokenEstimate > maxTokens) break;
+      selected.unshift(msg);
+      total += tokenEstimate;
+    }
+  
+    return selected;
+  }
+
+  convertMessagesToPrompt(messages) {
+    return messages.map(m => `${m.role}: ${m.content}`).join('\n');
+  }
 }
-// main().catch(console.error);
 
 class ContentGenerator extends LLM {
-  constructor(llmEndpoint, llmModel) {
+  constructor(llmEndpoint, llmModel, restRoot) {
     super(llmEndpoint, llmModel);
+    this.restRoot = restRoot;
     this.contentType = "post";
     this.promptContext = "";
   }
+
+  sleep(ms) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve(true);
+      }, ms);
+    });
+  }
+  
   setContentType(type) {
     this.contentType = type;
   }
@@ -310,7 +371,7 @@ class ContentGenerator extends LLM {
 
         
         
-        const prevFormat = this.format;this.format = await fetch(`${schemas_dir}/${task.task_type}.json`).then(d => d.json());
+        const prevFormat = this.format;this.format = await fetch(`${schemas_dir}/${task.task_type}`).then(d => d.json());
         const planningOutput = this.trimJsonResponse(await this.aask(planningPrompt));
         this.format = null; // prevFormat
         console.log("Generated Planning Output:", planningOutput);
@@ -391,11 +452,42 @@ class ContentGenerator extends LLM {
     const imageUrl = mediasGenerated[Math.floor(Math.random() * mediasGenerated.length)];
     return imageUrl;
   }
+
+  handle_action_tasks(task, json_schema) {
+    return new Promise(async (resolve, reject) => {
+      console.log(task)
+      try {
+        let post = null;const postData = new FormData();
+        // 
+        const taskObject = task.task_object;
+        // 
+        if (taskObject?.post_type && taskObject?.post_id) {
+          post = await fetch(`${this.restRoot}/partnership/v1/post-table/${taskObject?.post_type}/${taskObject?.post_id}`).then(d => d.json()).then(d => JSON.stringify(d));
+        }
+        // 
+        this.setSystemPrompt({message: `You're a good virtual assistant trained with writing, accounting, seo, shote managing, etc fields. You'll do what exactly asked you todo. you'll use available information and you're always remember that never provide irrelevent data to things not asked for.`});
+        const prompt = `Task Description: "${task?.task_desc??'N/A'}"`;
+        const prevFormat = this.format;this.format = json_schema;
+        const output = this.trimJsonResponse(await this.aask(prompt));
+        this.format = null; // prevFormat
+        console.log("Generated Output:", output);
+        // 
+        const response_json = JSON.parse(output);
+        console.log(response_json);
+        // 
+        postData.append('task_id', task?.id);
+        postData.append('data', JSON.stringify(response_json));
+        resolve(postData);
+      } catch (error) {
+        console.log(error);
+        reject(error);
+      }
+    })
+  }
 }
-class TaskHandler {
+class TaskHandler extends ContentGenerator {
   constructor(restRoot, llmEndpoint, llmModel) {
-    this.restRoot = restRoot;
-    this.contentGenerator = new ContentGenerator(llmEndpoint, llmModel);
+    super(llmEndpoint, llmModel, restRoot);
     this.task = null;
   }
   async getTask() {
@@ -420,11 +512,10 @@ class TaskHandler {
           this.proceed = false;
           return;
         }
-        const taskObject = task.task_object;
 
         switch (task.task_type) {
           case 'create_content':
-              this.contentGenerator.createContent(task).then(postData => {
+              this.createContent(task).then(postData => {
                 console.log('Content generated and post created:', postData);
                 postData.append('task_id', task?.id);
                 resolve(postData);
@@ -434,21 +525,10 @@ class TaskHandler {
           default:
             // console.warn(`Unknown task type: ${task.task_type}`);
             // reject(`Unknown task type: ${task.task_type}`);
-            fetch(`${schemas_dir}/${task.task_type}.json`)
+            fetch(`${schemas_dir}/${task.task_type}`)
             .then(d => d.json())
             .then(async json_schema => {
-              let post = null;const postData = new FormData();
-              this.contentGenerator.setSystemPrompt(json_schema);
-              // 
-              // resolve(postData);return;
-              // 
-              if (taskObject?.post_type && taskObject?.post_id) {
-                post = await fetch(`${this.restRoot}/partnership/v1/post-table/${taskObject?.post_type}/${taskObject?.post_id}`).then(d => d.json()).then(d => JSON.stringify(d));
-              }
-              const response = await this.contentGenerator.aask(`${task?.task_desc??'Data'}: ${post ? post : JSON.stringify({'Task description': task?.task_desc, data: taskObject})}`);
-              const response_json = JSON.parse(response);
-              postData.append('task_id', task?.id);
-              postData.append('data', response_json);
+              const postData = await this.handle_action_tasks(task, json_schema);
               resolve(postData);
             })
             .catch(e => {throw e;});
@@ -467,10 +547,7 @@ class TaskHandler {
       if (!task_id) {reject(new Error('Task identification data missing'));return;}
       fetch(`${this.restRoot}/partnership/v1/tasks/${task_id}/submit`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${btoa('admin:password')}`,
-        },
+        // headers: {'Content-Type': 'application/json'},
         body: data, // JSON.stringify(data)
       })
       .then(async res => {
@@ -496,7 +573,9 @@ class TaskHandler {
     while (this.proceed) {
       await this.processTask()
       .then(async r => await this.submitTask(r))
-      .then(r => this.proceed = false)
+      .then(async r => await this.sleep(500))
+      .then(r => this.context = [])
+      // .then(r => this.proceed = false)
       .catch(e => {
         this.proceed = false;
         console.error(e);
@@ -508,59 +587,36 @@ const taskHandler = new TaskHandler('https://tools4everyone.local/wp-json', 'htt
 taskHandler.processJobs();
 
 // 
-// taskHandler.contentGenerator.aask('Why the sky blue?');
+// taskHandler.aask('Why the sky blue?');
 // 
 
 
-
-
-/**
- * TO update post data
- */
-function updatePostData(postType, postId, dataToUpdate) {
-    return new Promise(async (resolve, reject) => {
-      const apiUrl = `/wp-json/partnership/v1/post-table/${postType}/${postId}`;
-  
-      try {
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(dataToUpdate),
-        });
-  
-        if (!response.ok) {
-          const errorData = await response.json();
-          reject({ success: false, error: errorData });
-          return;
-        }
-  
-        const responseData = await response.json();
-        resolve({ success: true, data: responseData });
-  
-      } catch (error) {
-        reject({ success: false, error: { message: error.message } });
-      }
-    });
+async function main() {
+  const llm = new LLM("http://localhost:11434", "romi"); // llama3.1 | romi | deepseek-r1:1.5b
+  llm.add_tool({
+    name: "get_current_weather",
+    description: "Get the current weather in a given location",
+    parameters: {
+      type: "object",
+      properties: {
+        location: { type: "string", description: "The city and state, e.g. San Francisco, CA" },
+        unit: { type: "string", enum: ["celsius", "fahrenheit"] }
+      },
+      required: ["location"]
+    },
+    execute: async (args) => (args.location.toLowerCase().includes("bashikpur")) ? { temperature: 30, unit: "celsius", description: "Clear sky" } : { temperature: 25, unit: "celsius", description: "Partly cloudy" }
+  });
+  const response1 = await llm.aask("What's the weather like in Bashikpur?");
+  console.log("LLM Response 1:", response1);
+  const response2 = await llm.aask("How does that compare to London?");
+  console.log("LLM Response 2:", response2);
+  const forcedResponse = await llm.forceToolCall("Tell me the weather in Tokyo.", "get_current_weather", { location: "Tokyo, Japan", unit: "fahrenheit" });
+  console.log("Forced Tool Call Response:", forcedResponse);
+  llm.clearContext();
+  const response3 = await llm.aask("What is the capital of France?");
+  console.log("LLM Response 3 (new context):", response3);
 }
-
-// const updateTitlePayload = {post_title: 'New Updated Title'};
-// updatePostData('post', 123, updateTitlePayload).then(response => console.log('Update Success:', response)).catch(error => console.error('Update Error:', error));
-
-// const updateMetaPayload = {meta_input: {custom_field: 'new meta value'}};
-
-// updatePostData('post', 123, updateMetaPayload).then(response => console.log('Meta Update Success:', response)).catch(error => console.error('Meta Update Error:', error));
-
-// const updateContentPayload = {post_content: 'This is the new content of the post.'};
-
-// updatePostData('post', 123, updateContentPayload).then(response => console.log('Content Update Success:', response)).catch(error => console.error('Content Update Error:', error));
-
-// const createPagePayload = {post_title: 'New Page Title',post_content: 'Content of the new page.',post_status: 'draft'};
-
-// updatePostData('page', 0, createPagePayload).then(response => console.log('Create Success:', response)).catch(error => console.error('Create Error:', error));
-
-
+// main().catch(console.error);
 
 
 

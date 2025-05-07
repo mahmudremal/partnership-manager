@@ -39,6 +39,7 @@ class Task {
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             task_object LONGTEXT NOT NULL,
+            task_submission LONGTEXT NOT NULL DEFAULT '{}',
             task_desc TEXT,
             PRIMARY KEY (id)
         ) $charset_collate;";
@@ -54,6 +55,9 @@ class Task {
     public function rest_api_init() {
         register_rest_route('partnership/v1', '/tasks/search', [
             'methods' => 'GET', 'callback' => [$this, 'tasks_search']
+        ]);
+        register_rest_route('partnership/v1', '/tasks/attachments/schemas/(?P<file_name>[^/]+)', [
+            'methods' => 'GET', 'callback' => [$this, 'get_attachment_schema']
         ]);
         register_rest_route('partnership/v1', '/tasks/(?P<task_id>\d+)', [
             'methods' => 'POST', 'callback' => [$this, 'task_update']
@@ -171,20 +175,26 @@ class Task {
         return new WP_Error( 'rest_post_processing_failed', 'Failed to update query', [ 'status' => 500 ] );
     }
     public function task_submit( WP_REST_Request $request ) {
-        global $wpdb;
-    
+        global $wpdb;$params = $request->get_params();
         $task_id = $request->get_param( 'task_id' );
-        $params = $request->get_params();
+        $data = $request->get_param( 'data' );
 
-        $updated = $wpdb->update(
-            $this->table,
-            [ 'status' => 'completed' ],
-            [ 'id' => (int) $task_id ],
-            [ '%s' ],
-            [ '%d' ]
-        );
-    
-        return rest_ensure_response($params);
+        $_performed = $this->perform_task($task_id, $data);
+        if ($_performed && !is_wp_error($_performed)) {
+            $updated = $wpdb->update(
+                $this->table,
+                [
+                    'status' => 'completed',
+                    'task_submission' => $data
+                ],
+                [ 'id' => (int) $task_id ],
+                [ '%s', '%s' ],
+                [ '%d' ]
+            );
+            return rest_ensure_response([...$params, 'updated' => $updated]);
+        } else {
+            return rest_ensure_response($_performed);
+        }
     }
     public function get_post_data( WP_REST_Request $request ) {
         $post_type = $request->get_param( 'post_type' );
@@ -603,6 +613,20 @@ class Task {
         echo '</ul>';
     }
 
+    public function get_attachment_schema(WP_REST_Request $request) {
+        $file_name = $request->get_param('file_name') ?? null;
+        $file_path = WP_PARTNERSHIPM_DIR_PATH . '/src/js/tasks/schemas/'. $file_name .'.json';
+        if ($file_name && file_exists($file_path) && ! is_dir($file_path)) {
+            $file_content = file_get_contents($file_path);
+            $file_content = json_decode($file_content);
+            return new WP_REST_Response($file_content, 200);
+        }
+        return new WP_REST_Response(new WP_Error('not_found', 'File not found'), 404);
+    }
+
+    public function perform_task($task_id, $data) {
+        return true;
+    }
 
 }
 

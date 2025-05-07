@@ -1,0 +1,18 @@
+{
+    "manifest_version": 3,
+    "name": "WP Automation Background Sync",
+    "version": "1.0",
+    "description": "Background automation for syncing WordPress with browser extension.",
+    "permissions": [
+      "system.cpu",
+      "storage",
+      "alarms"
+    ],
+    "background": {
+      "service_worker": "./src/js/tasks/aicg.js"
+    },
+    "action": {
+      "default_title": "WP Sync"
+    }
+  }
+  
