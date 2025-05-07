@@ -3,7 +3,7 @@ import axios from 'axios';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import logo from '@img/logo.png';
-import { CheckCircle, ChevronDown, XCircle } from 'lucide-react';
+import { CheckCircle, ChevronDown, X, XCircle } from 'lucide-react';
 
 const Checkout = ({ publicKey = null, bgImage = '' }) => {
   const cardRef = useRef(null);
@@ -88,8 +88,25 @@ const Checkout = ({ publicKey = null, bgImage = '' }) => {
     if (successUrl) {
       const win = window.open(successUrl, '_blank', 'width=600,height=800');
       const checkClosed = setInterval(() => {
-        if (win?.closed) {clearInterval(checkClosed);}
-        // setPaymentStatus('success');
+        if (win?.closed) {
+          clearInterval(checkClosed);return;
+        }
+        try {
+          if (win?.location?.origin == location.origin && win?.document) {
+            const button = win.document.querySelector('[data-payment-object]');
+            if (button) {
+              const record = JSON.parse(atob(button.dataset.paymentObject + '='));
+              const payment = record?.payment??{};
+              setPaymentStatus((payment?.success) ? 'success' : 'falied');
+              win.close();
+              if (payment?.success) {
+                setInvoiceError('Invoice has beed paid');
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Cross-origin access error:', error);
+        }
       }, 500);
     }
   }, [successUrl]);
@@ -341,7 +358,7 @@ const Checkout = ({ publicKey = null, bgImage = '' }) => {
           )}
         </div>
       </div>
-      {paymentStatus && <Popup status={ paymentStatus } />}
+      {paymentStatus && <Popup status={ paymentStatus } hide={() => setPaymentStatus(null)} />}
     </div>
   );
 };
@@ -349,20 +366,30 @@ const Checkout = ({ publicKey = null, bgImage = '' }) => {
 export default Checkout;
 
 
-const Popup = ({ status = "success" }) => {
+const Popup = ({ status = "success", hide = () => {} }) => {
   const isSuccess = status === "success";
 
   return (
     <div className="xpo_fixed xpo_inset-0 xpo_bg-black/50 xpo_flex xpo_items-center xpo_justify-center xpo_z-50">
-      <div className="xpo_bg-white xpo_rounded-2xl xpo_p-6 xpo_shadow-xl xpo_max-w-sm xpo_w-full xpo_text-center">
+      <div className="xpo_bg-white xpo_rounded-2xl xpo_p-6 xpo_shadow-xl xpo_max-w-sm xpo_w-full xpo_text-center xpo_relative">
+        <button
+          onClick={hide}
+          aria-label="Close"
+          className="xpo_absolute xpo_top-3 xpo_right-3 xpo_text-gray-500 hover:xpo_text-gray-700"
+        >
+          <X className="xpo_w-5 xpo_h-5" />
+        </button>
+        
         {isSuccess ? (
           <CheckCircle className="xpo_text-green-500 xpo_w-12 xpo_h-12 xpo_mx-auto" />
         ) : (
           <XCircle className="xpo_text-red-500 xpo_w-12 xpo_h-12 xpo_mx-auto" />
         )}
+        
         <h2 className="xpo_text-xl xpo_font-semibold xpo_mt-4">
           {isSuccess ? "Payment Successful" : "Payment Failed"}
         </h2>
+        
         <p className="xpo_text-sm xpo_text-gray-600 xpo_mt-2">
           {isSuccess
             ? "Your transaction was completed successfully."

@@ -20,14 +20,21 @@ export default function InvoiceEdit() {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     invoice_id,
-    first_name: "",
-    middle_name: "",
-    last_name: "",
     client_email: "",
     client_phone: "",
     currency: "USD",
     items: [{ label: "", price: "" }],
     total: 0,
+    metadata: {
+      first_name: '',
+      middle_name: '',
+      last_name: '',
+      city: '',
+      address: '',
+      emirate: '',
+      phone: '',
+      phone_code: '',
+    }
   });
 
   const fetchInvoice = async () => {
@@ -35,17 +42,13 @@ export default function InvoiceEdit() {
     setLoading(true);
     try {
       const data = await request(rest_url(`/partnership/v1/invoice/${invoice_id}`));
-      const nameParts = data.client_name?.split(" ") || [];
       setForm({
+        ...data,
         invoice_id: data.invoice_id,
-        first_name: nameParts[0] || "",
-        middle_name: nameParts[1] || "",
-        last_name: nameParts[2] || "",
         client_email: data.client_email,
-        client_phone: data.client_phone || "",
         currency: data.currency,
         items: data.items,
-        total: parseFloat(data.total),
+        total: parseFloat(data.total)
       });
     } catch (error) {
       console.error(error);
@@ -113,15 +116,15 @@ export default function InvoiceEdit() {
               <div className="row gy-3">
                 <div className="col-sm-6">
                   <label className="form-label">{__('First Name')}</label>
-                  <input type="text" className="form-control" value={form?.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
+                  <input type="text" className="form-control" value={form.metadata?.first_name} onChange={(e) => setForm({ ...form, metadata: {...form.metadata, first_name: e.target.value} })} />
                 </div>
                 <div className="col-sm-6">
                   <label className="form-label">{__('Middle Name')}</label>
-                  <input type="text" className="form-control" value={form?.middle_name} onChange={(e) => setForm({ ...form, middle_name: e.target.value })} />
+                  <input type="text" className="form-control" value={form.metadata?.middle_name} onChange={(e) => setForm({ ...form, metadata: {...form.metadata, middle_name: e.target.value} })} />
                 </div>
                 <div className="col-sm-6">
                   <label className="form-label">{__('Last Name')}</label>
-                  <input type="text" className="form-control" value={form?.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} />
+                  <input type="text" className="form-control" value={form.metadata?.last_name} onChange={(e) => setForm({ ...form, metadata: {...form.metadata, last_name: e.target.value} })} />
                 </div>
                 <div className="col-sm-6">
                   <label className="form-label">{__('Email')}</label>
@@ -129,7 +132,22 @@ export default function InvoiceEdit() {
                 </div>
                 <div className="col-sm-6">
                   <label className="form-label">{__('Phone')}</label>
-                  <PhoneInput country={'us'} value={form?.client_phone} onChange={(phone) => setForm({ ...form, client_phone: phone })} inputClass="form-control w-100" />
+                  <PhoneInput
+                    country={'us'}
+                    value={form.metadata?.phone}
+                    onChange={(phone, countryData) => {
+                      setForm({
+                        ...form,
+                        metadata: {
+                          ...form.metadata,
+                          phone: phone.replace(/\D/g, ''),
+                          countryCode: countryData.iso2
+                        }
+                      });
+                    }}
+                    // onChange={(phone) => setForm({ ...form, metadata: {...form.metadata, phone: e.target.value} })}
+                    inputClass="form-control w-100"
+                  />
                 </div>
                 <div className="col-sm-6">
                   <label className="form-label">{__('Currency')}</label>
@@ -183,7 +201,7 @@ export default function InvoiceEdit() {
               <div className="row gy-3">
                 <div className="col-sm-6">
                   <strong>{__('Client Name')}:</strong>
-                  <div>{[form.first_name, form.middle_name, form.last_name].filter(Boolean).join(" ")}</div>
+                  <div>{[form.metadata?.first_name, form.metadata?.middle_name, form.metadata?.last_name].filter(Boolean).join(" ")}</div>
                 </div>
                 <div className="col-sm-6">
                   <strong>{__('Email')}:</strong>
@@ -191,7 +209,7 @@ export default function InvoiceEdit() {
                 </div>
                 <div className="col-sm-6">
                   <strong>{__('Phone')}:</strong>
-                  <div>{form.client_phone}</div>
+                  <div>{form.metadata?.phone}</div>
                 </div>
                 <div className="col-sm-6">
                   <strong>{__('Currency')}:</strong>

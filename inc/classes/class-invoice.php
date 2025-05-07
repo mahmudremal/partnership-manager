@@ -210,11 +210,12 @@ class Invoice {
 	public function api_get_invoice(WP_REST_Request $request) {
 		$invoice_id = $request->get_param('invoice_id');
         // 
-        $response = $this->get_invoice($invoice_id);
+        $response = $this->get_invoice($invoice_id, true);
         // 
 		return rest_ensure_response($response);
 	}
 	public function api_pay_invoice(WP_REST_Request $request) {
+        global $wpdb;
 		$invoice_id = $request->get_param('invoice_id');
 		$card_token = $request->get_param('cardToken');
         // 
@@ -254,6 +255,29 @@ class Invoice {
         $response = Payment::get_instance()->create_payment_intent($payload, $request->get_param('provider'));
         // 
         $customer = $response['customer'] ?? [];
+
+        if (empty($invoice['client_email'])) {
+            $_updated = $wpdb->update(
+                $this->invoice_table,
+                ['client_email' => $payload['customer']['email']],
+                ['id' => $invoice['id']],
+                ['%s'], ['%d']
+            );
+            if ($_updated) {
+                $this->update_invoice_meta($invoice['id'], 'first_name', $payload['customer']['first_name']);
+                $this->update_invoice_meta($invoice['id'], 'middle_name', $payload['customer']['middle_name']);
+                $this->update_invoice_meta($invoice['id'], 'last_name', $payload['customer']['last_name']);
+                
+                $this->update_invoice_meta($invoice['id'], 'city', $request->get_param('city'));
+                $this->update_invoice_meta($invoice['id'], 'address', $request->get_param('address'));
+                $this->update_invoice_meta($invoice['id'], 'emirate', $request->get_param('emirate'));
+
+                $this->update_invoice_meta($invoice['id'], 'phone', $payload['customer']['phone']['number']);
+                $this->update_invoice_meta($invoice['id'], 'phone_code', $payload['customer']['phone']['country_code']);
+            }
+        }
+        
+        
         $_user_created = Referral::get_instance()->maybe_create_user([
             'email' => $customer['client_email'] ?? $customer['email'] ?? '',
             'first_name' => $customer['first_name'] ?? '',
@@ -312,7 +336,7 @@ class Invoice {
 
         return $invoice_id;
     }
-    public function get_invoice($invoice_id) {
+    public function get_invoice($invoice_id, $_with_meta = false) {
         global $wpdb;
         $invoice_id = sanitize_title($invoice_id);
         $invoice_query = $wpdb->prepare("SELECT * FROM {$this->invoice_table} WHERE invoice_id = %s", $invoice_id);
@@ -327,6 +351,10 @@ class Invoice {
 
         if (isset($invoice_data['status']) && !in_array($invoice_data['status'], ['paid', 'cancelled'])) {
             $invoice_data['invoice_link'] = site_url(sprintf('/invoice/%s/pay/', $invoice_id));
+        }
+
+        if ($_with_meta) {
+            $invoice_data['metadata'] = $this->get_invoice_meta($invoice_data['id']);
         }
         
         return $invoice_data;
@@ -347,9 +375,70 @@ class Invoice {
                 $referrer_id = Referral::get_instance()->check_referral_code($ref);
                 $post_id = do_action('create_referral_record', $referrer_id, $user->ID);
                 update_post_meta($post_id, 'converted', true);
+                Finance::get_instance()->add_transaction(
+                    $referrer_id,
+                    (float) $invoice['total'] * Referral::get_instance()->comission,
+                    'credit',
+                    $user->ID,
+                    sprintf('Referral amount added to account. Referral user %s created a transection #%s with an amount of %f.', $user->display_name, $invoice_id, (float) $invoice['total'])
+                );
             }
         }
         return $_updated;
+    }
+
+    public function update_invoice_meta($invoice_id, $meta_key, $meta_value) {
+        global $wpdb;
+        $invoice_id = (int) $invoice_id;
+        $meta_key = sanitize_key($meta_key);
+        $meta_value = wp_kses_post($meta_value);
+    
+        $existing_meta = $wpdb->get_var($wpdb->prepare(
+            "SELECT meta_value FROM {$this->meta_table} WHERE invoice_id = %d AND meta_key = %s",
+            $invoice_id, $meta_key
+        ));
+    
+        if ($existing_meta !== null) {
+            $result = $wpdb->update(
+                $this->meta_table,
+                ['meta_value' => $meta_value],
+                ['invoice_id' => $invoice_id, 'meta_key' => $meta_key]
+            );
+        } else {
+            $result = $wpdb->insert(
+                $this->meta_table,
+                [
+                    'invoice_id' => $invoice_id,
+                    'meta_key'   => $meta_key,
+                    'meta_value' => $meta_value,
+                ]
+            );
+        }
+    
+        return $result !== false;
+    }
+
+    public function get_invoice_meta($invoice_id, $meta_key = null) {
+        global $wpdb;
+        $invoice_id = (int) $invoice_id;
+    
+        if ($meta_key === null) {
+            $metas = $wpdb->get_results($wpdb->prepare(
+                "SELECT meta_key, meta_value FROM {$this->meta_table} WHERE invoice_id = %d",
+                $invoice_id
+            ), ARRAY_A);
+
+            return array_reduce($metas, function($carry, $meta) {$carry[$meta['meta_key']] = $meta['meta_value'];return $carry;}, []);
+            
+            return $metas;
+        } else {
+            $meta_key = sanitize_key($meta_key);
+            $meta_value = $wpdb->get_var($wpdb->prepare(
+                "SELECT meta_value FROM {$this->meta_table} WHERE invoice_id = %d AND meta_key = %s",
+                $invoice_id, $meta_key
+            ));
+            return $meta_value !== null ? $meta_value : null;
+        }
     }
 
 }

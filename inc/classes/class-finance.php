@@ -2,6 +2,7 @@
 namespace PARTNERSHIP_MANAGER\inc;
 use PARTNERSHIP_MANAGER\inc\Traits\Singleton;
 use WP_REST_Request;
+use WP_Error;
 use WP_User;
 
 class Finance {
@@ -50,7 +51,7 @@ class Finance {
 		]);
 		register_rest_route('partnership/v1', '/finance/transaction', [
 			'methods' => 'POST',
-			'callback' => [$this, 'add_transaction'],
+			'callback' => [$this, 'add_transaction_api'],
 			'permission_callback' => [Security::get_instance(), 'permission_callback']
 		]);
 		register_rest_route('partnership/v1', '/finance/balance/(?P<user_id>\d+)', [
@@ -58,28 +59,46 @@ class Finance {
 			'callback' => [$this, 'get_balance'],
 			'permission_callback' => [Security::get_instance(), 'permission_callback']
 		]);
+		register_rest_route('partnership/v1', '/finance/account', [
+			'methods' => 'GET',
+			'callback' => [$this, 'get_account'],
+			'permission_callback' => [Security::get_instance(), 'permission_callback']
+		]);
 	}
-
-	public function add_transaction(WP_REST_Request $request) {
-		global $wpdb;
+	public function add_transaction_api(WP_REST_Request $request) {
 		$user_id = absint($request->get_param('user_id'));
 		$amount = floatval($request->get_param('amount'));
 		$type = $request->get_param('type');
 		$reference = sanitize_text_field($request->get_param('reference'));
 		$description = sanitize_textarea_field($request->get_param('description'));
+	
+		$response = $this->add_transaction($user_id, $amount, $type, $reference, $description);
+	
+		return rest_ensure_response($response);
+	}
 
+	public function add_transaction($user_id, $amount, $type, $reference, $description) {
+		global $wpdb;
+	
+		// Validate transaction type
 		if (!in_array($type, ['credit', 'debit'])) {
-			return new \WP_Error('invalid_type', 'Invalid transaction type', ['status' => 400]);
+			return new WP_Error('invalid_type', 'Invalid transaction type', ['status' => 400]);
 		}
+		
+		// Validate amount
 		if ($amount <= 0) {
-			return new \WP_Error('invalid_amount', 'Amount must be positive', ['status' => 400]);
+			return new WP_Error('invalid_amount', 'Amount must be positive', ['status' => 400]);
 		}
-
+	
+		// Adjust amount based on transaction type
 		$adjusted_amount = $type === 'debit' ? -$amount : $amount;
 		$previous_balance = floatval(get_user_meta($user_id, '_finance_balance', true));
 		$new_balance = $previous_balance + $adjusted_amount;
+	
+		// Update user balance
 		update_user_meta($user_id, '_finance_balance', $new_balance);
-
+	
+		// Record the transaction
 		$wpdb->insert($this->table, [
 			'user_id' => $user_id,
 			'amount' => $amount,
@@ -88,26 +107,46 @@ class Finance {
 			'description' => $description,
 			'created_at' => current_time('mysql'),
 		]);
-
+	
 		return ['status' => 'success', 'new_balance' => $new_balance];
 	}
 
 	public function get_transactions(WP_REST_Request $request) {
 		global $wpdb;
 		$user_id = absint($request->get_param('user_id'));
-		$limit = absint($request->get_param('limit')) ?: 20;
+		$per_page = absint($request->get_param('limit')) ?: 20;
 
-		$results = $wpdb->get_results(
-			$wpdb->prepare("SELECT * FROM {$this->table} WHERE user_id = %d ORDER BY created_at DESC LIMIT %d", $user_id, $limit),
-			ARRAY_A
-		);
+        $total_items = $wpdb->get_var($wpdb->prepare("SELECT COUNT(id) FROM {$this->table} WHERE user_id = %d", $user_id));
+		
+		$results = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$this->table} WHERE user_id = %d ORDER BY created_at DESC LIMIT %d", $user_id, $per_page), ARRAY_A);
 
-		return rest_ensure_response($results);
+		$response = rest_ensure_response($results);
+        $response->header('X-WP-Total', (int) $total_items);
+        $response->header('X-WP-TotalPages', (int) ceil($total_items / $per_page));
+    
+        return $response;
 	}
 
 	public function get_balance(WP_REST_Request $request) {
 		$user_id = absint($request->get_param('user_id'));
 		$balance = get_user_meta($user_id, '_finance_balance', true);
-		return ['user_id' => $user_id, 'balance' => floatval($balance)];
+		return rest_ensure_response(['user_id' => $user_id, 'balance' => floatval($balance)]);
+	}
+	public function get_account(WP_REST_Request $request) {
+		$user_id = Security::get_instance()->user_id;
+		
+		$minimum_withdraw = 500;
+		
+		$balance = (float) get_user_meta($user_id, '_finance_balance', true);
+		$payments_to_date = 0;
+		$referral_earn = 0;
+		$withdrawable = $balance >= $minimum_withdraw ? $balance : 0;
+		return rest_ensure_response([
+			'balance' => $balance,
+			'withdrawable' => $withdrawable,
+			'referral_earn' => $referral_earn,
+			'payments_to_date' => $payments_to_date,
+			'minimum_withdraw' => $minimum_withdraw
+		]);
 	}
 }

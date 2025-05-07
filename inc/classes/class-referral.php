@@ -9,6 +9,8 @@ use WP_User;
 class Referral {
 	use Singleton;
 
+	public $comission = .20;
+
 	protected function __construct() {
 		$this->setup_hooks();
 	}

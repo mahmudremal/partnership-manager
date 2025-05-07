@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import Payouts from ".";
+import request from "@common/request";
+import { rest_url } from "@functions";
 import { useLoading } from "@context/LoadingProvider";
 import { usePopup } from "@context/PopupProvider";
 import { useTranslation } from "@context/LanguageProvider";
 import { HandCoins, Wallet, BanknoteArrowDown, UsersRound } from "lucide-react";
+import { sprintf } from "sprintf-js";
 
 export default function PayoutsScreen({ filters = 'any' }) {
     const { __ } = useTranslation();
@@ -13,19 +16,19 @@ export default function PayoutsScreen({ filters = 'any' }) {
     const [balance, setBalance] = useState(0);
     const [refBalance, setRefBalance] = useState(0);
     const [withdrawable, setWithdrawable] = useState(0);
-    const [paymentsToDate, setPaymentsToDate] = useState(2500000);
+    const [paymentsToDate, setPaymentsToDate] = useState(0);
 
     useEffect(() => {
-        try {
-            setLoading(true);
-            setTimeout(() => {
-                // 
-            }, 3000);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
+        setLoading(true);
+        request(rest_url(`/partnership/v1/finance/account`))
+        .then(account => {
+            if (account?.balance) {setBalance(account.balance);}
+            if (account?.withdrawable) {setWithdrawable(account.withdrawable);}
+            if (account?.referral_earn) {setRefBalance(account.referral_earn);}
+            if (account?.payments_to_date) {setPaymentsToDate(account.payments_to_date);}
+        })
+        .catch(e => console.error(e))
+        .finally(() => setLoading(false));
     }, []);
     // 
     return (
@@ -42,7 +45,7 @@ export default function PayoutsScreen({ filters = 'any' }) {
                                 <h6 className="fw-semibold text-primary-light mb-1">{balance.toFixed(2)}</h6>
                             </div>
                         </div>
-                        <p className="text-sm mb-0">Increase by  <span className="bg-success-focus px-1 rounded-2 fw-medium text-success-main text-sm">+200</span> this week</p>
+                        <Badge before={'Increase by'} after={'this week'} positive={true}>+200</Badge>
                     </div>
                 </div>
                 <div>
@@ -56,7 +59,7 @@ export default function PayoutsScreen({ filters = 'any' }) {
                                 <h6 className="fw-semibold text-primary-light mb-1">{refBalance.toFixed(2)}</h6>
                             </div>
                         </div>
-                        <p className="text-sm mb-0">Increase by  <span className="bg-danger-focus px-1 rounded-2 fw-medium text-danger-main text-sm">-5k</span> this week</p>
+                        <Badge before={'Increase by'} after={'this week'} positive={false}>+$0</Badge>
                     </div>
                 </div>
                 <div>
@@ -70,7 +73,7 @@ export default function PayoutsScreen({ filters = 'any' }) {
                                 <h6 className="fw-semibold text-primary-light mb-1">{withdrawable.toFixed(2)}</h6>
                             </div>
                         </div>
-                        <p className="text-sm mb-0">Increase by  <span className="bg-success-focus px-1 rounded-2 fw-medium text-success-main text-sm">+1k</span> this week</p>
+                        <Badge before={'Increase by'} after={'this week'} positive={true}>+$1k</Badge>
                     </div>
                 </div>
                 <div>
@@ -84,7 +87,7 @@ export default function PayoutsScreen({ filters = 'any' }) {
                                 <h6 className="fw-semibold text-primary-light mb-1">{paymentsToDate.toFixed(2)}</h6>
                             </div>
                         </div>
-                        <p className="text-sm mb-0">Increase by  <span className="bg-success-focus px-1 rounded-2 fw-medium text-success-main text-sm">+$10k</span> this week</p>
+                        <Badge before={'Increase by'} after={'this week'} positive={true}>+$10k</Badge>
                     </div>
                 </div>
             </div>
@@ -93,4 +96,14 @@ export default function PayoutsScreen({ filters = 'any' }) {
             </div>
         </div>
     );
+}
+
+const Badge = ({children, before = '', after = '', positive = true}) => {
+    return (
+        <p className="text-sm mb-0">
+            {before}
+            <span className={ `${positive ? 'bg-success-focus text-success-main' : 'bg-danger-focus text-danger-main'} px-1 rounded-2 fw-medium text-sm` }>{children}</span>
+            {after}
+        </p>
+    )
 }
