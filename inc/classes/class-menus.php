@@ -85,14 +85,14 @@ class Menus {
 					'id' 					=> 'payment-tap-secretkey',
 					'label'					=> __('Secret key', 'wp-partnershipm'),
 					'description'			=> __('Provide tap secret key.', 'wp-partnershipm'),
-					'type'					=> 'password',
+					'type'					=> 'text',
 					'default'				=> ''
 				],
 				[
 					'id' 					=> 'payment-tap-publickey',
 					'label'					=> __('Public key', 'wp-partnershipm'),
 					'description'			=> __('Provide tap public key.', 'wp-partnershipm'),
-					'type'					=> 'password',
+					'type'					=> 'text',
 					'default'				=> ''
 				],
 
@@ -103,6 +103,41 @@ class Menus {
 					'description'			=> __('Provide here an image url that will work as an background image of anonymouse payment background.', 'wp-partnershipm'),
 					'type'					=> 'url',
 					'default'				=> ''
+				],
+
+			]
+		];
+		$args['checkout']		= [
+			'title'							=> __('Checkout', 'wp-partnershipm'),
+			'description'					=> __('Checkout configurations, fields customization. Things enables and disables.', 'wp-partnershipm'),
+			'fields'						=> [
+				[
+					'id' 					=> 'checkout-default-phonecode',
+					'label'					=> __('Default Country', 'wp-partnershipm'),
+					'description'			=> __('Put a default country code for phone number.', 'wp-partnershipm'),
+					'type'					=> 'text',
+					'default'				=> 'ae'
+				],
+				[
+					'id' 					=> 'checkout-enable-middlename',
+					'label'					=> __('Middle name', 'wp-partnershipm'),
+					'description'			=> __('Mark to enable client middle name on checkout field.', 'wp-partnershipm'),
+					'type'					=> 'checkbox',
+					'default'				=> false
+				],
+				[
+					'id' 					=> 'checkout-enable-emirate',
+					'label'					=> __('Emirate', 'wp-partnershipm'),
+					'description'			=> __('Mark to enable select Emirate on checkout after address.', 'wp-partnershipm'),
+					'type'					=> 'checkbox',
+					'default'				=> false
+				],
+				[
+					'id' 					=> 'checkout-enable-overview',
+					'label'					=> __('Cart overview', 'wp-partnershipm'),
+					'description'			=> __('Mark to enable order line items or overview on the checkout screen right after the checkout field.', 'wp-partnershipm'),
+					'type'					=> 'checkbox',
+					'default'				=> false
 				],
 			]
 		];

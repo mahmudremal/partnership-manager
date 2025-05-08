@@ -5,7 +5,8 @@ import 'react-phone-input-2/lib/style.css';
 import logo from '@img/logo.png';
 import { CheckCircle, ChevronDown, X, XCircle } from 'lucide-react';
 
-const Checkout = ({ publicKey = null, bgImage = '' }) => {
+const Checkout = ({ config }) => {
+  const { bg: bgImage, pbk: publicKey, middlename: showMiddleName, emirate: showEmirate, overview: showOverview, phonecode: defaultPhonecode } = config
   const cardRef = useRef(null);
   const [tap, setTap] = useState(null);
   const [elements, setElements] = useState(null);
@@ -13,14 +14,14 @@ const Checkout = ({ publicKey = null, bgImage = '' }) => {
   const [invoiceData, setInvoiceData] = useState(null);
   const [formData, setFormData] = useState({
     firstName: '',
-    middleName: '',
+    middleName: showMiddleName ? '' : null,
     lastName: '',
     address: '',
     city: '',
-    emirate: '',
+    emirate: showEmirate ? '' : null,
     email: '',
     phone: '',
-    countryCode: 'sa'
+    countryCode: defaultPhonecode
   });
 
   const [loading, setLoading] = useState(false);
@@ -127,7 +128,7 @@ const Checkout = ({ publicKey = null, bgImage = '' }) => {
     try {
       const tapInstance = window.Tapjsli(publicKey);
       const elementsInstance = tapInstance.elements({
-        currencyCode: invoiceData?.currency??'SAR',
+        currencyCode: invoiceData?.currency??'AED',
         locale: 'en',
       });
 
@@ -142,7 +143,7 @@ const Checkout = ({ publicKey = null, bgImage = '' }) => {
           }
         },
         {
-          currencyCode:["KWD","USD","SAR"],
+          currencyCode: 'all', // ["KWD","USD","SAR"],
           labels : {
             cardNumber:"Card Number",
             expirationDate:"MM/YY",
@@ -150,7 +151,7 @@ const Checkout = ({ publicKey = null, bgImage = '' }) => {
             cardHolder:"Card Holder Name"
           },
           TextDirection:'ltr',
-          paymentAllowed: ['VISA', 'MASTERCARD', 'AMERICAN_EXPRESS', 'MADA']
+          paymentAllowed: 'all', // ['VISA', 'MASTERCARD', 'AMERICAN_EXPRESS', 'MADA']
         }
       );
 
@@ -159,6 +160,28 @@ const Checkout = ({ publicKey = null, bgImage = '' }) => {
       setTap(tapInstance);
       setElements(elementsInstance);
       setCard(cardElement);
+
+      // cardElement.addEventListener('change', function(event) {
+      //   console.log(event)
+      //   if(event.code == '200' ){
+      //       jQuery("#tap-btn").trigger("click");
+      //   }
+      //   if(event.BIN){
+      //     console.log(event.BIN)
+      //   }
+      //   if(event.loaded){
+      //     console.log("UI loaded :"+event.loaded);
+      //     console.log("current currency is :"+card.getCurrency())
+      //   }
+      //   var displayError = document.getElementById('error-handler');
+      //   if (event.error) {
+      //     displayError.textContent = event.error.message;
+      //   } else {
+      //     displayError.textContent = '';
+      //   }
+      // });
+      
+      
     } catch (err) {
       console.error('Tap initialization failed:', err);
       setError('Could not load card payment. Please try again.');
@@ -257,14 +280,30 @@ const Checkout = ({ publicKey = null, bgImage = '' }) => {
               <form onSubmit={handleSubmit} className="xpo_space-y-4">
                 <div className="xpo_grid xpo_grid-cols-1 md:xpo_grid-cols-2 xpo_gap-4">
                   <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" name="firstName" placeholder="First Name" required value={formData.firstName} onChange={handleInputChange} />
-                  <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" name="middleName" placeholder="Middle Name" value={formData.middleName} onChange={handleInputChange} />
+                  {showMiddleName && <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" name="middleName" placeholder="Middle Name" value={formData.middleName} onChange={handleInputChange} />}
                   <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" name="lastName" placeholder="Last Name" required value={formData.lastName} onChange={handleInputChange} />
                 </div>
                 
                 <div className="xpo_grid xpo_grid-cols-1 md:xpo_grid-cols-2 xpo_gap-4">
                   <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" name="address" placeholder="Address" required value={formData.address} onChange={handleInputChange} />
                   <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" name="city" placeholder="City" value={formData.city} onChange={handleInputChange} />
-                  <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" name="emirate" placeholder="Emirate" required value={formData.emirate} onChange={handleInputChange} />
+                  {/* {showEmirate && <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" name="emirate" placeholder="Emirate" required value={formData.emirate} onChange={handleInputChange} />} */}
+                  
+                  {showEmirate && (
+                    <div className="xpo_w-full">
+                      <select className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 xpo_dark:bg-gray-700 xpo_dark:border-gray-600 xpo_dark:placeholder-gray-400 xpo_dark:text-white xpo_dark:focus:ring-blue-500 xpo_dark:focus:border-blue-500">
+                        <option defaultValue="">Select emirate</option>
+                        <option value="abu-dhabi">Abu Dhabi</option>
+                        <option value="dubai">Dubai</option>
+                        <option value="sharjah">Sharjah</option>
+                        <option value="ajman">Ajman</option>
+                        <option value="umm-al-quwain">Umm Al-Quwain</option>
+                        <option value="ras-al-khaimah">Ras Al Khaimah</option>
+                        <option value="fujairah">Fujairah</option>
+                      </select>
+                    </div>
+                  )}
+
                 </div>
                 
                 <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" name="email" type="email" placeholder="Email" required value={formData.email} onChange={handleInputChange} />
@@ -337,7 +376,7 @@ const Checkout = ({ publicKey = null, bgImage = '' }) => {
             </div>
           }
 
-          {invoiceData && (
+          {(invoiceData && showOverview) && (
             <div
               // id="rightPage"
               className="xpo_w-full md:xpo_w-1/2 xpo_bg-gray-50 xpo_p-8 xpo_border-l"

@@ -5,11 +5,12 @@ import request from "@common/request";
 import { home_url, rest_url } from "@functions";
 import { usePopup } from '@context/PopupProvider';
 import { useTranslation } from '@context/LanguageProvider';
-import { Trash2, SquarePen, Eye, Plus, Search, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Trash2, SquarePen, Eye, Plus, Search, ChevronsLeft, ChevronsRight, CheckCircle, XCircle } from 'lucide-react';
 import { sprintf } from 'sprintf-js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { useSettings } from "@context/SettingsProvider";
+import { useCurrency } from "@context/CurrencyProvider";
 dayjs.extend(utc);
 
 const PER_PAGE_OPTIONS = [5, 10, 20, 50];
@@ -17,6 +18,7 @@ const STATUS_OPTIONS = ["any", "active", "inactive"];
 
 export default function Payouts({ maxAmount = 0, viewType = 'list' }) {
     const { __ } = useTranslation();
+    const { print_money } = useCurrency();
     const { setPopup } = usePopup();
     const { settings } = useSettings();
     
@@ -30,29 +32,27 @@ export default function Payouts({ maxAmount = 0, viewType = 'list' }) {
     const [transactions, setTransactions] = useState([]);
     const [userId, setUserId] = useState(settings?.user_id);
 
-    const fetchUsers = async () => {
+    const fetchTransections = async () => {
         setLoading(true);
-        const url = rest_url(`/partnership/v1/finance/transactions?user_id=${userId}&page=${page}&s=${search}&status=${status}&per_page=${perPage}`);
-        try {
-            const res = await request(url);
+        // request(rest_url(`/partnership/v1/finance/transactions?user_id=${userId}&page=${page}&s=${search}&status=${status}&per_page=${perPage}`)) // for finance transections
+        request(rest_url(`/partnership/v1/payouts?user_id=${userId}&page=${page}&s=${search}&status=${status}&per_page=${perPage}`)) // for solid payout list
+        .then(res => {
             setTransactions(res?.list??[]);
             setTotalPages(res.totalPages || 1);
             setTotalEntries(res.total || 0);
-        } catch (error) {
-            console.error("Error fetching transactions:", error);
-        } finally {
-            setLoading(false);
-        }
+        })
+        .catch(err => console.error("Error fetching transactions:", err))
+        .finally(() => setLoading(false));
     };
 
     useEffect(() => {
-        fetchUsers();
+        fetchTransections();
     }, [page, perPage, status]);
 
     const handleSearch = (e) => {
         e.preventDefault();
         setPage(1);
-        fetchUsers();
+        fetchTransections();
     };
 
     const handlePageChange = (newPage) => {
@@ -67,9 +67,9 @@ export default function Payouts({ maxAmount = 0, viewType = 'list' }) {
                 <div className="d-flex align-items-center flex-wrap gap-3">
                     <span className="text-md fw-medium text-secondary-light mb-0">{__('Show')}</span>
                     <select
-                        className="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px"
                         value={perPage}
                         onChange={(e) => setPerPage(Number(e.target.value))}
+                        className="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px"
                     >
                         {PER_PAGE_OPTIONS.map(opt => (
                             <option key={opt} value={opt}>{opt}</option>
@@ -79,19 +79,19 @@ export default function Payouts({ maxAmount = 0, viewType = 'list' }) {
                     <form className="navbar-search" onSubmit={handleSearch}>
                         <input
                             type="text"
-                            className="bg-base h-40-px w-auto"
                             name="search"
-                            placeholder={__('Search')}
                             value={search}
+                            placeholder={__('Search')}
+                            className="bg-base h-40-px w-auto"
                             onChange={(e) => setSearch(e.target.value)}
                         />
                         <button type="submit"><Search className="icon" /></button>
                     </form>
 
                     <select
-                        className="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px"
                         value={status}
                         onChange={(e) => setStatus(e.target.value)}
+                        className="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px"
                     >
                         {STATUS_OPTIONS.map(opt => (
                             <option key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</option>
@@ -100,8 +100,8 @@ export default function Payouts({ maxAmount = 0, viewType = 'list' }) {
                 </div>
 
                 <button
-                    className="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2"
                     onClick={() => setPopup(<PayoutRequestForm maxAmount={maxAmount} />)}
+                    className="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2"
                 >
                     <Plus className="icon text-xl line-height-1" />
                     {__('Request a Payout')}
@@ -116,33 +116,55 @@ export default function Payouts({ maxAmount = 0, viewType = 'list' }) {
                         <table className="table bordered-table sm-table mb-0">
                             <thead>
                                 <tr>
-                                    <th>{__('S.L')}</th>
+                                    {/* <th>{__('S.L')}</th>
                                     <th>{__('Transection Date')}</th>
                                     <th>{__('Amount')}</th>
                                     <th>{__('Type')}</th>
                                     <th>{__('Reference')}</th>
+                                    <th className="text-center">{__('Action')}</th> */}
+
+                                    <th>{__('S.L')}</th>
+                                    <th>{__('Created')}</th>
+                                    <th>{__('Amount')}</th>
+                                    <th>{__('Type')}</th>
+                                    <th>{__('Status')}</th>
                                     <th className="text-center">{__('Action')}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {transactions.length > 0 ? transactions.map((item, index) => (
+                                    // <tr key={item.id}>
+                                    //     <td>{(page - 1) * perPage + index + 1}</td>
+                                    //     <td>{dayjs.unix(item.created_at).utc().format('DD MMM YYYY')}</td>
+                                    //     <td>{item.amount}</td>
+                                    //     <td>{item.type}</td>
+                                    //     <td>{item.reference}</td>
+                                    //     <td className="text-center">
+                                    //         <div className="d-flex align-items-center gap-10 justify-content-center">
+                                    //             <Link to={ home_url(`/transactions/${item.id}/view`) } className="bg-info-focus text-info-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center" ><Eye className="icon text-xl" /></Link>
+                                    //             <button
+                                    //                 className="bg-success-focus text-success-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center"
+                                    //                 onClick={() => setPopup(<div>Hello from popup!</div>)}
+                                    //             ><SquarePen className="icon" /></button>
+                                    //             <button
+                                    //                 className="bg-danger-focus text-danger-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center"
+                                    //                 onClick={() => setPopup(<div>Hello from popup!</div>)}
+                                    //             ><Trash2 className="icon" /></button>
+                                    //         </div>
+                                    //     </td>
+                                    // </tr>
                                     <tr key={item.id}>
                                         <td>{(page - 1) * perPage + index + 1}</td>
-                                        <td>{dayjs.unix(item.created_at).utc().format('DD MMM YYYY')}</td>
-                                        <td>{item.amount}</td>
-                                        <td>{item.type}</td>
-                                        <td>{item.reference}</td>
+                                        <td>{dayjs(item.created_at).format('DD MMM YYYY')}</td>
+                                        <td>{print_money(item.amount, item.currency)}</td>
+                                        <td className="xpo_capitalize">{item.method}</td>
+                                        <td className="xpo_capitalize">{item.status}</td>
                                         <td className="text-center">
                                             <div className="d-flex align-items-center gap-10 justify-content-center">
-                                                <Link to={ home_url(`/transactions/${item.id}/view`) } className="bg-info-focus text-info-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center" ><Eye className="icon text-xl" /></Link>
                                                 <button
                                                     className="bg-success-focus text-success-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center"
-                                                    onClick={() => setPopup(<div>Hello from popup!</div>)}
-                                                ><SquarePen className="icon" /></button>
-                                                <button
-                                                    className="bg-danger-focus text-danger-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center"
-                                                    onClick={() => setPopup(<div>Hello from popup!</div>)}
-                                                ><Trash2 className="icon" /></button>
+                                                    onClick={() => setPopup(<ViewPayout item={item} setItems={setTransactions} />)}
+                                                ><Eye className="icon text-xl" /></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -185,62 +207,207 @@ export default function Payouts({ maxAmount = 0, viewType = 'list' }) {
     );
 }
 
+
+
 function PayoutRequestForm({ maxAmount }) {
     const { __ } = useTranslation();
     const [amount, setAmount] = useState('');
     const [method, setMethod] = useState('');
     const [note, setNote] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setSuccessMessage('');
+        setErrorMessage('');
+
+        request(rest_url('/partnership/v1/payout/update'), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                amount,
+                method,
+                comment: note,
+            }),
+        })
+        .then(data => {
+            if (data.success) {
+                setSuccessMessage(__('Payout request submitted successfully!'));
+                setAmount('');setMethod('');setNote('');
+            } else {
+                setErrorMessage(__('Failed to submit payout request: ') + data.message);
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            setErrorMessage(__('An error occurred while submitting the request. Please try again.'));
+        })
+        .finally(() => setLoading(false));
+    };
 
     return (
-        <div className="xpo_p-6 xpo_space-y-6 xpo_mx-auto">
-            <h2 className="xpo_font-semibold">{__('Request a Payout')}</h2>
+        <div className="xpo_p-6 xpo_space-y-6 xpo_mx-auto xpo_w-[600px] xpo_max-w-full">
+            <h5 className="xpo_text-lg xpo_font-semibold">{__('Request a Payout')}</h5>
+            {successMessage && <div className="xpo_p-4 xpo_text-green-700 xpo_bg-green-100 xpo_border xpo_border-green-300 xpo_rounded">{successMessage}</div>}
+            {errorMessage && <div className="xpo_p-4 xpo_text-red-700 xpo_bg-red-100 xpo_border xpo_border-red-300 xpo_rounded">{errorMessage}</div>}
+    
+            <form onSubmit={handleSubmit}>
+                <div className="xpo_space-y-1">
+                    <label className="xpo_block xpo_text-sm xpo_font-medium">
+                        {__('Amount')} 
+                        {maxAmount ? <span className="xpo_text-xs">({__('Max')}: {maxAmount})</span> : null}
+                    </label>
+                    <input
+                        type="number"
+                        className="xpo_w-full xpo_border xpo_border-gray-300 xpo_rounded-lg xpo_px-4 xpo_py-2 xpo_text-sm xpo_focus:outline-none xpo_focus:ring-2 xpo_focus:ring-primary-500"
+                        placeholder={__('Enter amount')}
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        max={maxAmount}
+                        required
+                    />
+                </div>
+    
+                <div className="xpo_space-y-1">
+                    <label className="xpo_block xpo_text-sm xpo_font-medium">{__('Payout Method')}</label>
+                    <select
+                        className="xpo_w-full xpo_border xpo_border-gray-300 xpo_rounded-lg xpo_px-4 xpo_py-2 xpo_text-sm xpo_focus:outline-none xpo_focus:ring-2 xpo_focus:ring-primary-500"
+                        value={method}
+                        onChange={(e) => setMethod(e.target.value)}
+                        required
+                    >
+                        <option value="">{__('Select method')}</option>
+                        <option value="bank">{__('Bank Transfer')}</option>
+                        <option value="mobile">{__('Mobile Banking')}</option>
+                        <option value="tap">{__('Tap')}</option>
+                        <option value="stripe">{__('Stripe')}</option>
+                        <option value="paypal">{__('PayPal')}</option>
+                    </select>
+                </div>
+    
+                <div className="xpo_space-y-1">
+                    <label className="xpo_block xpo_text-sm xpo_font-medium">{__('Note')}</label>
+                    <textarea
+                        className="xpo_w-full xpo_border xpo_border-gray-300 xpo_rounded-lg xpo_px-4 xpo_py-2 xpo_text-sm xpo_focus:outline-none xpo_focus:ring-2 xpo_focus:ring-primary-500"
+                        rows="3"
+                        placeholder={__('Optional message')}
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                    />
+                </div>
+    
+                <div className="xpo_flex xpo_justify-end xpo_gap-2">
+                    <button
+                        type="button"
+                        className="xpo_px-4 xpo_py-2 xpo_text-sm xpo_rounded-lg xpo_border xpo_border-gray-300 xpo_hover:bg-gray-50"
+                        onClick={() => {
+                            setAmount('');
+                            setMethod('');
+                            setNote('');
+                            setSuccessMessage('');
+                            setErrorMessage('');
+                        }}
+                    >
+                        {__('Cancel')}
+                    </button>
+                    <button
+                        type="submit"
+                        className={`xpo_px-4 xpo_py-2 xpo_text-sm xpo_rounded-lg xpo_bg-primary-600 xpo_hover:bg-primary-700 ${loading ? 'xpo_opacity-50 xpo_cursor-not-allowed' : ''}`}
+                        disabled={loading}
+                    >
+                        {loading ? __('Submitting...') : __('Submit Request')}
+                    </button>
+                </div>
+            </form>
+        </div>
+    );
+}
 
-            <div className="xpo_space-y-1">
-                <label className="xpo_block xpo_text-sm xpo_font-medium">
-                    {__('Amount')} {maxAmount ? <span className="xpo_text-xs">({__('Max')}: {maxAmount})</span> : null}
-                </label>
-                <input
-                    type="number"
-                    className="xpo_w-full xpo_border xpo_border-gray-300 xpo_rounded-lg xpo_px-4 xpo_py-2 xpo_text-sm xpo_focus:outline-none xpo_focus:ring-2 xpo_focus:ring-primary-500"
-                    placeholder={__('Enter amount')}
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    max={maxAmount}
-                />
-            </div>
+function ViewPayout({ item, setItems }) {
+    const { __ } = useTranslation();
+    const [loading, setLoading] = useState(null);
+    const {
+        id,
+        user_id,
+        status,
+        currency,
+        method,
+        amount,
+        created_at,
+        updated_at,
+        approved_at,
+        approved_by,
+        comment
+    } = item;
 
-            <div className="xpo_space-y-1">
-                <label className="xpo_block xpo_text-sm xpo_font-medium">{__('Payout Method')}</label>
-                <select
-                    className="xpo_w-full xpo_border xpo_border-gray-300 xpo_rounded-lg xpo_px-4 xpo_py-2 xpo_text-sm xpo_focus:outline-none xpo_focus:ring-2 xpo_focus:ring-primary-500"
-                    value={method}
-                    onChange={(e) => setMethod(e.target.value)}
-                >
-                    <option value="">{__('Select method')}</option>
-                    <option value="bank">{__('Bank Transfer')}</option>
-                    <option value="paypal">{__('PayPal')}</option>
-                    <option value="crypto">{__('Crypto')}</option>
-                </select>
-            </div>
-
-            <div className="xpo_space-y-1">
-                <label className="xpo_block xpo_text-sm xpo_font-medium">{__('Note')}</label>
-                <textarea
-                    className="xpo_w-full xpo_border xpo_border-gray-300 xpo_rounded-lg xpo_px-4 xpo_py-2 xpo_text-sm xpo_focus:outline-none xpo_focus:ring-2 xpo_focus:ring-primary-500"
-                    rows="3"
-                    placeholder={__('Optional message')}
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                />
-            </div>
-
-            <div className="xpo_flex xpo_justify-end xpo_gap-2">
-                <button className="xpo_px-4 xpo_py-2 xpo_text-sm xpo_rounded-lg xpo_border xpo_border-gray-300 hover:xpo_bg-gray-50">
-                    {__('Cancel')}
-                </button>
-                <button className="xpo_px-4 xpo_py-2 xpo_text-sm xpo_rounded-lg xpo_bg-primary-600 hover:xpo_bg-primary-700">
-                    {__('Submit Request')}
-                </button>
+    const handleStatusChange = (event) => {
+        event.preventDefault();
+        const selected = event.target.value;
+        const sure = selected === 'approved' ? confirm(__('Are you sure about this? This status might be an element of financial transection.')) : true;
+        if (sure) {
+            request(rest_url(`/partnership/v1/payouts/${id}/${selected}`), {method: "POST", body: JSON.stringify({sure})})
+            .then(data => {
+                console.log(data);
+                if (data?.new_status) {
+                    setItems(list => list.map(l => l.id == id ? {...l, status: data.new_status} : l));
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+            })
+            .finally(() => setLoading(false));
+        }
+    }
+    
+    return (
+        <div className="xpo_mx-auto xpo_w-96">
+            <h6>{__('Payout Details')}</h6>
+            <div className="xpo_space-y-3">
+                <div className="xpo_border-b xpo_pb-2">
+                    <p className="xpo_text-lg xpo_font-medium">{__('Payout ID:')} <span className="xpo_font-normal">#{id}</span></p>
+                </div>
+                <div className="xpo_space-y-1">
+                    <p className="xpo_text-sm">
+                        <strong className="xpo_font-medium">{__('User ID:')}</strong> {user_id}
+                    </p>
+                    <p className="xpo_text-sm">
+                        <strong className="xpo_font-medium">{__('Amount:')}</strong> {currency} {amount}
+                    </p>
+                    <p className="xpo_text-sm">
+                        <strong className="xpo_font-medium">{__('Method:')}</strong> {method}
+                    </p>
+                    <p className="xpo_text-sm">
+                        <strong className="xpo_font-medium">{__('Status:')} </strong> 
+                        {status === "approved" ? (
+                            <span className="text-success-main mb-0 xpo_capitalize"> {status}</span>
+                        ) : (
+                            (true && status === 'pending') ? (
+                                <select defaultChecked={status} onChange={handleStatusChange}>
+                                    <option value="approved">{__('Pending')}</option>
+                                    <option value="approved">{__('Approved')}</option>
+                                    <option value="declined">{__('Declined')}</option>
+                                </select>
+                            ) : <span className="text-warning-main mb-0 xpo_capitalize"> {__(status)}</span>
+                        )}
+                    </p>
+                    <p className="xpo_text-sm">
+                        <strong className="xpo_font-medium">{__('Created At:')}</strong> {dayjs.utc(created_at).format('DD MMM YYYY HH:mm')}
+                    </p>
+                    <p className="xpo_text-sm">
+                        <strong className="xpo_font-medium">{__('Updated At:')}</strong> {dayjs.utc(updated_at).format('DD MMM YYYY HH:mm')}
+                    </p>
+                    {approved_at && (
+                        <p className="xpo_text-sm">
+                            <strong className="xpo_font-medium">{__('Approved At:')}</strong> {dayjs.utc(approved_at).format('DD MMM YYYY HH:mm')} ({sprintf('Approved by User ID: %d', approved_by)})
+                        </p>
+                    )}
+                    <p className="xpo_text-sm">
+                        <strong className="xpo_font-medium">{__('Comment:')}</strong> {comment}
+                    </p>
+                </div>
             </div>
         </div>
     );

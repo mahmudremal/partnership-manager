@@ -55,7 +55,7 @@ export default function Checkout() {
                 case 'card':
                     const cards = data?.cards;
                     const customer_id = data?.customer_id;
-                    setShowCardForm(true);
+                    setShowCardForm(atob(`${data?.pk}=`));
                     setAllowProceed(false);
                     setstoredCards(cards?.length ? cards : []);
                     break;
@@ -262,7 +262,7 @@ export default function Checkout() {
                                     </div>
                                     {showCardForm && 
                                         <div className="mt-24 border radius-8 position-relative">
-                                            <CreditCard store={[storedCards, setstoredCards]} setAllowProceed={setAllowProceed} />
+                                            <CreditCard store={[storedCards, setstoredCards]} pk={showCardForm} setAllowProceed={setAllowProceed} />
                                         </div>
                                     }
                                     <button

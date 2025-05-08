@@ -13,6 +13,7 @@ export default function Application(config = {}) {
             window.tailwind.config = {prefix: 'xpo_'};
         }
         document.head.appendChild(script);
-        const root = createRoot(container);root.render(<Invoice config={config} publicKey={container.dataset?.pbk} bgImage={container.dataset?.bg} />);
+        const config = JSON.parse(atob(container.dataset.config));
+        const root = createRoot(container);root.render(<Invoice config={config} />);
     }
 }

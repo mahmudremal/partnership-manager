@@ -26,6 +26,8 @@ class Project {
 		Menus::get_instance();
 		Option::get_instance();
 		Assets::get_instance();
+		Payout::get_instance();
+		Toolbar::get_instance();
 		Invoice::get_instance();
 		Finance::get_instance();
 		Payment::get_instance();

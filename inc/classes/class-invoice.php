@@ -112,7 +112,6 @@ class Invoice {
         dbDelta($sql_items);
         dbDelta($sql_metas);
 
-        flush_rewrite_rules();
     }
 
     public function add_custom_rewrite() {
@@ -292,7 +291,7 @@ class Invoice {
             ]
         ]);
         if ($_user_created && !is_wp_error($_user_created) && is_int($_user_created)) {
-            $response['respective_user'] = $_user_created;
+            // $response['respective_user'] = $_user_created;
         }
         // 
         if (isset($response['transaction']) && isset($response['transaction']['url'])) {

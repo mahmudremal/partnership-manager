@@ -5,12 +5,18 @@
  * This file is loaded when visiting /invoice/[invoice-id]/pay
  */
 get_header();
+$config = [
+    'phonecode' => apply_filters('pm_project/system/getoption', 'checkout-default-phonecode', false),
+    'middlename' => apply_filters('pm_project/system/getoption', 'checkout-enable-middlename', false),
+    'emirate' => apply_filters('pm_project/system/getoption', 'checkout-enable-emirate', false),
+    'overview' => apply_filters('pm_project/system/getoption', 'checkout-enable-overview', false),
+    'pbk' => apply_filters('pm_project/system/getoption', 'payment-tap-publickey', false),
+    'bg' => apply_filters('pm_project/system/getoption', 'payment-invoice-bg', false),
+];
 ?>
-
 <div
     id="payment-invoice"
-    data-pbk="<?php echo esc_attr(apply_filters('pm_project/system/getoption', 'payment-tap-publickey', false)); ?>"
-    data-bg="<?php echo esc_attr(apply_filters('pm_project/system/getoption', 'payment-invoice-bg', false)); ?>"
+    data-config="<?php echo esc_attr(base64_encode(json_encode($config))); ?>"
 ></div>
 
 

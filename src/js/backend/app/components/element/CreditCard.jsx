@@ -4,7 +4,7 @@ import request from "@common/request";
 import { Trash } from "lucide-react";
 import { useTranslation } from "@context/LanguageProvider";
 
-export default function CreditCard({ store = [], setAllowProceed = () => {} }) {
+export default function CreditCard({ store = [], pk = '', setAllowProceed = () => {} }) {
     const [stored = [], setStored = () => {}] = store;
     const { __ } = useTranslation();
     const [showCardForm, setShowCardForm] = useState(stored.length === 0);
@@ -35,7 +35,9 @@ export default function CreditCard({ store = [], setAllowProceed = () => {} }) {
     const initializeTap = () => {
         if (!window.Tapjsli) return;
 
-        const tapInstance = window.Tapjsli('pk_test_3adgnub9j1NATES7QlKWFGeL');
+        console.log('pk', pk)
+        // 'pk_test_3adgnub9j1NATES7QlKWFGeL'
+        const tapInstance = window.Tapjsli(pk);
         cardRef.current.tap = tapInstance;
 
         const elements = tapInstance.elements({});
@@ -65,10 +67,10 @@ export default function CreditCard({ store = [], setAllowProceed = () => {} }) {
         };
 
         const paymentOptions = {
-            currencyCode: ["KWD", "USD", "SAR"],
+            currencyCode: 'all', // ["KWD", "USD", "SAR"],
             labels: labels,
             TextDirection: 'ltr',
-            paymentAllowed: ['VISA', 'MASTERCARD', 'AMERICAN_EXPRESS', 'MADA']
+            paymentAllowed: 'all', // ['VISA', 'MASTERCARD', 'AMERICAN_EXPRESS', 'MADA']
         };
 
         const card = elements.create('card', { style: style }, paymentOptions);

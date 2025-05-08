@@ -15,7 +15,7 @@ const Sandbox = ({ publicKey = null, bgImage = '' }) => {
     lastName: '',
     email: '',
     phone: '',
-    countryCode: 'sa',
+    countryCode: 'ae',
   });
 
   const [loading, setLoading] = useState(false);
@@ -153,7 +153,7 @@ const Sandbox = ({ publicKey = null, bgImage = '' }) => {
             cardHolder:"Card Holder Name"
           },
           TextDirection:'ltr',
-          paymentAllowed: ['VISA', 'MASTERCARD', 'AMERICAN_EXPRESS', 'MADA']
+          paymentAllowed: 'all', // ['VISA', 'MASTERCARD', 'AMERICAN_EXPRESS', 'MADA']
         }
       );
 

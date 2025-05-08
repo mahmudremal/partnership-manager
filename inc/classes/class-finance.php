@@ -143,7 +143,7 @@ class Finance {
 		$withdrawable = $balance >= $minimum_withdraw ? $balance : 0;
 		return rest_ensure_response([
 			'balance' => $balance,
-			'withdrawable' => $withdrawable,
+			'withdrawable' => 4000, //$withdrawable,
 			'referral_earn' => $referral_earn,
 			'payments_to_date' => $payments_to_date,
 			'minimum_withdraw' => $minimum_withdraw

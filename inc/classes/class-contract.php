@@ -136,7 +136,7 @@ class Contract {
                 'pricing' => [
                     // 'Weekly' => 500,
                     // 'Quarterly' => 800,
-                    'Monthly' => 1500,
+                    'Monthly' => 15,
                     'Yearly' => 15000,
                     // 'Lifetime' => 150000
                 ]

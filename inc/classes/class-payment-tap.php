@@ -46,6 +46,7 @@ class Payment_Tap {
             $return = [
                 'type'          => 'card',
                 'cards'         => $this->get_stored_cards($user_id),
+                'pk'            => substr(base64_encode($this->public_key()), 0, -1),
                 'customer_id'   => $this->get_customer_id(Users::prepare_user_data_for_response(get_userdata($user_id)))
             ];
         }
@@ -158,6 +159,22 @@ class Payment_Tap {
         return $_is_completed;
     }
 
+
+    public function create_payout(array $payload) {
+    // $payload = [
+    //     'toAccountId' => $toAccountId, // This is the recipient's account ID (e.g., a vendor ID)
+    //     'amount' => $amount, // Amount to be sent
+    //     'currency' => $currency, // Currency type
+    //     'description' => 'Payout to account ' . $toAccountId // Description of the transaction
+    // ];
+        
+        // if (empty($payload['toAccountId']) || empty($payload['amount']) || empty($payload['currency'])) {
+        //     return ['success' => false, 'message' => 'Incomplete payout information.'];
+        // }
+        $response = $this->request('v2/payouts', $payload);
+        return $response;
+    }
+    
     public function tap_refund($false, $payment_id, $args, $provider) {
         if (!apply_filters('payment/provider/match', $provider === 'tap', 'tap', $provider)) {
             return $false;
