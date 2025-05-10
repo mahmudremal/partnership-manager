@@ -1,3 +1,4 @@
+import { notify } from './functions';
 const cacheStore = new Map();
 const configStore = new Map();
 const DEFAULT_CACHE_TTL = 30 * 60 * 1000;
@@ -6,11 +7,18 @@ const DEFAULT_CACHE_TTL = 30 * 60 * 1000;
 function request(url, options = {}) {
     const cacheKey = url + JSON.stringify(options);
     const now = Date.now();
+    let allowCache = true;
+
+    if (options?.method == 'POST' || options?.['Cache-Control'] == 'no-cache' || options?.['Pragma'] == 'no-cache') {
+        allowCache = false;
+    }
 
     // Check cache
-    const cached = cacheStore.get(cacheKey);
-    if (cached && now - cached.timestamp < cached.ttl) {
-        return Promise.resolve(cached.data);
+    if (allowCache) {
+        const cached = cacheStore.get(cacheKey);
+        if (cached && now - cached.timestamp < cached.ttl) {
+            return Promise.resolve(cached.data);
+        }
     }
 
     // Inject global config headers if needed
@@ -53,11 +61,13 @@ function request(url, options = {}) {
         return response.json().then(data => (total && totalPages) ? ({list: data, total, totalPages}) : data);
     })
     .then(data => {
-        cacheStore.set(cacheKey, {
-            data,
-            timestamp: now,
-            ttl: options.cacheTTL || DEFAULT_CACHE_TTL,
-        });
+        if (allowCache) {
+            cacheStore.set(cacheKey, {
+                data,
+                timestamp: now,
+                ttl: options.cacheTTL || DEFAULT_CACHE_TTL,
+            });
+        }
         return data;
     })
     .catch(async error => {
@@ -72,8 +82,23 @@ function request(url, options = {}) {
                     }
                     break;
                 default:
-                    const errorBody = await error.response.text(); // or .json() if it's JSON
-                    console.log(`Error ${status}:`, errorBody);
+                    try {
+                        const errorBody = await error.response.json();
+                        error.response = errorBody;
+                        if (errorBody?.message) {
+                            notify.error(ejson.message);
+                        }
+                        console.log(`Error ${status}:`, errorBody);
+                    } catch (err) {
+                        try {
+                            const errorBody = await error.response.text();
+                            error.response = errorBody;
+                            if (errorBody?.message) {
+                                notify.error(ejson.message);
+                            }
+                        } catch (err2) {}
+                    }
+                    throw error;
                     break;
             }
         } else {

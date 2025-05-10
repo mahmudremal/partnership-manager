@@ -27,35 +27,35 @@ class Users {
         register_rest_route(
             'partnership/v1',
             '/users',
-            array(
+            [
                 'methods'  => 'GET',
                 'callback' => [$this, 'partnership_get_users'],
-                'args'     => array(
-                    'page'     => array(
+                'args'     => [
+                    'page'     => [
                         'default'           => 1,
                         'sanitize_callback' => 'absint',
                         'validate_callback' => function ($v) {return is_numeric($v);},
-                        'description'       => __( 'Page number.', 'wp-partnershipm' ),
-                    ),
-                    's'        => array(
+                        'description'       => __( 'Page number.', 'wp-partnershipm' )
+                    ],
+                    's'        => [
                         'default'           => '',
                         'sanitize_callback' => 'sanitize_text_field',
-                        'description'       => __( 'Search keyword.', 'wp-partnershipm' ),
-                    ),
-                    'status'   => array(
+                        'description'       => __( 'Search keyword.', 'wp-partnershipm' )
+                    ],
+                    'status'   => [
                         'default'           => '',
                         'sanitize_callback' => 'sanitize_text_field',
                         'description'       => __( 'User status (e.g., pending, approved).', 'wp-partnershipm' ),
-                    ),
-                    'per_page' => array(
+                    ],
+                    'per_page' => [
                         'default'           => 10,
                         'sanitize_callback' => 'absint',
                         'validate_callback' => function ($v) {return is_numeric($v);},
-                        'description'       => __( 'Number of users per page.', 'wp-partnershipm' ),
-                    ),
-                ),
+                        'description'       => __( 'Number of users per page.', 'wp-partnershipm' )
+                    ]
+                ],
                 'permission_callback' => [Security::get_instance(), 'permission_callback']
-            )
+            ]
         );
         register_rest_route(
             'partnership/v1',
@@ -71,6 +71,24 @@ class Users {
                         'required'          => true
                     ]
                 ]
+            ]
+        );
+        register_rest_route(
+            'partnership/v1',
+            '/users/(?P<user_id>\d+)',
+            [
+                'methods'             => 'POST',
+                'callback'            => [$this, 'partnership_update_user_details'],
+                'permission_callback' => [Security::get_instance(), 'permission_callback']
+            ]
+        );
+        register_rest_route(
+            'partnership/v1',
+            '/users/(?P<user_id>\d+)/avater',
+            [
+                'methods'             => 'POST',
+                'callback'            => [$this, 'partnership_update_user_avater'],
+                // 'permission_callback' => [Security::get_instance(), 'permission_callback']
             ]
         );
     }
@@ -126,22 +144,109 @@ class Users {
 
     public function partnership_get_user_details( WP_REST_Request $request ) {
         $user_id = $request->get_param( 'user_id' );
-    
         if ( ! $user_id ) {
-            return new WP_Error( 'invalid_user_id', __( 'User ID is required.', 'your-text-domain' ), array( 'status' => 400 ) );
+            return new WP_Error( 'invalid_user_id', __( 'User ID is required.', 'domain' ), array( 'status' => 400 ) );
         }
-    
-        $user_data = get_userdata( $user_id );
-    
-        if ( ! $user_data ) {
-            return new WP_Error( 'rest_user_invalid_id', __( 'Invalid user ID.', 'your-text-domain' ), array( 'status' => 404 ) );
+        $user = get_userdata( $user_id );
+        if ( ! $user ) {
+            return new WP_Error( 'rest_user_invalid_id', __( 'Invalid user ID.', 'domain' ), array( 'status' => 404 ) );
         }
-    
-        return rest_ensure_response( $this->prepare_user_data_for_response( $user_data ) );
+        // return rest_ensure_response( $this->prepare_user_data_for_response( $user ) );
+        // $user_meta = get_user_meta($user_id, false, true);
+        // $transformed_meta = array_map(function ($value) {
+        //     if (is_array($value) && count($value) === 1) {
+        //         return $value[0];
+        //     }
+        //     return $value;
+        // }, $user_meta);
+        return rest_ensure_response([
+            'caps' => $user->caps,
+            'roles' => $user->roles,
+            'email' => $user->data->user_email,
+            // 'metadata' => $transformed_meta,
+            'metadata' => [
+                'avater' => get_user_meta($user_id, 'avater', true),
+                'first_name' => get_user_meta($user_id, 'first_name', true),
+                'last_name' => get_user_meta($user_id, 'last_name', true),
+                'description' => get_user_meta($user_id, 'description', true),
+                'partnership_dashboard_locale' => get_user_meta($user_id, 'partnership_dashboard_locale', true),
+                // '_tap_customer_id' => get_user_meta($user_id, '_tap_customer_id', true),
+                // 'referral_code' => get_user_meta($user_id, 'referral_code', true)
+            ]
+        ]);
+    }
+
+    public function partnership_update_user_details( WP_REST_Request $request ) {
+        $user_id = (int) $request->get_param('user_id');
+        $metadata = (array) $request->get_param('metadata');
+        // 
+        $sanitized_email = sanitize_email($request->get_param('email'));
+
+        if (!is_email($sanitized_email)) {
+            return new WP_Error('invalid_email', __('The provided email address is not valid.'));
+        }
+        // if (email_exists($sanitized_email) && get_user_by('email', $sanitized_email)->ID !== $user_id) {
+        //     return new WP_Error('email_exists', __('This email address is already in use.'));
+        // }
+        $updated = [];
+        // $updated['email'] = wp_update_user(['ID' => $user_id, 'user_email' => $sanitized_email]);
+        // 
+        foreach ($metadata as $meta_key => $meta_value) {
+            $updated[$meta_key] = update_user_meta($user_id, $meta_key, sanitize_text_field($meta_value));
+        }
+        // 
+        return rest_ensure_response($updated);
+    }
+
+    public function partnership_update_user_avater( WP_REST_Request $request ) {
+        $user_id = (int) $request->get_param('user_id');
+
+        if (!get_user_by('id', $user_id)) {
+            return new WP_Error('invalid_user_id', __('Invalid user ID.'), array('status' => 404));
+        }
+
+        if (!isset($_FILES['avatar']) || $_FILES['avatar']['error'] !== UPLOAD_ERR_OK) {
+            return new WP_Error('no_file_uploaded', __('No file was uploaded or an error occurred during upload.'), array('status' => 400));
+        }
+
+        $uploaded_file = $_FILES['avatar'];
+
+        $allowed_types = array('image/jpeg', 'image/png', 'image/gif');
+        if (!in_array($uploaded_file['type'], $allowed_types)) {
+            return new WP_Error('invalid_file_type', __('Invalid file type. Only JPEG, PNG, and GIF are allowed.'), array('status' => 400));
+        }
+
+        $upload_dir = wp_upload_dir();
+        $user_files_dir = $upload_dir['basedir'] . '/userfiles/';
+        if (!is_dir($user_files_dir)) {
+            wp_mkdir_p($user_files_dir);
+        }
+
+        $previous_avatar_url = get_user_meta($user_id, 'avater', true);
+        if ($previous_avatar_url) {
+            $file_path = str_replace(wp_upload_dir()['baseurl'], wp_upload_dir()['basedir'], $previous_avatar_url);
+            if (file_exists($file_path)) {
+                unlink($file_path);
+            }
+        }
+
+        $file_extension = pathinfo($uploaded_file['name'], PATHINFO_EXTENSION);
+        $new_file_name = 'avater-' . $user_id . '-' . sanitize_file_name(strtolower(pathinfo($uploaded_file['name'], PATHINFO_FILENAME))) . '-' . time() . '.' . $file_extension;
+        $target_path = $user_files_dir . $new_file_name;
+
+        $move_result = move_uploaded_file($uploaded_file['tmp_name'], $target_path);
+
+        if ($move_result) {
+            $new_avatar_url = $upload_dir['baseurl'] . '/userfiles/' . $new_file_name;
+            update_user_meta($user_id, 'avater', $new_avatar_url);
+            return rest_ensure_response(array('message' => __('Avatar updated successfully.'), 'avatar_url' => $new_avatar_url));
+        } else {
+            return new WP_Error('upload_failed', __('Failed to move uploaded file.'), array('status' => 500));
+        }
     }
     
     public static function prepare_user_data_for_response( $user ) {
-        return [
+        $data = [
             'id'          => $user->ID,
             'phone'       => '',
             'roles'       => $user->roles,
@@ -152,8 +257,11 @@ class Users {
             'displayName' => $user->display_name,
             'avater'      => 'https://randomuser.me/api/portraits/men/' . $user->ID . '.jpg',
             'locale'      => get_user_meta($user->ID, 'partnership_dashboard_locale', true),
-            ...(array) $user
+            ...(array) $user,
         ];
+        if (isset($data['data']->user_pass)) {unset($data['data']->user_pass);}
+        if (isset($data['data']->user_activation_key)) {unset($data['data']->user_activation_key);}
+        return $data;
     }
 
     public static function get_the_user_ip() {

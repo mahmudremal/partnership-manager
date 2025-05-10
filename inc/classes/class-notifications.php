@@ -112,6 +112,28 @@ class Notifications {
 			'callback' => [$this, 'get_notifications'],
 			'permission_callback' => [Security::get_instance(), 'permission_callback']
 		]);
+		register_rest_route('partnership/v1', '/notifications/config', [
+			'methods' => 'GET',
+			'callback' => [$this, 'get_notification_config'],
+			'permission_callback' => [Security::get_instance(), 'permission_callback']
+		]);
+		register_rest_route('partnership/v1', '/notifications/config', [
+			'methods' => 'POST',
+			'callback' => [$this, 'update_notification_config'],
+			'permission_callback' => [Security::get_instance(), 'permission_callback'],
+			'args'                => [
+                'key' => [
+                    'required'    => true,
+                    'type'        => 'string',
+                    'description' => __('Config key of inparticular notification.', 'wp-partnershipm'),
+                ],
+                'status'    => [
+                    'required'    => true,
+                    'type'        => 'bool',
+                    'description' => __('bool status for the config', 'wp-partnershipm'),
+                ]
+            ]
+		]);
 	}
 
 	public function get_notifications(WP_REST_Request $request) {
@@ -182,5 +204,22 @@ class Notifications {
 	public function delete_notification($id) {
 		global $wpdb;
 		return $wpdb->delete($this->table, ['id' => $id]);
+	}
+
+	public function get_notification_config(WP_REST_Request $request) {
+		$user_id = Security::get_instance()->user_id;global $wpdb;
+		$usermetas = $wpdb->get_results($wpdb->prepare("SELECT meta_key, meta_value FROM {$wpdb->usermeta} WHERE user_id = %d AND meta_key LIKE 'pm_notis-%'", $user_id), ARRAY_A);
+		$usermetas = array_reduce($usermetas, function($carry, $meta) {$carry[$meta['meta_key']] = !empty($meta['meta_value']);return $carry;}, []);
+		return rest_ensure_response($usermetas);
+	}
+
+	public function update_notification_config(WP_REST_Request $request) {
+		$user_id = Security::get_instance()->user_id;
+		$key = $request->get_param('key');
+		$status = $request->get_param('status');
+		// 
+		$updated = update_user_meta($user_id, $key, $status);
+		// 
+		return rest_ensure_response(['status' => $updated]);
 	}
 }

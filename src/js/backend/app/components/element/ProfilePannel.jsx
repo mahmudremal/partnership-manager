@@ -68,8 +68,8 @@ export default function ProfilePannel() {
                         <User className="icon text-xl" />  {__('My Profile')}</Link>
                     </li>
                     <li>
-                        <Link to={ home_url('/email') } className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-primary d-flex align-items-center gap-3"> 
-                        <MailCheck className="icon text-xl" />  {__('Inbox')}</Link>
+                        <Link to={ home_url('/notifications') } className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-primary d-flex align-items-center gap-3"> 
+                        <MailCheck className="icon text-xl" />  {__('Notifications')}</Link>
                     </li>
                     <li>
                         <Link to={ home_url('/settings') } className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-primary d-flex align-items-center gap-3"> 

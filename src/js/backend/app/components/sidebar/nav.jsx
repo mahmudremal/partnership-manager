@@ -4,7 +4,7 @@ import { Outlet } from "react-router-dom";
 import { useTranslation } from "@context/LanguageProvider";
 
 
-import { Bolt, BookMarked, BookOpenText, Boxes, ChartNoAxesCombined, ChartSpline, ChevronRight, CreditCard, HeartHandshake, LayoutDashboard, LifeBuoy, Network, Receipt, Store, TicketPlus, ToggleLeft, ToggleRight, UsersRound } from 'lucide-react';
+import { Bolt, BookMarked, BookOpenText, Boxes, ChartNoAxesCombined, ChartSpline, ChevronFirst, ChevronRight, CreditCard, HeartHandshake, LayoutDashboard, LayoutList, LifeBuoy, Network, Receipt, Signature, Store, TicketPlus, ToggleLeft, ToggleRight, UserRoundPlus, Users, UsersRound } from 'lucide-react';
 import { home_url } from '../common/functions';
 
 const Icon = ({ icon: IconComponent, ...attrs }) => {
@@ -15,50 +15,56 @@ const Icon = ({ icon: IconComponent, ...attrs }) => {
 export const Nav = () => {
   const { __ } = useTranslation();
 
-  const navMenus = [
+  const navMenus = () => [
+    // {
+    //   label: __('Dashboard'),
+    //   icon: LayoutDashboard,
+    //   route: '/',
+    //   order: 0,
+    //   childrens: [
+    //     {
+    //       label: __('Analytics'),
+    //       route: '/analytics',
+    //       icon: ChartNoAxesCombined,
+    //     },
+    //     {
+    //       label: __('Sales'),
+    //       route: '/sales',
+    //       icon: ChartSpline,
+    //     }
+    //   ]
+    // },
     {
       label: __('Dashboard'),
       icon: LayoutDashboard,
       route: '/',
-      order: 0,
-      childrens: [
-        {
-          label: __('Analytics'),
-          route: '/analytics',
-          icon: ChartNoAxesCombined,
-        },
-        {
-          label: __('Sales'),
-          route: '/sales',
-          icon: ChartSpline,
-        }
-      ]
+      order: 0
     },
     {
       label: __('Application'),
       order: 1,
       class: 'sidebar-menu-group-title'
     },
-    // {
-    //   label: __('Users'),
-    //   icon: Users,
-    //   route: '#',
-    //   order: 3,
-    //   childrens: [
-    //     {
-    //       label: __('Users List'),
-    //       route: '/users',
-    //       icon: LayoutList,
-    //       iconClass: 'text-primary-600'
-    //     },
-    //     {
-    //       label: __('Add User'),
-    //       route: '/users/0/edit',
-    //       icon: UserRoundPlus,
-    //       iconClass: 'text-info-main'
-    //     }
-    //   ]
-    // },
+    {
+      label: __('Users'),
+      icon: Users,
+      route: '/users',
+      order: 3,
+      childrens: [
+        {
+          label: __('Users List'),
+          route: '/users',
+          icon: LayoutList,
+          iconClass: 'text-primary-600'
+        },
+        {
+          label: __('Add User'),
+          route: '/users/0/edit',
+          icon: UserRoundPlus,
+          iconClass: 'text-info-main'
+        }
+      ]
+    },
     {
       label: __('Stores'),
       icon: Store,
@@ -68,44 +74,44 @@ export const Nav = () => {
     {
       label: __('Referrals'),
       icon: Network,
-      route: '#',
+      route: '/referrals',
       order: 5,
+      // childrens: [
+      //   {
+      //     label: __('Active referrals'),
+      //     route: '/referrals/active',
+      //     icon: ToggleRight
+      //   },
+      //   {
+      //     label: __('Inactive referrals'),
+      //     route: '/referrals/inactive',
+      //     icon: ToggleLeft
+      //   },
+      //   // {
+      //   //   label: __('Retargetting'),
+      //   //   route: '/referrals/retargetting',
+      //   //   icon: Crosshair
+      //   // }
+      // ]
+    },
+    {
+      label: __('Contracts'),
+      icon: Signature,
+      route: '/contracts',
+      order: 6,
       childrens: [
         {
-          label: __('Active referrals'),
-          route: '/referrals/active',
+          label: __('Active contracts'),
+          route: '/contracts/active',
           icon: ToggleRight
         },
         {
-          label: __('Inactive referrals'),
-          route: '/referrals/inactive',
-          icon: ToggleLeft
-        },
-        // {
-        //   label: __('Retargetting'),
-        //   route: '/referrals/retargetting',
-        //   icon: Crosshair
-        // }
+          label: __('Previous contracts'),
+          route: '/contracts/previous',
+          icon: ChevronFirst
+        }
       ]
     },
-    // {
-    //   label: __('Contracts'),
-    //   icon: Signature,
-    //   route: '#',
-    //   order: 6,
-    //   childrens: [
-    //     {
-    //       label: __('Active contracts'),
-    //       route: '/contracts/active',
-    //       icon: ToggleRight
-    //     },
-    //     {
-    //       label: __('Previous contracts'),
-    //       route: '/contracts/previous',
-    //       icon: ChevronFirst
-    //     }
-    //   ]
-    // },
     {
       label: __('Packages'),
       icon: Boxes,
@@ -138,7 +144,7 @@ export const Nav = () => {
     {
       label: __('Support'),
       icon: HeartHandshake,
-      route: '#',
+      route: '/support',
       order: 11,
       childrens: [
         {
@@ -177,11 +183,15 @@ export const Nav = () => {
       order: 15
     }
   ];
+
   return (
     <>
       <Outlet />
       <ul className="sidebar-menu" id="sidebar-menu">
-        {navMenus.map((item, index) => (
+        {navMenus().filter(r => 
+        !['/users', '/stores', '/contracts', '/packages', '/invoices', '/support', '/resources/partner-docs', '/resources/service-docs', '/team', '/settings'].includes(r.route)
+        && ! ['sidebar-menu-group-title'].includes(r?.class)
+      ).map((item, index) => (
           <NavItem key={index} item={item} />
         ))}
       </ul>
