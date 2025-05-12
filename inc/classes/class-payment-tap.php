@@ -33,7 +33,7 @@ class Payment_Tap {
         $gateways['tap'] = [
             'title' => __('Tap', 'wp-partnershipm'),
             'icon' => WP_PARTNERSHIPM_BUILD_URI . '/icons/tap.svg',
-            'description' => __('Fill your card information below. This is secure, and are handled and resposibility by the payment provider. Now US. We never store your card information.', 'wp-partnershipm'),
+            'description' => '', // __('Fill your card information below. This is secure, and are handled and resposibility by the payment provider. Now US. We never store your card information.', 'wp-partnershipm'),
             'fields' => [
                 ['type' => 'cards', 'required' => true]
             ]
@@ -146,12 +146,18 @@ class Payment_Tap {
         $resp = $this->request("v2/charges/{$charge_id}", [], 'GET');  // :contentReference[oaicite:1]{index=1}
         $_is_completed = isset($resp['status']) && $resp['status'] === 'CAPTURED' || $resp['status'] === 'AUTHORIZED';
 
-        if (isset($data['invoice_id']) && !empty($data['invoice_id']) && $data['invoice_id'] !== 0) {
-            Invoice::get_instance()->mark_paid_invoice($data['invoice_id']);
+        $invoice = Invoice::get_instance()->get_invoice($data['invoice_id']);
+
+        if ($resp && !empty($resp)) {
+            Invoice::get_instance()->update_invoice_meta($invoice['id'], '_payment_object', maybe_serialize($resp));
         }
-        
-        if ($_is_completed && isset($resp['card']) && isset($resp['card']['id'])) {
-            // store card
+                
+        if ($_is_completed && isset($data['invoice_id']) && !empty($data['invoice_id']) && $data['invoice_id'] !== 0) {
+            Invoice::get_instance()->mark_paid_invoice($data['invoice_id']);
+            // 
+            if (isset($resp['card']) && isset($resp['card']['id'])) {
+                // store card
+            }
         }
 
         if ($return) {return ['success' => $_is_completed, 'transection' => $resp];}

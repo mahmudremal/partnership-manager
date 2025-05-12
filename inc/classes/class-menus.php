@@ -133,6 +133,13 @@ class Menus {
 					'default'				=> false
 				],
 				[
+					'id' 					=> 'checkout-enable-city',
+					'label'					=> __('City', 'wp-partnershipm'),
+					'description'			=> __('Mark to enable select City on checkout after address.', 'wp-partnershipm'),
+					'type'					=> 'checkbox',
+					'default'				=> false
+				],
+				[
 					'id' 					=> 'checkout-enable-overview',
 					'label'					=> __('Cart overview', 'wp-partnershipm'),
 					'description'			=> __('Mark to enable order line items or overview on the checkout screen right after the checkout field.', 'wp-partnershipm'),

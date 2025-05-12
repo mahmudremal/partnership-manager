@@ -24,7 +24,25 @@ class Payment_Tabby {
         $gateways['tabby'] = [
             'title' => __('Tabby', 'wp-partnershipm'),
             'icon' => WP_PARTNERSHIPM_BUILD_URI . '/icons/tabby.svg',
-            'description' => __('Pay via installment with tabby 12 month plan now. buy now pay later. click on [Pay Now] button to proceed.', 'wp-partnershipm'),
+            // 'description' => __('Pay via installment with tabby 12 month plan now. buy now pay later. click on [Pay Now] button to proceed.', 'wp-partnershipm'),
+            'description' => '
+                <div style="width: 100%;">
+                    <div style="padding: 20px;text-align: center;">
+                        <div style="display: flex;flex-direction: column;gap: 20px">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="-252.3 356.1 163 80.9" style="height: 80px;">
+                                <path fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="2" d="M-108.9 404.1v30c0 1.1-.9 2-2 2H-231c-1.1 0-2-.9-2-2v-75c0-1.1.9-2 2-2h120.1c1.1 0 2 .9 2 2v37m-124.1-29h124.1"></path>
+                                <circle cx="-227.8" cy="361.9" r="1.8" fill="currentColor"></circle>
+                                <circle cx="-222.2" cy="361.9" r="1.8" fill="currentColor"></circle>
+                                <circle cx="-216.6" cy="361.9" r="1.8" fill="currentColor"></circle>
+                                <path fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="2" d="M-128.7 400.1H-92m-3.6-4.1 4 4.1-4 4.1"></path>
+                            </svg>
+                            <div >
+                                <p class="">After clicking “Pay now”, you will be redirected to Pay later with Tabby to complete your purchase securely.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ',
             'fields' => [
                 ['type' => 'none', 'required' => true]
             ]

@@ -16,17 +16,17 @@ $transaction = $verify['transection'] ?? [];
 
 $status = $transaction['status'] ?? $status;
 
-if ($status == 'DECLINED') {
-    $transaction['status'] = $status = 'success';
-    $verify['status'] = $verify['success'] = true;
-}
+// if ($status == 'DECLINED') {
+//     $transaction['status'] = $status = 'success';
+//     $verify['status'] = $verify['success'] = true;
+// }
 
-if (isset($verify['success']) && $verify['success']) {
+if (isset($verify['success']) && $verify['success'] === true) {
     $status = 'success';
     do_action('partnersmanagerpayment/done', $status, $transaction);
 }
 
-// echo '<pre>';print_r($payload);echo '</pre>';wp_die();
+// echo '<pre>';print_r($verify);echo '</pre>';wp_die();
 
 
 // get the header

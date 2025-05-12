@@ -23,6 +23,7 @@ class Invoice {
 
     protected function setup_hooks() {
         register_activation_hook(WP_PARTNERSHIPM__FILE__, [$this, 'register_activation_hook']);
+        // register_deactivation_hook( WP_PARTNERSHIPM__FILE__, [$this, 'register_deactivation_hook'] );
         add_action('init', [$this, 'add_custom_rewrite']);
         add_action('template_redirect', [$this, 'handle_invoice_payment_template']);
 		add_action('rest_api_init', [$this, 'register_routes']);
@@ -80,9 +81,9 @@ class Invoice {
 
         $sql_invoice = "CREATE TABLE IF NOT EXISTS {$this->invoice_table} (
             id BIGINT NOT NULL AUTO_INCREMENT,
-            invoice_id VARCHAR(100) NOT NULL,
+            invoice_id TEXT NOT NULL,
             status VARCHAR(50) DEFAULT 'unpaid',
-            client_email VARCHAR(100),
+            client_email TEXT DEFAULT '',
             currency VARCHAR(50) DEFAULT 'USD',
             total DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -93,7 +94,7 @@ class Invoice {
 
         $sql_items = "CREATE TABLE IF NOT EXISTS {$this->item_table} (
             id BIGINT NOT NULL AUTO_INCREMENT,
-            invoice_id BIGINT NOT NULL,
+            invoice_id TEXT NOT NULL,
             label VARCHAR(255) NOT NULL,
             price DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
             PRIMARY KEY (id)
@@ -101,7 +102,7 @@ class Invoice {
 
         $sql_metas = "CREATE TABLE IF NOT EXISTS {$this->meta_table} (
             id BIGINT NOT NULL AUTO_INCREMENT,
-            invoice_id BIGINT NOT NULL,
+            invoice_id TEXT NOT NULL,
             meta_key VARCHAR(255) NOT NULL,
             meta_value TEXT NOT NULL DEFAULT '',
             PRIMARY KEY (id)
@@ -112,6 +113,13 @@ class Invoice {
         dbDelta($sql_items);
         dbDelta($sql_metas);
 
+    }
+
+    public function register_deactivation_hook() {
+        global $wpdb;
+        $wpdb->query("DROP TABLE IF EXISTS {$this->invoice_table}");
+        $wpdb->query("DROP TABLE IF EXISTS {$this->item_table}");
+        $wpdb->query("DROP TABLE IF EXISTS {$this->meta_table}");
     }
 
     public function add_custom_rewrite() {

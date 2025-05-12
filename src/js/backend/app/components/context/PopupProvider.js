@@ -1,17 +1,31 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 const PopupContext = createContext();
 
 export const PopupProvider = ({ children }) => {
     const [popup, setPopup] = useState(null);
+    const popupRef = useRef(null);
 
     const closePopup = () => setPopup(null);
 
+    // useEffect(() => {
+    //     const handleClickOutside = (event) => {
+    //         if (popupRef.current && !popupRef.current.contains(event.target)) {
+    //             setPopup(null);
+    //         }
+    //     };
+    //     document.addEventListener('mousedown', handleClickOutside);
+    //     return () => {
+    //         document.removeEventListener('mousedown', handleClickOutside);
+    //     };
+    // }, []);
+
+    
     return (
         <PopupContext.Provider value={{ popup, setPopup }}>
             {children}
             {popup && (
-                <div className="xpo_fixed xpo_inset-0 xpo_bg-black/40 xpo_flex xpo_justify-center xpo_items-center xpo_z-50">
+                <div className="xpo_fixed xpo_inset-0 xpo_bg-black/40 xpo_flex xpo_justify-center xpo_items-center xpo_z-50" ref={popupRef}>
                     <div className="xpo_relative card xpo_rounded-2xl xpo_p-6 xpo_shadow-lg xpo_min-w-[300px] xpo_max-w-[90vw]">
                         <button
                             onClick={closePopup}

@@ -36,7 +36,6 @@ export default function CreditCard({ store = [], pk = '', setAllowProceed = () =
         if (!window.Tapjsli) return;
 
         console.log('pk', pk)
-        // 'pk_test_3adgnub9j1NATES7QlKWFGeL'
         const tapInstance = window.Tapjsli(pk);
         cardRef.current.tap = tapInstance;
 
@@ -50,8 +49,8 @@ export default function CreditCard({ store = [], pk = '', setAllowProceed = () =
                 fontSmoothing: 'antialiased',
                 fontSize: '16px',
                 '::placeholder': {
-                color: 'rgba(0, 0, 0, 0.26)',
-                fontSize: '15px'
+                    color: 'rgba(0, 0, 0, 0.26)',
+                    fontSize: '15px'
                 }
             },
             invalid: {

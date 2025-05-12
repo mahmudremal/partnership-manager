@@ -9,6 +9,7 @@ $config = [
     'phonecode' => apply_filters('pm_project/system/getoption', 'checkout-default-phonecode', false),
     'middlename' => apply_filters('pm_project/system/getoption', 'checkout-enable-middlename', false),
     'emirate' => apply_filters('pm_project/system/getoption', 'checkout-enable-emirate', false),
+    'city' => apply_filters('pm_project/system/getoption', 'checkout-enable-city', false),
     'overview' => apply_filters('pm_project/system/getoption', 'checkout-enable-overview', false),
     'pbk' => apply_filters('pm_project/system/getoption', 'payment-tap-publickey', false),
     'bg' => apply_filters('pm_project/system/getoption', 'payment-invoice-bg', false),

@@ -32,6 +32,7 @@ class Frontend {
         }
     }
     initialize_install_button() {
+        if (! location.pathname.startsWith('/partnership-dashboard')) {return;}
 		if (this.getCookie("installPopupDismissed") === "true") {return;}
         let deferredPrompt;
         const installPopup = document.createElement('div');
