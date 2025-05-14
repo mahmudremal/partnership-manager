@@ -20,8 +20,8 @@ class Referral {
 		add_action('init', [$this, 'register_referral_post_type']);
         add_action('template_redirect', [$this, 'maybe_set_referral_cookie']);
 		add_action('user_register', [$this, 'track_referral_on_register'], 10, 1);
-		add_action('woocommerce_order_status_completed', [$this, 'track_referral_on_order'], 10, 1);
 		add_action('create_referral_record', [$this, 'create_referral_record'], 10, 2);
+		add_action('woocommerce_order_status_completed', [$this, 'track_referral_on_order'], 10, 1);
 	}
 	public function register_referral_post_type() {
 		register_post_type('referral', [
@@ -55,21 +55,25 @@ class Referral {
 			'callback' => [$this, 'get_referrals'],
 			'permission_callback' => [Security::get_instance(), 'permission_callback']
 		]);
+
 		register_rest_route('partnership/v1', '/referrals', [
 			'methods' => 'POST',
 			'callback' => [$this, 'create_referral'],
 			'permission_callback' => [Security::get_instance(), 'permission_callback']
 		]);
+
 		register_rest_route('partnership/v1', '/referrals/(?P<id>\d+)', [
 			'methods' => 'PUT',
 			'callback' => [$this, 'update_referral'],
 			'permission_callback' => [Security::get_instance(), 'permission_callback']
 		]);
+
 		register_rest_route('partnership/v1', '/referrals/(?P<id>\d+)', [
 			'methods' => 'DELETE',
 			'callback' => [$this, 'delete_referral'],
 			'permission_callback' => [Security::get_instance(), 'permission_callback']
 		]);
+		
 		register_rest_route('partnership/v1', '/referrals/invite', [
 			'methods' => 'POST',
 			'callback' => [$this, 'invite_user'],
@@ -99,7 +103,7 @@ class Referral {
 			'number' => 1,
 			'fields' => 'ID',
 		]);
-		return ['exists' => !empty($users), 'user' => $users[0]];
+		return ['exists' => !empty($users), 'user' => $users[0] ?? null];
 	}
 	
 	public function save_referral_code($user_id, $code) {

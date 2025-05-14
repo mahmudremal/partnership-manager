@@ -101,10 +101,18 @@ class Contract {
                             'countryCode' => $request->get_param('countryCode'),
                             'number' => $request->get_param('client_phone')
                         ]
+                    ],
+                    'metadata' => [
+                        'first_name' => $request->get_param('first_name'),
+                        'middle_name' => $request->get_param('middle_name'),
+                        'last_name' => $request->get_param('last_name'),
+                        'phone' => $request->get_param('client_phone'),
+                        'phone_code' => $request->get_param('countryCode')
                     ]
                 ];
                 $invoice_id = Invoice::get_instance()->create_invoice($payload);
                 $response = Invoice::get_instance()->get_invoice($invoice_id);
+                return rest_ensure_response($response);
             }
         }
         if (! $response) {
@@ -136,7 +144,7 @@ class Contract {
                 'pricing' => [
                     // 'Weekly' => 500,
                     // 'Quarterly' => 800,
-                    'Monthly' => 15,
+                    'Monthly' => 1500,
                     'Yearly' => 15000,
                     // 'Lifetime' => 150000
                 ]

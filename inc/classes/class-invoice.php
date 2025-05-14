@@ -23,7 +23,7 @@ class Invoice {
 
     protected function setup_hooks() {
         register_activation_hook(WP_PARTNERSHIPM__FILE__, [$this, 'register_activation_hook']);
-        // register_deactivation_hook( WP_PARTNERSHIPM__FILE__, [$this, 'register_deactivation_hook'] );
+        register_deactivation_hook( WP_PARTNERSHIPM__FILE__, [$this, 'register_deactivation_hook'] );
         add_action('init', [$this, 'add_custom_rewrite']);
         add_action('template_redirect', [$this, 'handle_invoice_payment_template']);
 		add_action('rest_api_init', [$this, 'register_routes']);
@@ -81,9 +81,9 @@ class Invoice {
 
         $sql_invoice = "CREATE TABLE IF NOT EXISTS {$this->invoice_table} (
             id BIGINT NOT NULL AUTO_INCREMENT,
-            invoice_id TEXT NOT NULL,
+            invoice_id VARCHAR(50) NOT NULL,
             status VARCHAR(50) DEFAULT 'unpaid',
-            client_email TEXT DEFAULT '',
+            client_email TEXT,
             currency VARCHAR(50) DEFAULT 'USD',
             total DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -97,6 +97,8 @@ class Invoice {
             invoice_id TEXT NOT NULL,
             label VARCHAR(255) NOT NULL,
             price DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+            type VARCHAR(255) NOT NULL DEFAULT 'custom',
+            indentifier BIGINT NOT NULL DEFAULT 0,
             PRIMARY KEY (id)
         ) $charset_collate;";
 
@@ -190,28 +192,27 @@ class Invoice {
         return $response;
     }
 	public function api_create_invoice(WP_REST_Request $request) {
-        $invoice_id = $request->get_param('invoice_id');
         
         $payload = [
-            'invoice_id' => $invoice_id,
+            'invoice_id' => $request->get_param('invoice_id'),
             'currency' => $request->get_param('currency'),
             'client_email' => $request->get_param('client_email'),
-            'total' => $request->get_param('total'),
+            'total' => (float) $request->get_param('total'),
             'items' => (array) $request->get_param('items'),
-            'customer' => [
-                'first_name' => $request->get_param('first_name'),
-                'middle_name' => $request->get_param('middle_name'),
-                'last_name' => $request->get_param('last_name'),
-                'phone' => [
-                    'countryCode' => $request->get_param('countryCode'),
-                    'number' => $request->get_param('client_phone')
-                ]
-            ]
+            // 'customer' => [
+            //     'first_name' => $request->get_param('first_name'),
+            //     'middle_name' => $request->get_param('middle_name'),
+            //     'last_name' => $request->get_param('last_name'),
+            //     'phone' => [
+            //         'countryCode' => $request->get_param('countryCode'),
+            //         'number' => $request->get_param('client_phone')
+            //     ]
+            // ],
+            'metadata' => (array) $request->get_param('metadata')
         ];
-        // $_updated = $this->create_invoice($payload);
-        // 
-        $response = $this->get_invoice($invoice_id);
-        // 
+        
+        $invoice_id = $this->create_invoice($payload);
+        $response = is_wp_error($invoice_id) ? $invoice_id : $this->get_invoice($invoice_id);
 		return rest_ensure_response($response);
 	}
 	public function api_get_invoice(WP_REST_Request $request) {
@@ -314,46 +315,77 @@ class Invoice {
 
     public function create_invoice($args) {
         global $wpdb;
-
-        if (!isset($args['invoice_id']) || empty($args['invoice_id']) || $args['invoice_id'] == 0) {
-            $args['invoice_id'] = uniqid('inv');
+        $invoice_id_raw = $args['invoice_id'] ?? '';
+        $_invoice = empty($invoice_id_raw) ? null : $this->get_invoice($invoice_id_raw, false);
+        if (is_wp_error($_invoice)) return $_invoice;
+    
+        if (!$_invoice && (empty($invoice_id_raw) || $invoice_id_raw == 0)) {
+            $invoice_id_raw = uniqid('inv');
         }
-        $invoice_id = sanitize_title($args['invoice_id']);
+    
+        $invoice_id = sanitize_title($invoice_id_raw);
         $client_email = sanitize_email($args['client_email'] ?? '');
-        $items = $args['items'] ?? []; // array of ['label' => '', 'price' => 0]
-        $total = array_sum(array_column($items, 'price'));
-
-        $wpdb->insert($this->invoice_table, [
-            'invoice_id' => $invoice_id,
-            'currency' => $args['currency'] ?? 'USD',
-            'client_email' => $client_email,
-            'total' => $total,
-            'status' => 'unpaid'
-        ]);
-
-        $invoice_db_id = $wpdb->insert_id;
-
+        $items = $args['items'] ?? [];
+        $metadata = $args['metadata'] ?? [];
+        $currency = $args['currency'] ?? 'USD';
+        $total = array_sum(array_map(fn($item) => floatval($item['price'] ?? 0), $items));
+    
+        if ($_invoice) {
+            $invoice_id = $_invoice['invoice_id'];
+            $invoice_db_id = $_invoice['id'];
+    
+            $wpdb->update($this->invoice_table, [
+                'client_email' => $client_email,
+                'total' => $total,
+                'status' => 'unpaid'
+            ], ['invoice_id' => $invoice_id]);
+    
+            if ($wpdb->last_error) {
+                return new WP_Error('db_update_error', __('Failed to update invoice.', 'domain'), ['status' => 500]);
+            }
+    
+            $wpdb->delete($this->item_table, ['invoice_id' => $invoice_db_id], ['%d']);
+        } else {
+            $wpdb->insert($this->invoice_table, [
+                'invoice_id' => $invoice_id,
+                'currency' => $currency,
+                'client_email' => $client_email,
+                'total' => $total,
+                'status' => 'unpaid'
+            ]);
+    
+            if ($wpdb->last_error) {
+                return new WP_Error('db_insert_error', __('Failed to create invoice.', 'domain'), ['status' => 500]);
+            }
+    
+            $invoice_db_id = $wpdb->insert_id;
+        }
+    
         foreach ($items as $item) {
             $wpdb->insert($this->item_table, [
                 'invoice_id' => $invoice_db_id,
-                'label' => sanitize_text_field($item['label']),
-                'price' => floatval($item['price'])
+                'label' => sanitize_text_field($item['label'] ?? ''),
+                'price' => floatval($item['price'] ?? 0)
             ]);
         }
-
+    
+        foreach ($metadata as $meta_key => $meta_value) {
+            $this->update_invoice_meta($invoice_db_id, $meta_key, $meta_value);
+        }
+    
         return $invoice_id;
     }
+    
     public function get_invoice($invoice_id, $_with_meta = false) {
         global $wpdb;
-        $invoice_id = sanitize_title($invoice_id);
-        $invoice_query = $wpdb->prepare("SELECT * FROM {$this->invoice_table} WHERE invoice_id = %s", $invoice_id);
-        $invoice_data = $wpdb->get_row($invoice_query, ARRAY_A);
-
+        // $invoice_id = sanitize_title($invoice_id);
+        $invoice_data = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$this->invoice_table} WHERE invoice_id = %s", $invoice_id), ARRAY_A);
+        
         if (!$invoice_data) {
             return new WP_Error('no_invoice', __('Invoice not found', 'wp-partnershipm'));
         }
-        $item_query = $wpdb->prepare("SELECT * FROM {$this->item_table} WHERE invoice_id = %d", $invoice_data['id']);
-        $items = $wpdb->get_results($item_query, ARRAY_A);
+
+        $items = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$this->item_table} WHERE invoice_id = %d", $invoice_data['id']), ARRAY_A);
         $invoice_data['items'] = $items;
 
         if (isset($invoice_data['status']) && !in_array($invoice_data['status'], ['paid', 'cancelled'])) {

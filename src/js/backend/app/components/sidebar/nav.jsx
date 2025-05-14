@@ -189,8 +189,11 @@ export const Nav = () => {
       <Outlet />
       <ul className="sidebar-menu" id="sidebar-menu">
         {navMenus().filter(r => 
-        !['/users', '/stores', '/contracts', '/packages', '/invoices', '/support', '/resources/partner-docs', '/resources/service-docs', '/team', '/settings'].includes(r.route)
-        && ! ['sidebar-menu-group-title'].includes(r?.class)
+        location.host !== 'partners.ecommerized.com' ? r :
+        (
+          !['/users', '/stores', '/contracts', '/packages', '/invoices', '/support', '/resources/partner-docs', '/resources/service-docs', '/team', '/settings'].includes(r.route)
+          && ! ['sidebar-menu-group-title'].includes(r?.class)
+        )
       ).map((item, index) => (
           <NavItem key={index} item={item} />
         ))}

@@ -11,33 +11,35 @@ export default function LanguageProvider({ children, config = {} }) {
   const { session, setSession } = useSession();
   const [language, setLanguage] = useState(get_langcode(config?.locale ?? ''));
   const [translations, setTranslations] = useState({});
-  const cache = {};
+  // const cache = {};
 
-  const lang_request = (url) => {
-    return new Promise((resolve, reject) => {
-      if (cache[url]) {
-        resolve(cache[url]);
-        return;
-      }
-      fetch(url)
-        .then(res => res.json())
-        .then(data => {
-          cache[url] = data;
-          resolve(data);
-        })
-        .catch(err => reject(err));
-    });
-  };
+  // const lang_request = (url) => {
+  //   return new Promise((resolve, reject) => {
+  //     if (cache[url]) {
+  //       resolve(cache[url]);
+  //       return;
+  //     }
+  //     fetch(url)
+  //       .then(res => res.json())
+  //       .then(data => {
+  //         cache[url] = data;
+  //         resolve(data);
+  //       })
+  //       .catch(err => reject(err));
+  //   });
+  // };
 
   const loadLanguage = useCallback(async (langCode) => {
     if (!langCode || langCode === '') {
       langCode = session?.languageCode ?? 'en';
     }
 
-    const url = app_url(`../languages/translations/${langCode}.json`);
-
     try {
-      const data = await lang_request(url);
+      const data = await request(rest_url(`/partnership/v1/translations/${langCode}/list`));
+      if (!data) {
+        console.error('Failed to load language data:', langCode);
+        return;
+      }
       setTranslations(data);
       setLanguage(langCode);
       setSession(prev => ({ ...prev, languageCode: langCode }));

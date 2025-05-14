@@ -26,12 +26,12 @@ class Translations {
         register_rest_route('partnership/v1', '/languages', [
 			'methods' => 'GET',
 			'callback' => [$this, 'get_languages'],
-			'permission_callback' => [Security::get_instance(), 'permission_callback']
+			// 'permission_callback' => [Security::get_instance(), 'permission_callback']
 		]);
-        register_rest_route('partnership/v1', '/translations', [
+        register_rest_route('partnership/v1', '/translations/(?P<language>[^/]+)/list', [
 			'methods' => 'GET',
 			'callback' => [$this, 'get_translations'],
-			'permission_callback' => [Security::get_instance(), 'permission_callback']
+			// 'permission_callback' => [Security::get_instance(), 'permission_callback']
 		]);
 		register_rest_route('partnership/v1', '/translations', [
 			'methods' => 'POST',
