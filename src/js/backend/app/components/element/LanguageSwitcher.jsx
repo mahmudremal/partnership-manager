@@ -100,7 +100,7 @@ export default function LanguageSwitcher() {
     }
   }, [menuOpened]);
   
-  const currentLang = LanguageCodes.find(lang => lang.lang_code === language);
+  const currentLang = LanguageCodes.find(lang => lang.lang_code === language) ?? LanguageCodes.find(lang => lang.lang_code === 'en');
 
   return (
     <div className="d-none d-sm-inline-block position-relative">

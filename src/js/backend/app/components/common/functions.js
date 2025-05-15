@@ -78,6 +78,15 @@ export const timeAgo = (timestamp) => {
   return "Just now";
 };
 
+export const change_url_state = (newUrl, newTitle = document.title) => {
+    if (typeof window.history.pushState === 'function') {
+      window.history.pushState({ path: newUrl }, newTitle, newUrl);
+      document.title = newTitle;
+    } else {
+      console.log('Browser does not support pushState.');
+    }
+}
+
 export const get_user_role = (user) => {
     // if (!user?.roles) {return '';}
     const roles = user?.roles??[];

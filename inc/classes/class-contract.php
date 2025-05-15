@@ -89,9 +89,10 @@ class Contract {
                 $payload = [
                     'currency' => $request->get_param('currency'),
                     'client_email' => $request->get_param('client_email'),
-                    'total' => $price,
+                    'total' => (float) $price,
                     'items' => [
-                        ['label' => sprintf(__('%s - %s', 'domain'), $package['name'], $package['packagefor']), 'price' => (float) $price]
+                        // ['type' => 'package', 'label' => sprintf(__('%s - %s', 'domain'), $package['name'], $package['packagefor']), 'price' => (float) $price, 'identifier' => $package_id . '-' . $package_plan],
+                        ['type' => 'package', 'label' => null, 'price' => 0, 'identifier' => $package_id . '->' . $package_plan],
                     ],
                     'customer' => [
                         'first_name' => $request->get_param('first_name'),
@@ -101,10 +102,18 @@ class Contract {
                             'countryCode' => $request->get_param('countryCode'),
                             'number' => $request->get_param('client_phone')
                         ]
+                    ],
+                    'metadata' => [
+                        'first_name' => $request->get_param('first_name'),
+                        'middle_name' => $request->get_param('middle_name'),
+                        'last_name' => $request->get_param('last_name'),
+                        'phone' => $request->get_param('client_phone'),
+                        'phone_code' => $request->get_param('countryCode')
                     ]
                 ];
                 $invoice_id = Invoice::get_instance()->create_invoice($payload);
                 $response = Invoice::get_instance()->get_invoice($invoice_id);
+                return rest_ensure_response($response);
             }
         }
         if (! $response) {
@@ -129,14 +138,14 @@ class Contract {
                     'All Conversion Setup',
                     'All Pixel Setup',
                     '5 Post Design / 2 Motion Video',
-                    'Whatsapp Marketing',
-                    'Email Marketing',
-                    'SEO'
+                    // 'Whatsapp Marketing',
+                    // 'Email Marketing',
+                    // 'SEO'
                 ],
                 'pricing' => [
                     // 'Weekly' => 500,
                     // 'Quarterly' => 800,
-                    'Monthly' => 15,
+                    'Monthly' => 1500,
                     'Yearly' => 15000,
                     // 'Lifetime' => 150000
                 ]
@@ -155,7 +164,7 @@ class Contract {
                     'All Pixel Setup',
                     '10 Post Design / 4 Motion Graphics',
                     'Whatsapp marketing',
-                    'Email Marketing',
+                    // 'Email Marketing',
                     'SEO'
                 ],
                 'pricing' => [

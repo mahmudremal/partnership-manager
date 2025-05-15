@@ -39,7 +39,7 @@ class Task {
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             task_object LONGTEXT NOT NULL,
-            task_submission LONGTEXT NOT NULL DEFAULT '{}',
+            task_submission LONGTEXT NOT NULL,
             task_desc TEXT,
             PRIMARY KEY (id)
         ) $charset_collate;";

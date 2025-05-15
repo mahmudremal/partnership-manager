@@ -7,6 +7,7 @@ use WP_REST_Response;
 class Security {
 	use Singleton;
 
+	private $_token_period = 3600 * 6; // 1 hour
 	private $secret = 'your-secret-key';
 	public $user_id = null;
 
@@ -91,7 +92,7 @@ class Security {
 		$payload = [
 			'user_id' => $user->ID,
 			'iat' => time(),
-			'exp' => time() + 3600
+			'exp' => time() + $this->_token_period
 		];
 		
 		$full_name = trim($first_name . ' ' . $last_name);

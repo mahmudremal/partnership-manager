@@ -133,7 +133,7 @@ export const AuthProvider = ({ children }) => {
                                 <p className="mb-32 text-secondary-light text-lg">{isSignUp ? __('Welcome! please enter your detail') : __('Welcome back! please enter your detail')}</p>
                                 {error && (
                                     <div className="mb-16">
-                                        <div class="alert alert-danger bg-transparent text-danger-600 border-danger-600 px-24 py-11 mb-0 fw-semibold text-lg radius-8 d-flex align-items-center justify-content-between" role="alert">
+                                        <div className="alert alert-danger bg-transparent text-danger-600 border-danger-600 px-24 py-11 mb-0 fw-semibold text-lg radius-8 d-flex align-items-center justify-content-between" role="alert">
                                             <span dangerouslySetInnerHTML={{__html: error}}></span>
                                         </div>
                                     </div>

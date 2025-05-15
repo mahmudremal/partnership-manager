@@ -24,8 +24,8 @@
  * @copyright	Copyright (c) 2023-25
  * 
  */
-// 
-// 
+
+
 defined('WP_PARTNERSHIPM__FILE__') || define('WP_PARTNERSHIPM__FILE__', untrailingslashit(__FILE__));
 defined('WP_PARTNERSHIPM_DIR_PATH') || define('WP_PARTNERSHIPM_DIR_PATH', untrailingslashit(plugin_dir_path(WP_PARTNERSHIPM__FILE__)));
 defined('WP_PARTNERSHIPM_DIR_URI') || define('WP_PARTNERSHIPM_DIR_URI', untrailingslashit(plugin_dir_url(WP_PARTNERSHIPM__FILE__)));

@@ -216,7 +216,8 @@ class Payout {
         global $wpdb;
     
         $payout_id = $request->get_param('payout_id');
-        $payout_status = $request->get_param('payout_status');
+        // $payout_status = $request->get_param('payout_status');
+        $payout_status = 'pending';
         
         $approved_by = Security::get_instance()->user_id;
     
@@ -224,11 +225,14 @@ class Payout {
             'status' => $payout_status,
             'updated_at' => current_time('mysql'),
         ];
-    
+        
         // If the status is 'approved', set additional fields
         if ($payout_status === 'approved') {
             $data['approved_at'] = current_time('mysql');
             $data['approved_by'] = $approved_by;
+            // 
+            // Payment execution logic can be added here
+            // 
         }
         $updated = $wpdb->update(
             $this->payout_table,
