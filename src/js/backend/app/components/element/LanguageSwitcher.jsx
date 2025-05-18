@@ -118,6 +118,8 @@ export default function LanguageSwitcher() {
         />
       </button>
 
+      {menuOpened && <div className="xpo_fixed xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full xpo_z-10" onClick={(e) => setMenuOpened(false)}></div>}
+
       <div
         ref={dropdownRef}
         className={`dropdown-menu to-top dropdown-menu-sm xpo_z-10 ${menuOpened ? 'show d-block' : ''}`}

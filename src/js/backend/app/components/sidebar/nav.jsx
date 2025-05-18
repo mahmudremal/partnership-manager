@@ -1,44 +1,37 @@
 import React, { useState } from 'react';
-import { Link } from '../common/link';
-import { Outlet } from "react-router-dom";
+// import { Link } from '../common/link';
+import { NavLink, Outlet } from "react-router-dom";
 import { useTranslation } from "@context/LanguageProvider";
 
 
-import { Bolt, BookMarked, BookOpenText, Boxes, ChartNoAxesCombined, ChartSpline, ChevronFirst, ChevronRight, CreditCard, HeartHandshake, LayoutDashboard, LayoutList, LifeBuoy, Network, Receipt, Signature, Store, TicketPlus, ToggleLeft, ToggleRight, UserRoundPlus, Users, UsersRound } from 'lucide-react';
-import { home_url } from '../common/functions';
+import { Bolt, BookMarked, BookOpenText, Boxes, ChevronFirst, ChevronRight, CreditCard, HeartHandshake, LayoutDashboard, Network, Receipt, Signature, Store, ToggleRight, Users, UsersRound } from 'lucide-react';
+import { home_route } from '../common/functions';
 
 const Icon = ({ icon: IconComponent, ...attrs }) => {
   return <IconComponent {...attrs} />;
 };
 
-
 export const Nav = () => {
   const { __ } = useTranslation();
 
   const navMenus = () => [
-    // {
-    //   label: __('Dashboard'),
-    //   icon: LayoutDashboard,
-    //   route: '/',
-    //   order: 0,
-    //   childrens: [
-    //     {
-    //       label: __('Analytics'),
-    //       route: '/analytics',
-    //       icon: ChartNoAxesCombined,
-    //     },
-    //     {
-    //       label: __('Sales'),
-    //       route: '/sales',
-    //       icon: ChartSpline,
-    //     }
-    //   ]
-    // },
     {
       label: __('Dashboard'),
       icon: LayoutDashboard,
-      route: '/',
-      order: 0
+      route: '/insights',
+      order: 0,
+      // childrens: [
+      //   {
+      //     label: __('Analytics'),
+      //     route: '/analytics',
+      //     icon: ChartNoAxesCombined,
+      //   },
+      //   {
+      //     label: __('Sales'),
+      //     route: '/sales',
+      //     icon: ChartSpline,
+      //   }
+      // ]
     },
     {
       label: __('Application'),
@@ -50,20 +43,20 @@ export const Nav = () => {
       icon: Users,
       route: '/users',
       order: 3,
-      childrens: [
-        {
-          label: __('Users List'),
-          route: '/users',
-          icon: LayoutList,
-          iconClass: 'text-primary-600'
-        },
-        {
-          label: __('Add User'),
-          route: '/users/0/edit',
-          icon: UserRoundPlus,
-          iconClass: 'text-info-main'
-        }
-      ]
+      // childrens: [
+      //   {
+      //     label: __('Users List'),
+      //     route: '/users',
+      //     icon: LayoutList,
+      //     iconClass: 'text-primary-600'
+      //   },
+      //   {
+      //     label: __('Add User'),
+      //     route: '/users/0/edit',
+      //     icon: UserRoundPlus,
+      //     iconClass: 'text-info-main'
+      //   }
+      // ]
     },
     {
       label: __('Stores'),
@@ -144,20 +137,20 @@ export const Nav = () => {
     {
       label: __('Support'),
       icon: HeartHandshake,
-      route: '/support',
+      route: '/support/supports',
       order: 11,
-      childrens: [
-        {
-          label: __('Supports'),
-          route: '/support/supports',
-          icon: LifeBuoy
-        },
-        {
-          label: __('Open Ticket'),
-          route: '/support/open-ticket',
-          icon: TicketPlus
-        }
-      ]
+      // childrens: [
+      //   {
+      //     label: __('Supports'),
+      //     route: '/support/supports',
+      //     icon: LifeBuoy
+      //   },
+      //   {
+      //     label: __('Open Ticket'),
+      //     route: '/support/open-ticket',
+      //     icon: TicketPlus
+      //   }
+      // ]
     },
     {
       label: __('Admin'),
@@ -191,7 +184,8 @@ export const Nav = () => {
         {navMenus().filter(r => 
         location.host !== 'partners.ecommerized.com' ? r :
         (
-          !['/users', '/stores', '/contracts', '/packages', '/invoices', '/support', '/resources/partner-docs', '/resources/service-docs', '/team', '/settings'].includes(r.route)
+          // , '/resources/service-docs', '/resources/partner-docs'
+          !['/users', '/stores', '/contracts', '/packages', '/invoices', '/support', '/team', '/settings'].includes(r.route)
           && ! ['sidebar-menu-group-title'].includes(r?.class)
         )
       ).map((item, index) => (
@@ -217,24 +211,24 @@ const NavItem = ({ item }) => {
   };
 
   return (
-    <li className={`${hasChildren ? 'dropdown' : ''} ${open ? 'open' : ''}`}>
-      <Link to={home_url(item.route || '#')} onClick={hasChildren ? toggleDropdown : undefined} className="xpo_cursor-pointer">
+    <li className={`${hasChildren ? 'dropdown' : ''} ${open ? '' : ''}`}>
+      <NavLink to={home_route(item.route??'#')} onClick={hasChildren ? toggleDropdown : undefined} className={({ isActive }) => isActive ? 'active-page' : ''}>
         {item.icon && <Icon icon={item.icon} className="menu-icon" />}
         <span>{item.label}</span>
         {hasChildren && <ChevronRight />}
-      </Link>
+      </NavLink>
 
       {hasChildren && (
         <ul className="sidebar-submenu" style={{ display: open ? 'block' : 'none' }}>
           {item.childrens.map((child, idx) => (
             <li key={idx} className="xpo_cursor-pointer">
-              <Link to={home_url(child.route)}>
+              <NavLink to={home_route(child.route)} className={({ isActive }) => isActive ? 'active-page' : ''}>
                 {child.icon && <Icon icon={child.icon} className="menu-icon" />}
                 {!child.icon && child.iconClass && (
                   <i className={`ri-circle-fill circle-icon ${child.iconClass} w-auto`} />
                 )}
                 <span>{child.label}</span>
-              </Link>
+              </NavLink>
             </li>
           ))}
         </ul>

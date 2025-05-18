@@ -30,41 +30,40 @@ export default function Notifications() {
     return (
         <div className="dropdown">
             <button
-            className={`has-indicator w-40-px h-40-px bg-neutral-200 rounded-circle d-flex justify-content-center align-items-center ${menuOpened ? 'show' : ''}`}
-            type="button"
-            ref={buttonRef}
-            onClick={toggleDropdown}
-            aria-expanded={menuOpened ? 'true' : 'false'}
+                type="button"
+                ref={buttonRef}
+                onClick={toggleDropdown}
+                aria-expanded={menuOpened ? 'true' : 'false'}
+                className={`has-indicator w-40-px h-40-px bg-neutral-200 rounded-circle d-flex justify-content-center align-items-center ${menuOpened ? 'show' : ''}`}
             >
-            <Bell className="text-primary-light text-xl" />
+                <Bell className="text-primary-light text-xl" />
             </button>
-    
-            <div
-            ref={dropdownRef}
-            className={`dropdown-menu to-top dropdown-menu-lg p-0 ${menuOpened ? 'show d-block' : ''}`}
-            >
+
+            {menuOpened && <div className="xpo_fixed xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full xpo_z-10" onClick={(e) => setMenuOpened(false)}></div>}
+
+            <div ref={dropdownRef} className={`dropdown-menu to-top dropdown-menu-lg p-0 ${menuOpened ? 'show d-block' : ''}`}>
             <div className="m-16 py-12 px-16 radius-8 bg-primary-50 mb-16 d-flex align-items-center justify-content-between gap-2">
                 <div>
-                <h6 className="text-lg text-primary-light fw-semibold mb-0">{__('Notifications')}</h6>
+                    <h6 className="text-lg text-primary-light fw-semibold mb-0">{__('Notifications')}</h6>
                 </div>
                 <span className="text-primary-600 fw-semibold text-lg w-40-px h-40-px rounded-circle bg-base d-flex justify-content-center align-items-center">{notifications?.length ?? 0}</span>
             </div>
     
             <div className="max-h-400-px overflow-y-auto scroll-sm pe-4">
                 {notifications.map((n, i) => (
-                <NotificationItem key={n.id || i} args={n} />
+                    <NotificationItem key={n.id || i} args={n} />
                 ))}
             </div>
     
             {pagination?.totalPages > 1 && (
                 <div className="text-center py-12 px-16">
-                <Link
-                    to="#"
-                    onClick={() => setPage(prev => (pagination?.nextPage ? pagination.nextPage : prev))}
-                    className="text-primary-600 fw-semibold text-md"
-                >
-                    {__('See All Notifications')}
-                </Link>
+                    <Link
+                        to="#"
+                        onClick={() => setPage(prev => (pagination?.nextPage ? pagination.nextPage : prev))}
+                        className="text-primary-600 fw-semibold text-md"
+                    >
+                        {__('See All Notifications')}
+                    </Link>
                 </div>
             )}
             </div>

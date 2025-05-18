@@ -40,7 +40,7 @@ export default function ErrorPage({ }) {
                     <h1 className="xpo_text-6xl xpo_font-bold xpo_text-primary-500">{__('Error')}</h1>
                     <p className="xpo_text-2xl text-l xpo_my-2">{__('Something Went Wrong')}</p>
                     <p className="xpo_text-lg text-s xpo_mb-4">{__('Oops! An unexpected error occurred. Please try again later.')}</p>
-                    <Link to={ home_url('/') } className="xpo_px-4 xpo_py-2 xpo_bg-primary-500 xpo_rounded hover:xpo_bg-primary-600">{__('Go Home')}</Link>
+                    <Link to={ home_url('/') } className="xpo_px-4 xpo_py-2 xpo_bg-primary-500 xpo_rounded hover:xpo_bg-primary-600 xpo_text-white">{__('Go Home')}</Link>
                 </div>
             </div>
         </div>

@@ -7,6 +7,7 @@ use WP_REST_Response;
 class Security {
 	use Singleton;
 
+	private $_token_period = 3600 * 6; // 1 hour
 	private $secret = 'your-secret-key';
 	public $user_id = null;
 
@@ -50,6 +51,12 @@ class Security {
 			'callback' => [$this, 'validate_token'],
 			'permission_callback' => '__return_true'
 		]);
+
+		register_rest_route('partnership/v1', '/reset-password', [
+			'methods' => 'POST',
+			'callback' => [$this, 'reset_password'],
+			'permission_callback' => '__return_true'
+		]);
 	}
 
 	public function issue_token(WP_REST_Request $request) {
@@ -91,7 +98,7 @@ class Security {
 		$payload = [
 			'user_id' => $user->ID,
 			'iat' => time(),
-			'exp' => time() + 3600
+			'exp' => time() + $this->_token_period
 		];
 		
 		$full_name = trim($first_name . ' ' . $last_name);
@@ -150,5 +157,30 @@ class Security {
 			return trim(substr($auth, 7));
 		}
 		return null;
+	}
+
+	public function reset_password(WP_REST_Request $request) {
+		$email = $request->get_param('email');
+
+		if (empty($email)) {
+			return new WP_REST_Response(['message' => __('Email required.', 'wp-partnershipm')], 403);
+		}
+
+		if (!is_email($email)) {
+			return new WP_REST_Response(['message' => __('Invalid email address.', 'wp-partnershipm')], 403);
+		}
+
+		if (!email_exists($email)) {
+			return new WP_REST_Response(['message' => __('Email does not exist.', 'wp-partnershipm')], 403);
+		}
+
+		$user = get_user_by('email', $email);
+		if ($user) {
+			retrieve_password($user->user_login);
+			// do_action('retrieve_password', $user->user_login);
+			return new WP_REST_Response(['message' => __('Password reset mail sent successfully.', 'wp-partnershipm')], 200);
+		} else {
+			return new WP_REST_Response(['message' => __('User not found.', 'wp-partnershipm')], 403);
+		}
 	}
 }

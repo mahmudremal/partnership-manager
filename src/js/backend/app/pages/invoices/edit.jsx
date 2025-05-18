@@ -2,30 +2,31 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import PhoneInput from "react-phone-input-2";
 import request from "@common/request";
-import { notify, rest_url, home_url } from "@functions";
+import { notify, rest_url, home_url, change_url_state } from "@functions";
 import { usePopup } from "@context/PopupProvider";
 import { useTranslation } from "@context/LanguageProvider";
 import { useLoading } from "@context/LoadingProvider";
 import { useCurrency } from "@context/CurrencyProvider";
-import { X } from "lucide-react";
+import { Loader, X } from "lucide-react";
+import { sprintf } from "sprintf-js";
 
 
 
 export default function InvoiceEdit() {
-  const { print_money } = useCurrency();
+  const { print_money, currency, currencyList } = useCurrency();
   const { __ } = useTranslation();
   const { setPopup } = usePopup();
   const { setLoading } = useLoading();
-  const { invoice_id } = useParams();
+  const { invoice_id: paramInvoiceID } = useParams();
   const [packagesList, setPackagesList] = useState([]);
 
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
-    invoice_id,
+    invoice_id : paramInvoiceID,
     client_email: "",
     client_phone: "",
-    currency: "USD",
-    items: [{ label: "", price: "" }],
+    currency: currency,
+    items: [{ type: 'custom', label: '', price: 0.00, identifier: [null, null] }],
     total: 0,
     metadata: {
       first_name: '',
@@ -40,43 +41,52 @@ export default function InvoiceEdit() {
   });
 
   const fetchInvoice = async () => {
-    if (!invoice_id || invoice_id <= 0) return;
+    request(rest_url(`/partnership/v1/contracts/packages`)).then(list => setPackagesList(list.filter(l => Object.keys(l.pricing??[])?.length))).catch(e => console.error(e));
+    if (!form.invoice_id || form.invoice_id <= 0) return;
     setLoading(true);
-    request(rest_url(`/partnership/v1/invoice/${invoice_id}`)).then(data => {
-      setForm({
-        ...data,
-        invoice_id: data.invoice_id,
-        client_email: data.client_email,
-        currency: data.currency,
-        items: data.items,
-        total: parseFloat(data.total)
-      });
-    })
+    request(rest_url(`/partnership/v1/invoice/${form.invoice_id}`)).then(data => 
+      setForm(prev => ({
+        ...prev, ...data,
+        items: data.items.map(i => ({...i, identifier: i.identifier?.split('->')??[null, null] })),
+      }))
+    )
     .catch(e => console.error(e))
     .finally(() => setLoading(false));
-    request(rest_url(`/partnership/v1/contracts/packages`)).then(list => setPackagesList(list.filter(l => Object.keys(l?.pricing??[])?.length))).catch(e => console.error(e));
   };
 
   const handleItemChange = (index, field, value) => {
     const items = [...form.items];
     items[index][field] = value;
-    const total = items.reduce((sum, item) => sum + parseFloat(get_item_price(item) || 0), 0);
-    setForm({ ...form, items, total });
+    const total = items.reduce((sum, item) => sum + get_item_price(item), 0);
+    setForm(prev => ({ ...prev, items, total }));
+  };
+  const handleIdentifierChange = (index, field, value) => {
+    const items = [...form.items];
+    items[index]['identifier'][field] = field === 0 ? parseInt(value) : value;
+    handleItemChange(index, 'identifier', items[index]['identifier']);
+    const total = items.reduce((sum, item) => sum + get_item_price(item), 0);
+    setForm(prev => ({ ...prev, items, total }));
   };
 
   const addItem = () => {
-    setForm({ ...form, items: [...form.items, { label: '', price: '', type: 'custom', identifier: null }] });
+    setForm(prev => ({ ...prev, items: [...prev.items, { type: 'custom', label: '', price: 0.00, identifier: [null, null] }] }));
   };
-
+  
   const submitInvoice = async () => {
     setLoading(true);
     request(rest_url("/partnership/v1/invoice/create"), {
       method: "POST",
       headers: {'Cache-Control': 'no-cache', 'Content-Type': 'application/json'},
-      body: JSON.stringify({...form})
+      body: JSON.stringify({
+        ...form,
+        items: form.items.map(i => ({...i, identifier: i.identifier.join('->')})),
+        total: form.items.reduce((sum, item) => sum + get_item_price(item), 0)
+      })
     })
     .then(res => {
-        setForm(res);setStep(4);
+      setForm(res);setStep(4);
+      notify.success(__('Invoice updated successfully!'));
+      change_url_state(home_url(`invoices/${res.invoice_id}/view`), __('Invoice') + ' #' + res.invoice_id);
     })
     .catch(e => setPopup(<div>Failed to submit invoice</div>))
     .finally(() => setLoading(false));
@@ -84,20 +94,26 @@ export default function InvoiceEdit() {
 
   useEffect(() => {
     fetchInvoice();
-  }, [invoice_id]);
+  }, [form.invoice_id]);
 
   const get_item_price = (item) => {
-    return (item.type === 'custom' ? item.price : packagesList.find(p => p.id == item.identifier)?.pricing[item.plan] || 0).toFixed(2);
+    const [_package, _plan] = item.identifier;
+    const _package_obj = packagesList.find(p => p.id == _package);
+    const amount = (item.type === 'custom' ? item.price : _package_obj?.pricing[_plan]??0);
+    return parseFloat(amount);
   }
-
+  
   const get_item_label = (item) => {
-    return item.type === 'custom' ? item.label : packagesList.find(p => p.id == item.identifier)?.name + ' - ' + packagesList.find(p => p.id == item.identifier)?.packagefor;
+    const [_package, _plan] = item.identifier;
+    const _package_obj = packagesList.find(p => p.id == _package);
+    const label = item.type === 'custom' ? item.label : _package_obj?.name + ' - ' + _package_obj?.packagefor;
+    return label;
   }
 
   return (
     <div className="card">
       <div className="card-body">
-        <h6 className="mb-4 text-xl">{__('Edit Invoice')} #{invoice_id}</h6>
+        <h6 className="mb-4 text-xl">{__('Edit Invoice')} #{form.invoice_id}</h6>
         <p className="text-neutral-500">{__('Please complete each step to create or edit your invoice.')}</p>
 
         <div className="form-wizard">
@@ -125,19 +141,19 @@ export default function InvoiceEdit() {
               <div className="row gy-3">
                 <div className="col-sm-6">
                   <label className="form-label">{__('First Name')}</label>
-                  <input type="text" className="form-control" value={form.metadata?.first_name} onChange={(e) => setForm({ ...form, metadata: {...form.metadata, first_name: e.target.value} })} />
+                  <input type="text" className="form-control" value={form.metadata?.first_name} onChange={(e) => setForm(prev => ({ ...prev, metadata: {...prev.metadata, first_name: e.target.value} }))} />
                 </div>
                 <div className="col-sm-6">
                   <label className="form-label">{__('Middle Name')}</label>
-                  <input type="text" className="form-control" value={form.metadata?.middle_name} onChange={(e) => setForm({ ...form, metadata: {...form.metadata, middle_name: e.target.value} })} />
+                  <input type="text" className="form-control" value={form.metadata?.middle_name} onChange={(e) => setForm(prev => ({ ...prev, metadata: {...prev.metadata, middle_name: e.target.value} }))} />
                 </div>
                 <div className="col-sm-6">
                   <label className="form-label">{__('Last Name')}</label>
-                  <input type="text" className="form-control" value={form.metadata?.last_name} onChange={(e) => setForm({ ...form, metadata: {...form.metadata, last_name: e.target.value} })} />
+                  <input type="text" className="form-control" value={form.metadata?.last_name} onChange={(e) => setForm(prev => ({ ...prev, metadata: {...prev.metadata, last_name: e.target.value} }))} />
                 </div>
                 <div className="col-sm-6">
                   <label className="form-label">{__('Email')}</label>
-                  <input type="email" className="form-control" value={form?.client_email} onChange={(e) => setForm({ ...form, client_email: e.target.value })} />
+                  <input type="email" className="form-control" value={form.client_email} onChange={(e) => setForm(prev => ({ ...prev, client_email: e.target.value }))} />
                 </div>
                 <div className="col-sm-6">
                   {/* <label className="form-label">{__('Phone')}</label> */}
@@ -145,25 +161,25 @@ export default function InvoiceEdit() {
                     country={'us'}
                     value={form.metadata?.phone}
                     onChange={(phone, countryData) => {
-                      setForm({
-                        ...form,
+                      setForm(prev => ({
+                        ...prev,
                         metadata: {
-                          ...form.metadata,
+                          ...prev.metadata,
                           phone: phone.replace(/\D/g, ''),
                           countryCode: countryData.iso2
                         }
-                      });
+                      }));
                     }}
-                    // onChange={(phone) => setForm({ ...form, metadata: {...form.metadata, phone: e.target.value} })}
+                    // onChange={(phone) => setForm(prev => ({ ...prev, metadata: {...prev.metadata, phone: e.target.value} }))}
                     inputClass="form-control w-100"
                   />
                 </div>
                 <div className="col-sm-6">
                   <label className="form-label">{__('Currency')}</label>
-                  <select className="form-control" value={form?.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })}>
-                    <option value="USD">USD</option>
-                    <option value="EUR">EUR</option>
-                    <option value="INR">INR</option>
+                  <select className="form-control" value={form.currency}
+                    onChange={(e) => setForm(prev => ({ ...prev, currency: e.target.value }))}
+                  >
+                    {currencyList.sort((a, b) => a.code.localeCompare(b.code)).map((opt, index) => <option key={index} value={opt.code}>{opt.code} - {opt.sign}</option>)}
                   </select>
                 </div>
                 <div className="form-group text-end">
@@ -233,8 +249,8 @@ export default function InvoiceEdit() {
                           <label className="form-label">{__('Identifier')}</label>
                           <select
                             className="form-control"
-                            value={item.identifier}
-                            onChange={(e) => handleItemChange(index, 'identifier', e.target.value)}
+                            value={item.identifier[0]??null}
+                            onChange={(e) => handleIdentifierChange(index, 0, e.target.value)}
                           >
                             <option value="">Select Identifier</option>
                             {packagesList.map((opt, index) => (
@@ -248,11 +264,11 @@ export default function InvoiceEdit() {
                           <label className="form-label">{__('Plan')}</label>
                           <select
                             className="form-control"
-                            value={item?.plan??null}
-                            onChange={(e) => handleItemChange(index, 'plan', e.target.value)}
+                            value={item?.identifier[1]??null}
+                            onChange={(e) => handleIdentifierChange(index, 1, e.target.value)}
                           >
                             <option value="">Select Plan</option>
-                            {Object.entries(packagesList.find(p => p.id == form.items.find(i => i.id == item.id).identifier)?.pricing || {}).map(([key, value]) => ({ value: key, label: `${key} - ${value}` })).map((opt, optIndex) => (
+                            {Object.entries(packagesList.find(p => p.id == form.items.find(i => i.id == item.id).identifier[0])?.pricing || {}).map(([key, value]) => ({ value: key, label: `${key} - ${value}` })).map((opt, optIndex) => (
                               <option key={optIndex} value={opt.value}>{opt.label}</option>
                             ))}
                           </select>
@@ -269,7 +285,7 @@ export default function InvoiceEdit() {
                 </div>
                 <div className="col-12 d-flex justify-content-between align-items-center">
                   <strong>{__('Total')}:</strong>
-                  <span className="text-xl fw-bold">{print_money(form.total.toFixed(2), form.currency)}</span>
+                  <span className="text-xl fw-bold">{print_money(form.total, form.currency)}</span>
                 </div>
                 <div className="form-group d-flex align-items-center justify-content-end gap-8">
                   <button type="button" className="form-wizard-previous-btn btn btn-neutral-500 border-neutral-100 px-32" onClick={() => setStep(1)}>{__('Back')}</button>
@@ -312,7 +328,7 @@ export default function InvoiceEdit() {
                 </div>
                 <div className="col-12 d-flex justify-content-between border-top pt-3 mt-3">
                   <strong>{__('Total')}</strong>
-                  <span>{print_money(form.total.toFixed(2), form.currency)}</span>
+                  <span>{print_money(form.total, form.currency)}</span>
                 </div>
               </div>
               <div className="form-group d-flex align-items-center justify-content-end gap-8 mt-4">
@@ -330,7 +346,7 @@ export default function InvoiceEdit() {
                   <p>{__('You can now share your invoice using the links below:')}</p>
                 </div>
                 <div>
-                  <ShareInperson link={ home_url(`invoice/${form.invoice_id}/pay`) } __={__} />
+                  <ShareInperson form={form} link={`${window.location.origin}/invoice/${form.invoice_id}/pay`} __={__} />
                 </div>
               </div>
             </fieldset>
@@ -343,10 +359,11 @@ export default function InvoiceEdit() {
 
 
 
-const ShareInperson = ({ link, __ }) => {
+const ShareInperson = ({ form, link, __ }) => {
   const [emails, setEmails] = useState([]);
   const [message, setMessage] = useState('');
   const [inputValue, setInputValue] = useState('');
+  const [loading, setLoading] = useState(null);
 
   const addEmail = () => {
     const trimmed = inputValue.trim();
@@ -365,28 +382,24 @@ const ShareInperson = ({ link, __ }) => {
 
   const handleShareSubmit = async (e) => {
     e.preventDefault();
-    const payload = {
-      emails,
-      subject: __('You have been invited!'),
-      body: `${message || link}`,
-    };
-    try {
-      const res = await request(rest_url('partnership/v1/invoice/share'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) {
-        notify.success('Link shared successfully!');
-        emails = [];
-        setMessage('');
+    setLoading(true);
+    const payload = {emails, subject: __('You have been invited!'), body: sprintf('Please find your invoice %s attached', (message || link))};
+    request(rest_url(`partnership/v1/invoice/${form.invoice_id}/share`), {
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload),
+      method: 'POST',
+    })
+    .then(res => {
+      if (res.success) {
+        notify.success(res?.message??__('Link shared successfully!'));
+        setEmails([]);setMessage('');
       } else {
-        notify.error('Failed to share link.');
+        notify.error(res?.message??__('Failed to share link.'));
       }
-    } catch (err) {
-      console.error(err);
-      notify.error('Error sending the request.');
-    }
+    })
+    // .catch(err => console.error(err))
+    .catch(err => notify.error(err?.message??__('Error sending the request.')))
+    .finally(() => setLoading(false));
   };
 
   const handleShareTo = (platform) => {
@@ -423,20 +436,34 @@ const ShareInperson = ({ link, __ }) => {
       <div className="xpo_flex xpo_gap-2">
         <button
           onClick={() => handleShareTo('messenger')}
-          className="xpo_bg-blue-600 xpo_text-white xpo_px-4 xpo_py-2 xpo_rounded hover:xpo_bg-blue-700"
+          className="btn rounded-pill btn-primary-100 text-primary-600 radius-8 px-20 py-11"
         >{__('Messenger')}</button>
         <button
           onClick={() => handleShareTo('whatsapp')}
-          className="xpo_bg-green-500 xpo_text-white xpo_px-4 xpo_py-2 xpo_rounded hover:xpo_bg-green-600"
+          className="btn rounded-pill btn-success-100 text-success-600 radius-8 px-20 py-11"
         >{__('WhatsApp')}</button>
         <button
           onClick={() => handleShareTo('twitter')}
-          className="xpo_bg-blue-400 xpo_text-white xpo_px-4 xpo_py-2 xpo_rounded hover:xpo_bg-blue-500"
+          className="btn rounded-pill btn-neutral-100 text-primary-light radius-8 px-20 py-11"
         >{__('Twitter')}</button>
         <a
           href={`mailto:?subject=You've got a link!&body=${encodeURIComponent(link)}`}
-          className="xpo_inline-block xpo_bg-gray-600 xpo_text-white xpo_px-4 xpo_py-2 xpo_rounded hover:xpo_bg-gray-700"
+          className="btn rounded-pill btn-light-50 text-dark radius-8 px-20 py-11"
         >{__('Share Email')}</a>
+        {navigator.share && (
+          <button
+            onClick={() => navigator.share({ title: __('Invoice'), text: __('Check out this invoice!'), url: link })}
+            className="btn rounded-pill btn-info-100 text-info-600 radius-8 px-20 py-11"
+          >{__('Share')}</button>
+        )}
+        <button
+          onClick={() => 
+            navigator.clipboard.writeText(link)
+            .then(() => notify.success(__('Link copied to clipboard!')))
+            .catch(err => notify.error(err?.message??__('Failed to copy link.')))
+          }
+          className="btn rounded-pill btn-link text-secondary-light text-decoration-none radius-8 px-20 py-11 hover:xpo_text-white"
+        >{__('Copy')}</button>
       </div>
 
       <form onSubmit={handleShareSubmit} className="xpo_space-y-4">
@@ -474,8 +501,12 @@ const ShareInperson = ({ link, __ }) => {
 
         <button
           type="submit"
-          className="xpo_bg-indigo-600 xpo_text-white xpo_px-6 xpo_py-2 xpo_rounded hover:xpo_bg-indigo-700"
-        >{__('Share Link')}</button>
+          disabled={loading}
+          className={`xpo_flex xpo_items-center xpo_justify-center xpo_gap-2 xpo_bg-primary-600 xpo_text-white xpo_px-6 xpo_py-2 xpo_rounded hover:xpo_bg-primary-700 ${loading ? 'xpo_cursor-not-allowed' : ''}`}
+        >
+          {loading && <Loader className="xpo_animate-spin" />}
+          <span>{loading ? __('Sending...') : __('Send')}</span>
+        </button>
       </form>
     </div>
   );

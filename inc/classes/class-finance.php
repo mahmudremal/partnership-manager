@@ -40,8 +40,9 @@ class Finance {
 	}
 
 	public function register_deactivation_hook() {
-		// optionally drop table on deactivation
-	}
+        global $wpdb;
+        $wpdb->query("DROP TABLE IF EXISTS {$this->table}");
+    }
 
 	public function register_routes() {
 		register_rest_route('partnership/v1', '/finance/transactions', [
@@ -143,7 +144,7 @@ class Finance {
 		$withdrawable = $balance >= $minimum_withdraw ? $balance : 0;
 		return rest_ensure_response([
 			'balance' => $balance,
-			'withdrawable' => 4000, //$withdrawable,
+			'withdrawable' => $withdrawable,
 			'referral_earn' => $referral_earn,
 			'payments_to_date' => $payments_to_date,
 			'minimum_withdraw' => $minimum_withdraw

@@ -7,14 +7,23 @@ import { CheckCircle, ChevronDown, Loader, LockKeyhole, X, XCircle } from 'lucid
 import { createPopper } from '@popperjs/core';
 import { sprintf } from 'sprintf-js';
 
+const rest_url = (path) => {
+  const baseUrl = window.location.origin;
+  if (path.startsWith('/')) {
+    path = path.substring(1);
+  }
+  return `${baseUrl}/wp-json/${path}`;
+}
+
 const Checkout = ({ config }) => {
   const { bg: bgImage, pbk: publicKey, middlename: showMiddleName, emirate: showEmirate, city: showCity, overview: showOverview, phonecode: defaultPhonecode } = config
-  const cardRef = useRef(null);
   const [tap, setTap] = useState(null);
   const [elements, setElements] = useState(null);
   const [card, setCard] = useState(null);
   const [invoiceData, setInvoiceData] = useState(null);
-  const [formData, setFormData] = useState({
+  const [packagesList, setPackagesList] = useState([]);
+  const [tapJSLoaded, setTapJSLoaded] = useState(null);
+  const [form, setForm] = useState({
     firstName: '',
     middleName: showMiddleName ? '' : null,
     lastName: '',
@@ -39,13 +48,28 @@ const Checkout = ({ config }) => {
   const invoiceId = window.location.pathname.split('/')[2];
 
   const __ = (text) => text;
+  
+  const get_item_price = (item) => {
+    const [_package, _plan] = item.identifier !== false ? item.identifier.split('->') : [null, null];
+    const _package_obj = packagesList.find(p => p.id == _package);
+    const amount = (item.type === 'custom' ? item.price : _package_obj?.pricing[_plan]??0);
+    return parseFloat(amount).toFixed(2);
+  }
+
+  const get_item_label = (item) => {
+    const [_package, _plan] = item.identifier !== false ? item.identifier.split('->') : [null, null];
+    const _package_obj = packagesList.find(p => p.id == _package);
+    const label = item.type === 'custom' ? item.label : _package_obj?.name + ' - ' + _package_obj?.packagefor;
+    return label;
+  }
 
   useEffect(() => {
-    axios.get(`/wp-json/partnership/v1/invoice/${invoiceId}`)
+    axios.get(rest_url(`/partnership/v1/invoice/${invoiceId}`))
       .then(res => {
         const data = res?.data??res;
         if (data && !data.code) {
           setInvoiceData(data);
+          setForm(data);
           switch (data?.status) {
             case 'unpaid':
               // setInvoiceData(data);
@@ -69,25 +93,16 @@ const Checkout = ({ config }) => {
       .catch(() => setError('Failed to load invoice'));
   }, [invoiceId]);
 
-  useEffect(() => {
-    if (showCardForm && invoiceData) {
-      const script = document.createElement("script");
-      script.src = "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js";
-      script.async = true;
-      document.body.appendChild(script);
+  // useEffect(() => {
+  //   if (showCardForm && invoiceData && !tapJSLoaded) {
+  //     // 
 
-      const tapScript = document.createElement("script");
-      tapScript.src = "https://secure.gosell.io/js/sdk/tap.min.js";
-      tapScript.async = true;
-      tapScript.onload = initializeTap;
-      document.body.appendChild(tapScript);
-
-      return () => {
-        document.body.removeChild(script);
-        document.body.removeChild(tapScript);
-      };
-    }
-  }, [showCardForm, invoiceData]);
+  //     return () => {
+  //       document.body.removeChild(script);
+  //       document.body.removeChild(tapScript);
+  //     };
+  //   }
+  // }, [showCardForm, invoiceData]);
 
   useEffect(() => {
     if (successUrl) {
@@ -118,10 +133,14 @@ const Checkout = ({ config }) => {
   }, [successUrl]);
 
   useEffect(() => {
-    axios.get(`/wp-json/partnership/v1/payment/gateways`)
+    axios.get(rest_url(`/partnership/v1/payment/gateways`))
     .then(res => res.data)
     .then(list => setGateways(Object.keys(list).map(id => ({id, ...list[id]}))))
     .catch(() => setError(__('Failed to load invoice')));
+    axios.get(rest_url(`/partnership/v1/contracts/packages`))
+    .then(res => res.data)
+    .then(list => setPackagesList(list.filter(l => Object.keys(l?.pricing??[])?.length)))
+    .catch(e => console.error(e));
   }, []);
 
   useEffect(() => {
@@ -136,94 +155,103 @@ const Checkout = ({ config }) => {
     };
   }, []);
   
-  const initializeTap = () => {
+  const load_tap_js = (element) => {
+    if (!window.Tapjsli || !publicKey) {
+      const script = document.createElement("script");
+      script.src = "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js";
+      script.async = true;
+      document.body.appendChild(script);
+      // 
+      const tapScript = document.createElement("script");
+      tapScript.src = "https://secure.gosell.io/js/sdk/tap.min.js";
+      tapScript.async = true;
+      tapScript.onload = () => initializeTap(element);
+      document.body.appendChild(tapScript);
+    } else {
+      initializeTap(element);
+    }
+  }
+  
+  const initializeTap = (element = false) => {
+    if (!element) {
+      setError(__('Card not yet initialized. Please refresh the page.'));
+      return;
+    }
+    
     if (!window.Tapjsli || !publicKey) {
       setError(__('Payment system is not initialized. Please refresh the page.'));
       return;
     }
 
-    try {
-      const tapInstance = window.Tapjsli(publicKey);
-      const elementsInstance = tapInstance.elements({
-        currencyCode: invoiceData?.currency??'AED',
-        locale: 'en',
-      });
+    // try {
+    const tapInstance = window.Tapjsli(publicKey);
+    const elementsInstance = tapInstance.elements({currencyCode: invoiceData?.currency??'AED', locale: 'en'});
 
-      const cardElement = elementsInstance.create(
-        'card',
-        {
-          style: {
-            base: {
-              color: '#333',
-              fontSize: '16px',
+    const cardElement = elementsInstance.create(
+      'card',
+      {
+        style: {
+          base: {
+            color: '#333',
+            fontSize: '16px',
 
-              // background: 'transparent',
-              // boxShadow: 'none',
-              // padding: '0',
-              // iconColor: 'transparent',
-              // color: '#000',
-              // fontSize: '16px',
-              // fontFamily: 'inherit',
+            // background: 'transparent',
+            // boxShadow: 'none',
+            // padding: '0',
+            // iconColor: 'transparent',
+            // color: '#000',
+            // fontSize: '16px',
+            // fontFamily: 'inherit',
 
-            },
-          }
-        },
-        {
-          currencyCode: 'all',
-          labels : {
-            cardNumber: __('Card Number'),
-            expirationDate: __('MM/YY'),
-            cvv: __('CVV'),
-            cardHolder: __('Card Holder Name')
           },
-          TextDirection:'ltr',
-          paymentAllowed: 'all',
         }
-      );
+      },
+      {
+        currencyCode: 'all',
+        labels : {
+          cardNumber: __('Card Number'),
+          expirationDate: __('MM/YY'),
+          cvv: __('CVV'),
+          cardHolder: __('Card Holder Name')
+        },
+        TextDirection:'ltr',
+        paymentAllowed: 'all',
+      }
+    );
 
-      // cardElement.mount(cardRef.current); it not working. it need valid selector
-      cardElement.mount('#tap-element-container');
-      setTap(tapInstance);
-      setElements(elementsInstance);
-      setCard(cardElement);
+    element.id = `tap-element-${Math.random().toString(36).substring(2, 15)}`;
+    cardElement.mount(`#${element.id}`);
+    setTap(tapInstance);
+    setElements(elementsInstance);
+    setCard(cardElement);
 
-      // cardElement.addEventListener('change', function(event) {
-      //   console.log(event)
-      //   if(event.code == '200' ){
-      //       jQuery("#tap-btn").trigger("click");
-      //   }
-      //   if(event.BIN){
-      //     console.log(event.BIN)
-      //   }
-      //   if(event.loaded){
-      //     console.log("UI loaded :"+event.loaded);
-      //     console.log("current currency is :"+card.getCurrency())
-      //   }
-      //   var displayError = document.getElementById('error-handler');
-      //   if (event.error) {
-      //     displayError.textContent = event.error.message;
-      //   } else {
-      //     displayError.textContent = '';
-      //   }
-      // });
-      
-      
-    } catch (err) {
-      console.error('Tap initialization failed:', err);
-      setError(__('Could not load card payment. Please try again.'));
+    if (false) {
+      cardElement.addEventListener('change', function(event) {
+        console.log(event)
+        if(event.code == '200' ){
+            jQuery("#tap-btn").trigger("click");
+        }
+        if(event.BIN){
+          console.log(event.BIN)
+        }
+        if(event.loaded){
+          console.log("UI loaded :"+event.loaded);
+          console.log("current currency is :"+card.getCurrency())
+        }
+        var displayError = document.getElementById('error-handler');
+        if (event.error) {
+          displayError.textContent = event.error.message;
+        } else {
+          displayError.textContent = '';
+        }
+      });
     }
-  };
-
-  const handleInputChange = (e) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handlePhoneChange = (value, country) => {
-    setFormData(prev => ({
-      ...prev,
-      phone: value,
-      countryCode: country.countryCode
-    }));
+    
+    // } catch (err) {
+    //   console.error('Tap initialization failed:', err);
+    //   setError(__('Could not load card payment. Please try again.'));
+    //   // setError(err?.message??__('Could not load card payment. Please try again.'));
+    // }
   };
 
   const handleSubmit = async (e) => {
@@ -233,7 +261,7 @@ const Checkout = ({ config }) => {
     setSuccessUrl(null);
 
     try {
-      const payload = {...formData, provider};
+      const payload = {...form, provider};
       if (provider == 'tap') {
         if (!card) {
           setError('Card form not initialized.');
@@ -245,7 +273,7 @@ const Checkout = ({ config }) => {
       }
 
 
-      const response = await axios.post(`/wp-json/partnership/v1/invoice/${invoiceId}/pay`, payload);
+      const response = await axios.post(rest_url(`/partnership/v1/invoice/${invoiceId}/pay`), payload);
 
       if (response.data && response.data.payment_url) {
         setSuccessUrl(response.data.payment_url);
@@ -286,7 +314,7 @@ const Checkout = ({ config }) => {
         </div>
         <form onSubmit={handleSubmit} className={ `xpo_grid xpo_grid-rows-1 xpo_grid-cols-1 md:xpo_grid-cols-2 xpo_w-screen xpo_h-full xpo_mx-auto xpo_overflow-auto` }>
           {invoiceError ?
-            <div className="xpo_w-full xpo_h-full xpo_flex xpo_items-center xpo_justify-center xpo_bg-white xpo_sticky xpo_top-8">
+            <div className="xpo_w-full xpo_h-full xpo_flex xpo_items-center xpo_justify-center xpo_bg-white xpo_sticky xpo_top-0">
               <div className="xpo_bg-red-100 xpo_text-red-800 xpo_p-4 xpo_rounded-lg xpo_border xpo_border-red-300 xpo_mb-4">
                 <div className="xpo_flex xpo_items-start">
                   <svg xmlns="http://www.w3.org/2000/svg" className="xpo_h-5 xpo_w-5 xpo_mt-1 xpo_mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -297,24 +325,24 @@ const Checkout = ({ config }) => {
               </div>
             </div>
             :
-            <div className="xpo_w-full xpo_h-full xpo_p-8">
-              <h2 className="xpo_text-2xl xpo_font-bold xpo_mb-6">{__('Complete Your Payment')}</h2>
+            <div className="xpo_w-full xpo_h-full xpo_px-8 xpo_py-4 xpo_top-0">
+              <h2 className="xpo_text-2xl xpo_font-bold xpo_mb-4">{__('Complete Your Payment')}</h2>
               <div className="xpo_flex xpo_flex-col xpo_gap-5">
                 <div className="xpo_flex xpo_flex-col xpo_gap-4 xpo_py-3">
                   <div className="xpo_grid xpo_grid-cols-1 md:xpo_grid-cols-2 xpo_gap-4">
-                    <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" name="firstName" placeholder={__('First Name')} required value={formData.firstName} onChange={handleInputChange} />
-                    {showMiddleName && <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" name="middleName" placeholder={__('Middle Name')} value={formData.middleName} onChange={handleInputChange} />}
-                    <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" name="lastName" placeholder={__('Last Name')} required value={formData.lastName} onChange={handleInputChange} />
+                    <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" placeholder={__('First Name')} required value={form.metadata?.first_name??''} onChange={(e) => setForm(prev => ({...prev, metadata: {...prev.metadata, first_name: e.target.value}}))} />
+                    {showMiddleName && <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" placeholder={__('Middle Name')} value={form.metadata?.middle_name??''} onChange={(e) => setForm(prev => ({...prev, metadata: {...prev.metadata, middle_name: e.target.value}}))} />}
+                    <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" placeholder={__('Last Name')} required value={form.metadata?.last_name??''} onChange={(e) => setForm(prev => ({...prev, metadata: {...prev.metadata, last_name: e.target.value}}))} />
                   </div>
                   
                   <div className="xpo_grid xpo_grid-cols-1 md:xpo_grid-cols-2 xpo_gap-4">
-                    <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" name="address" placeholder={__('Address')} required value={formData.address} onChange={handleInputChange} />
-                    {showCity && <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" name="city" placeholder={__('City')} value={formData.city} onChange={handleInputChange} />}
-                    {/* {showEmirate && <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" name="emirate" placeholder={__('Emirate')} required value={formData.emirate} onChange={handleInputChange} />} */}
+                    <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" placeholder={__('Address')} required value={form.metadata?.address??''} onChange={(e) => setForm(prev => ({...prev, metadata: {...prev.metadata, address: e.target.value}}))} />
+                    {showCity && <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" placeholder={__('City')} value={form.metadata?.city??''} onChange={(e) => setForm(prev => ({...prev, metadata: {...prev.metadata, city: e.target.value}}))} />}
+                    {/* {showEmirate && <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" placeholder={__('Emirate')} required value={form.metadata?.emirate??''} onChange={(e) => setForm(prev => ({...prev, metadata: {...prev.metadata, emirate: e.target.value}}))} />} */}
                     
                     {showEmirate && (
                       <div className="xpo_w-full">
-                        <select className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 xpo_dark:bg-gray-700 xpo_dark:border-gray-600 xpo_dark:placeholder-gray-400 xpo_dark:text-white xpo_dark:focus:ring-blue-500 xpo_dark:focus:border-blue-500">
+                        <select className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 xpo_dark:bg-gray-700 xpo_dark:border-gray-600 xpo_dark:placeholder-gray-400 xpo_dark:text-white xpo_dark:focus:ring-blue-500 xpo_dark:focus:border-blue-500" value={form.metadata?.emirate??''} onChange={(e) => setForm(prev => ({...prev, metadata: {...prev.metadata, emirate: e.target.value}}))}>
                           <option defaultValue="">{__('Select emirate')}</option>
                           <option value="abu-dhabi">{__('Abu Dhabi')}</option>
                           <option value="dubai">{__('Dubai')}</option>
@@ -329,11 +357,11 @@ const Checkout = ({ config }) => {
 
                   </div>
                   
-                  <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" name="email" type="email" placeholder={__('Email')} required value={formData.email} onChange={handleInputChange} />
+                  <input className="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500" type="email" placeholder={__('Email')} required value={form?.client_email??''} onChange={(e) => setForm(prev => ({...prev, client_email: e.target.value}))} />
                   <PhoneInput
-                    value={formData.phone}
-                    country={formData.countryCode}
-                    onChange={handlePhoneChange}
+                    value={form.metadata?.phone}
+                    country={form.metadata?.phone_code}
+                    onChange={(value, country) => setForm(prev => ({...prev, metadata: {...prev.metadata, phone: value, phone_code: country.countryCode}}))}
                     containerClass="xpo_w-full" inputClass="xpo_bg-gray-50 xpo_border xpo_border-gray-300 xpo_text-gray-900 xpo_text-sm xpo_rounded-lg xpo_focus:ring-blue-500 xpo_focus:border-blue-500 xpo_block !xpo_w-full xpo_p-2.5 dark:xpo_bg-gray-700 dark:xpo_border-gray-600 dark:xpo_placeholder-gray-400 dark:xpo_text-white dark:focus:xpo_ring-blue-500 dark:focus:xpo_border-blue-500"
                     enableSearch
                     inputProps={{
@@ -360,7 +388,7 @@ const Checkout = ({ config }) => {
 
                             <div className="xpo_inline-flex xpo_items-center">
                               <label className={ `xpo_flex xpo_items-center xpo_cursor-pointer xpo_relative xpo_rounded-[100%] xpo_border xpo_border-solid ${isActiveProvider(g.id) ? 'xpo_border-none' : null} xpo_overflow-hidden` }>
-                                <input type="checkbox" checked={isActiveProvider(g.id)} className="xpo_peer xpo_h-5 xpo_w-5 xpo_cursor-pointer xpo_transition-all xpo_appearance-none xpo_rounded xpo_shadow xpo_hover:shadow-md checked:xpo_bg-primary" id="check3" />
+                                <input type="checkbox" checked={isActiveProvider(g.id)} onChange={() => {}} className="xpo_peer xpo_h-5 xpo_w-5 xpo_cursor-pointer xpo_transition-all xpo_appearance-none xpo_rounded xpo_shadow xpo_hover:shadow-md checked:xpo_bg-primary" id="check3" />
                                 <span className="xpo_absolute xpo_text-white xpo_opacity-0 peer-checked:xpo_opacity-100 xpo_top-1/2 xpo_left-1/2 xpo_transform xpo_-translate-x-1/2 xpo_-translate-y-1/2">
                                   <svg xmlns="http://www.w3.org/2000/svg" className="xpo_h-3.5 xpo_w-3.5" viewBox="0 0 20 20" fill="currentColor">
                                     <circle cx="10" cy="10" r="6" fill="currentColor" />
@@ -381,12 +409,7 @@ const Checkout = ({ config }) => {
                           {g.fields.map((f, fIndex) => {
                             switch (f.type) {
                               case 'cards':
-                                return (
-                                  <div key={fIndex}>
-                                    {/* <label className="xpo_block xpo_mb-1 xpo_font-medium">Card Details</label> */}
-                                    <div ref={cardRef} id="tap-element-container" className="xpo_p-3"></div>
-                                  </div>
-                                )
+                                return <CardElement key={fIndex} className="xpo_p-3" onLoad={(elem) => load_tap_js(elem)} />;
                                 break;
                               default:
                                 return <div key={fIndex}></div>
@@ -423,10 +446,9 @@ const Checkout = ({ config }) => {
           }
 
           {(invoiceData && showOverview) && (
-            <div className="xpo_w-full xpo_h-full xpo_bg-gray-50 xpo_p-8 xpo_border-l xpo_flex xpo_flex-col xpo_justify-between xpo_sticky xpo_top-8">
+            <div className="xpo_w-full xpo_h-full xpo_bg-gray-50 xpo_px-8 xpo_py-4 xpo_border-l xpo_flex xpo_flex-col xpo_justify-between xpo_sticky xpo_top-0">
               <div className="">
-                <h3 className="xpo_text-xl xpo_font-semibold xpo_mb-8">{__('Invoice Summary')}</h3>
-
+                <h3 className="xpo_text-xl xpo_font-semibold xpo_mb-4">{__('Invoice Summary')}</h3>
 
                 <div className="xpo_relative xpo_overflow-x-auto xpo_my-8">
                   <table className="xpo_w-full xpo_text-sm xpo_text-left rtl:xpo_text-right xpo_text-gray-500 dark:xpo_text-gray-400">
@@ -440,10 +462,10 @@ const Checkout = ({ config }) => {
                       {(invoiceData.items??[]).map((item, idx) => (
                       <tr key={idx} className="xpo_bg-white dark:xpo_bg-gray-800 hover:xpo_bg-gray-50 dark:hover:xpo_bg-gray-600">
                         <th scope="row" className="xpo_px-6 xpo_py-4 xpo_font-medium xpo_text-gray-900 xpo_whitespace-nowrap dark:xpo_text-white">
-                          {item.label}
+                          {get_item_label(item)}
                         </th>
                         <td className="xpo_px-6 xpo_py-4" style={{ width: '200px' }}>
-                          {item.price} {invoiceData.currency}
+                          {get_item_price(item)} {invoiceData.currency}
                         </td>
                       </tr>
                       ))}
@@ -457,22 +479,8 @@ const Checkout = ({ config }) => {
                   </table>
                 </div>
 
-
-                {/* <ul className="xpo_flex xpo_flex-col xpo_gap-4">
-                  {(invoiceData.items??[]).map((item, idx) => (
-                    <li key={idx} className="xpo_flex xpo_justify-between xpo_text-base">
-                      <span>{item.label}</span>
-                      <span>{item.price} {invoiceData.currency}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="xpo_border-t xpo_mt-4 xpo_pt-4 xpo_text-right xpo_font-bold">
-                  {__('Total:')} {invoiceData.total} {invoiceData.currency}
-                </div> */}
-
-
               </div>
-              <div className="xpo_mt-8">
+              <div>
                 <div className="xpo_flex md:xpo_hidden xpo_flex-col xpo_gap-5">
                   {error && <div className="xpo_text-red-600">{error}</div>}
                   <button
@@ -627,3 +635,15 @@ const SharePopup = ({ url, title, __ }) => {
   );
 };
 
+
+const CardElement = ({ onLoad, className = '' }) => {
+  const divRef = useRef(null);
+
+  useEffect(() => {
+    if (divRef.current && divRef.current.hasAttribute('data-onload')) {
+      onLoad(divRef.current);
+    }
+  }, []);
+
+  return <div className={className} ref={divRef} data-onload="true"></div>;
+}

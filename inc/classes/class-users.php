@@ -130,7 +130,7 @@ class Users {
                 'email'      => $user->user_email,
                 'first_name' => $user->first_name,
                 'last_name'  => $user->last_name,
-                'meta'       => get_user_meta( $user->ID ),
+                // 'meta'       => get_user_meta( $user->ID ),
                 ...$this->prepare_user_data_for_response( $user )
             );
         }
@@ -255,10 +255,13 @@ class Users {
             'firstName'   => $user->first_name,
             'lastName'    => $user->last_name,
             'displayName' => $user->display_name,
-            'avater'      => 'https://randomuser.me/api/portraits/men/' . $user->ID . '.jpg',
+            'avater'      => get_user_meta($user->ID, 'avater', true),
             'locale'      => get_user_meta($user->ID, 'partnership_dashboard_locale', true),
             ...(array) $user,
         ];
+        if (empty($data['avater'])) {
+            $data['avater'] = 'https://randomuser.me/api/portraits/men/' . $user->ID . '.jpg';
+        }
         if (isset($data['data']->user_pass)) {unset($data['data']->user_pass);}
         if (isset($data['data']->user_activation_key)) {unset($data['data']->user_activation_key);}
         return $data;

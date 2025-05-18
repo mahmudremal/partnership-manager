@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from '@common/link';
 import request from "@common/request";
-import { home_url, rest_url } from "@functions";
+import { home_url, rest_url, notify } from "@functions";
 import { usePopup } from '@context/PopupProvider';
 import { useTranslation } from '@context/LanguageProvider';
 import { Trash2, SquarePen, Eye, Plus, Search, ChevronsLeft, ChevronsRight, CheckCircle, XCircle } from 'lucide-react';
@@ -132,7 +132,7 @@ export default function Payouts({ maxAmount = 0, viewType = 'list' }) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {transactions.length > 0 ? transactions.map((item, index) => (
+                                {transactions?.length > 0 ? transactions.map((item, index) => (
                                     // <tr key={item.id}>
                                     //     <td>{(page - 1) * perPage + index + 1}</td>
                                     //     <td>{dayjs.unix(item.created_at).utc().format('DD MMM YYYY')}</td>
@@ -211,9 +211,12 @@ export default function Payouts({ maxAmount = 0, viewType = 'list' }) {
 
 function PayoutRequestForm({ maxAmount }) {
     const { __ } = useTranslation();
-    const [amount, setAmount] = useState('');
-    const [method, setMethod] = useState('');
-    const [note, setNote] = useState('');
+    const [form, setForm] = useState({
+        method: '',
+        comment: '',
+        account_id: '',
+        amount: 0,
+    });
     const [loading, setLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
@@ -227,16 +230,12 @@ function PayoutRequestForm({ maxAmount }) {
         request(rest_url('/partnership/v1/payout/update'), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                amount,
-                method,
-                comment: note,
-            }),
+            body: JSON.stringify({...form}),
         })
         .then(data => {
             if (data.success) {
                 setSuccessMessage(__('Payout request submitted successfully!'));
-                setAmount('');setMethod('');setNote('');
+                setForm(prev => ({...prev, amount: prev.amount, method: prev.method, comment: prev.comment}));
             } else {
                 setErrorMessage(__('Failed to submit payout request: ') + data.message);
             }
@@ -254,30 +253,30 @@ function PayoutRequestForm({ maxAmount }) {
             {successMessage && <div className="xpo_p-4 xpo_text-green-700 xpo_bg-green-100 xpo_border xpo_border-green-300 xpo_rounded">{successMessage}</div>}
             {errorMessage && <div className="xpo_p-4 xpo_text-red-700 xpo_bg-red-100 xpo_border xpo_border-red-300 xpo_rounded">{errorMessage}</div>}
     
-            <form onSubmit={handleSubmit}>
-                <div className="xpo_space-y-1">
-                    <label className="xpo_block xpo_text-sm xpo_font-medium">
-                        {__('Amount')} 
-                        {maxAmount ? <span className="xpo_text-xs">({__('Max')}: {maxAmount})</span> : null}
+            <form onSubmit={handleSubmit} className="xpo_flex xpo_flex-col xpo_gap-4">
+                <div className="xpo_block">
+                    <label className="xpo_flex xpo_gap-1 xpo_items-center xpo_text-sm xpo_font-medium">
+                        <span>{__('Amount')}</span>
+                        {maxAmount ? <span>({__('Max')}: {maxAmount})</span> : null}
                     </label>
                     <input
-                        type="number"
-                        className="xpo_w-full xpo_border xpo_border-gray-300 xpo_rounded-lg xpo_px-4 xpo_py-2 xpo_text-sm xpo_focus:outline-none xpo_focus:ring-2 xpo_focus:ring-primary-500"
-                        placeholder={__('Enter amount')}
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        max={maxAmount}
                         required
+                        type="number"
+                        value={form.amount}
+                        max={maxAmount}
+                        placeholder={__('Enter amount')}
+                        onChange={(e) => setForm(prev => ({...prev, amount: e.target.value}))}
+                        className="xpo_w-full xpo_border xpo_border-gray-300 xpo_rounded-lg xpo_px-4 xpo_py-2 xpo_text-sm xpo_focus:outline-none xpo_focus:ring-2 xpo_focus:ring-primary-500"
                     />
                 </div>
     
-                <div className="xpo_space-y-1">
+                <div className="xpo_block">
                     <label className="xpo_block xpo_text-sm xpo_font-medium">{__('Payout Method')}</label>
                     <select
-                        className="xpo_w-full xpo_border xpo_border-gray-300 xpo_rounded-lg xpo_px-4 xpo_py-2 xpo_text-sm xpo_focus:outline-none xpo_focus:ring-2 xpo_focus:ring-primary-500"
-                        value={method}
-                        onChange={(e) => setMethod(e.target.value)}
                         required
+                        value={form.method}
+                        onChange={(e) => setForm(prev => ({...prev, method: e.target.value}))}
+                        className="xpo_w-full xpo_border xpo_border-gray-300 xpo_rounded-lg xpo_px-4 xpo_py-2 xpo_text-sm xpo_focus:outline-none xpo_focus:ring-2 xpo_focus:ring-primary-500"
                     >
                         <option value="">{__('Select method')}</option>
                         <option value="bank">{__('Bank Transfer')}</option>
@@ -288,14 +287,26 @@ function PayoutRequestForm({ maxAmount }) {
                     </select>
                 </div>
     
-                <div className="xpo_space-y-1">
+                <div className="xpo_block">
+                    <label className="xpo_block xpo_text-sm xpo_font-medium">{__('Account number')}</label>
+                    <input
+                        required
+                        type="text"
+                        value={form.account_id}
+                        placeholder={__('Enter account ID')}
+                        onChange={(e) => setForm(prev => ({...prev, account_id: e.target.value}))}
+                        className="xpo_w-full xpo_border xpo_border-gray-300 xpo_rounded-lg xpo_px-4 xpo_py-2 xpo_text-sm xpo_focus:outline-none xpo_focus:ring-2 xpo_focus:ring-primary-500"
+                    />
+                </div>
+    
+                <div className="xpo_block">
                     <label className="xpo_block xpo_text-sm xpo_font-medium">{__('Note')}</label>
                     <textarea
-                        className="xpo_w-full xpo_border xpo_border-gray-300 xpo_rounded-lg xpo_px-4 xpo_py-2 xpo_text-sm xpo_focus:outline-none xpo_focus:ring-2 xpo_focus:ring-primary-500"
                         rows="3"
+                        value={form.comment}
                         placeholder={__('Optional message')}
-                        value={note}
-                        onChange={(e) => setNote(e.target.value)}
+                        onChange={(e) => setForm(prev => ({...prev, comment: e.target.value}))}
+                        className="xpo_w-full xpo_border xpo_border-gray-300 xpo_rounded-lg xpo_px-4 xpo_py-2 xpo_text-sm xpo_focus:outline-none xpo_focus:ring-2 xpo_focus:ring-primary-500"
                     />
                 </div>
     
@@ -303,19 +314,13 @@ function PayoutRequestForm({ maxAmount }) {
                     <button
                         type="button"
                         className="xpo_px-4 xpo_py-2 xpo_text-sm xpo_rounded-lg xpo_border xpo_border-gray-300 xpo_hover:bg-gray-50"
-                        onClick={() => {
-                            setAmount('');
-                            setMethod('');
-                            setNote('');
-                            setSuccessMessage('');
-                            setErrorMessage('');
-                        }}
+                        onChange={(e) => setForm(prev => ({...prev, amount: maxAmount, method: '', comment: '', account_id: ''}))}
                     >
                         {__('Cancel')}
                     </button>
                     <button
                         type="submit"
-                        className={`xpo_px-4 xpo_py-2 xpo_text-sm xpo_rounded-lg xpo_bg-primary-600 xpo_hover:bg-primary-700 ${loading ? 'xpo_opacity-50 xpo_cursor-not-allowed' : ''}`}
+                        className={`xpo_px-4 xpo_py-2 xpo_text-sm xpo_rounded-lg xpo_bg-primary-500 hover:xpo_bg-primary-600 xpo_text-white ${loading ? 'xpo_opacity-50 xpo_cursor-not-allowed' : ''}`}
                         disabled={loading}
                     >
                         {loading ? __('Submitting...') : __('Submit Request')}
@@ -329,19 +334,19 @@ function PayoutRequestForm({ maxAmount }) {
 function ViewPayout({ item, setItems }) {
     const { __ } = useTranslation();
     const [loading, setLoading] = useState(null);
-    const {
-        id,
-        user_id,
-        status,
-        currency,
-        method,
-        amount,
-        created_at,
-        updated_at,
-        approved_at,
-        approved_by,
-        comment
-    } = item;
+    const { id, user_id, status, currency, amount, method, account_id, created_at, updated_at, approved_at, approved_by, comment } = item;
+
+    const maskString = (s) => {
+        if (!s) return s;
+        const len = s?.length;
+        if (len <= 4) return s;
+        else if (len <= 8) return s.slice(0, 2) + '***' + s.slice(-2);
+        else {
+            const mid = Math.floor(len / 2);
+            return s.slice(0, 4) + '***' + s.slice(mid, mid + 2) + '***' + s.slice(-4);
+        }
+    }
+
 
     const handleStatusChange = (event) => {
         event.preventDefault();
@@ -353,11 +358,10 @@ function ViewPayout({ item, setItems }) {
                 console.log(data);
                 if (data?.new_status) {
                     setItems(list => list.map(l => l.id == id ? {...l, status: data.new_status} : l));
+                    notify.success(__('Status updated successfully!'));
                 }
             })
-            .catch(err => {
-                console.error('Error:', err);
-            })
+            .catch(err => notify.error(err?.response?.message??__('An error occurred while updating the status. Please try again.')))
             .finally(() => setLoading(false));
         }
     }
@@ -370,16 +374,19 @@ function ViewPayout({ item, setItems }) {
                     <p className="xpo_text-lg xpo_font-medium">{__('Payout ID:')} <span className="xpo_font-normal">#{id}</span></p>
                 </div>
                 <div className="xpo_space-y-1">
-                    <p className="xpo_text-sm">
-                        <strong className="xpo_font-medium">{__('User ID:')}</strong> {user_id}
+                    <p className="xpo_text-sm xpo_flex xpo_gap-1 xpo_items-center">
+                        <strong className="xpo_font-medium">{__('User ID:')}</strong><span>{user_id}</span>
                     </p>
-                    <p className="xpo_text-sm">
-                        <strong className="xpo_font-medium">{__('Amount:')}</strong> {currency} {amount}
+                    <p className="xpo_text-sm xpo_flex xpo_gap-1 xpo_items-center">
+                        <strong className="xpo_font-medium">{__('Amount:')}</strong><span>{currency} {amount}</span>
                     </p>
-                    <p className="xpo_text-sm">
-                        <strong className="xpo_font-medium">{__('Method:')}</strong> {method}
+                    <p className="xpo_text-sm xpo_flex xpo_gap-1 xpo_items-center">
+                        <strong className="xpo_font-medium">{__('Method:')}</strong><span>{method}</span>
                     </p>
-                    <p className="xpo_text-sm">
+                    <p className="xpo_text-sm xpo_flex xpo_gap-1 xpo_items-center">
+                        <strong className="xpo_font-medium">{__('Account:')}</strong><span onMouseEnter={(e) => e.target.innerHTML = account_id} onMouseLeave={(e) => e.target.innerHTML = maskString(account_id)}>{maskString(account_id)}</span>
+                    </p>
+                    <p className="xpo_text-sm xpo_flex xpo_gap-1 xpo_items-center">
                         <strong className="xpo_font-medium">{__('Status:')} </strong> 
                         {status === "approved" ? (
                             <span className="text-success-main mb-0 xpo_capitalize"> {status}</span>
@@ -393,19 +400,19 @@ function ViewPayout({ item, setItems }) {
                             ) : <span className="text-warning-main mb-0 xpo_capitalize"> {__(status)}</span>
                         )}
                     </p>
-                    <p className="xpo_text-sm">
-                        <strong className="xpo_font-medium">{__('Created At:')}</strong> {dayjs.utc(created_at).format('DD MMM YYYY HH:mm')}
+                    <p className="xpo_text-sm xpo_flex xpo_gap-1 xpo_items-center">
+                        <strong className="xpo_font-medium">{__('Created At:')}</strong><span>{dayjs.utc(created_at).format('DD MMM YYYY HH:mm')}</span>
                     </p>
-                    <p className="xpo_text-sm">
-                        <strong className="xpo_font-medium">{__('Updated At:')}</strong> {dayjs.utc(updated_at).format('DD MMM YYYY HH:mm')}
+                    <p className="xpo_text-sm xpo_flex xpo_gap-1 xpo_items-center">
+                        <strong className="xpo_font-medium">{__('Updated At:')}</strong><span>{dayjs.utc(updated_at).format('DD MMM YYYY HH:mm')}</span>
                     </p>
                     {approved_at && (
-                        <p className="xpo_text-sm">
-                            <strong className="xpo_font-medium">{__('Approved At:')}</strong> {dayjs.utc(approved_at).format('DD MMM YYYY HH:mm')} ({sprintf('Approved by User ID: %d', approved_by)})
+                        <p className="xpo_text-sm xpo_flex xpo_gap-1 xpo_items-center">
+                            <strong className="xpo_font-medium">{__('Approved At:')}</strong><span>{dayjs.utc(approved_at).format('DD MMM YYYY HH:mm')} ({sprintf('Approved by User ID: %d', approved_by)})</span>
                         </p>
                     )}
-                    <p className="xpo_text-sm">
-                        <strong className="xpo_font-medium">{__('Comment:')}</strong> {comment}
+                    <p className="xpo_text-sm xpo_flex xpo_gap-1 xpo_items-center">
+                        <strong className="xpo_font-medium">{__('Comment:')}</strong><span>{comment}</span>
                     </p>
                 </div>
             </div>

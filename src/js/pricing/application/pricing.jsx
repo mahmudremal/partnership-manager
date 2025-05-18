@@ -98,7 +98,7 @@ const Pricing = ({ }) => {
               <span className="xpo_mb-2 xpo_block xpo_text-lg xpo_font-semibold xpo_text-primary">{__('Pricing Table')}</span>
               <h2 className="xpo_mb-3 xpo_text-3xl xpo_font-bold xpo_leading-[1.208] xpo_text-dark dark:xpo_text-white sm:xpo_text-4xl md:xpo_text-[40px]">{__('Our Pricing Plan')}</h2>
               <p className="xpo_text-base xpo_text-body-color dark:xpo_text-dark-6">
-                {__('There are many variations of passages of Lorem Ipsum available but the majority have suffered alteration in some form.')}
+                {__('Choose the best plan for your business. Change plans as you grow.')}
               </p>
             </div>
           </div>

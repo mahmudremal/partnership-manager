@@ -89,9 +89,10 @@ class Contract {
                 $payload = [
                     'currency' => $request->get_param('currency'),
                     'client_email' => $request->get_param('client_email'),
-                    'total' => $price,
+                    'total' => (float) $price,
                     'items' => [
-                        ['label' => sprintf(__('%s - %s', 'domain'), $package['name'], $package['packagefor']), 'price' => (float) $price]
+                        // ['type' => 'package', 'label' => sprintf(__('%s - %s', 'domain'), $package['name'], $package['packagefor']), 'price' => (float) $price, 'identifier' => $package_id . '-' . $package_plan],
+                        ['type' => 'package', 'label' => null, 'price' => 0, 'identifier' => $package_id . '->' . $package_plan],
                     ],
                     'customer' => [
                         'first_name' => $request->get_param('first_name'),
@@ -137,9 +138,9 @@ class Contract {
                     'All Conversion Setup',
                     'All Pixel Setup',
                     '5 Post Design / 2 Motion Video',
-                    'Whatsapp Marketing',
-                    'Email Marketing',
-                    'SEO'
+                    // 'Whatsapp Marketing',
+                    // 'Email Marketing',
+                    // 'SEO'
                 ],
                 'pricing' => [
                     // 'Weekly' => 500,
@@ -163,7 +164,7 @@ class Contract {
                     'All Pixel Setup',
                     '10 Post Design / 4 Motion Graphics',
                     'Whatsapp marketing',
-                    'Email Marketing',
+                    // 'Email Marketing',
                     'SEO'
                 ],
                 'pricing' => [

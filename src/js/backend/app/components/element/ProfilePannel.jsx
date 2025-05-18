@@ -40,19 +40,18 @@ export default function ProfilePannel() {
     return (
         <div className="dropdown">
             <button
-                className={`d-flex justify-content-center align-items-center rounded-circle ${menuOpened ? 'show' : ''}`}
                 type="button"
-                data-bs-toggle="dropdown"
                 ref={buttonRef}
                 onClick={toggleDropdown}
                 aria-expanded={menuOpened ? 'true' : 'false'}
+                className={`d-flex justify-content-center align-items-center rounded-circle ${menuOpened ? 'show' : ''}`}
             >
                 <img src={ user?.avater??'' } alt="image" className="w-40-px h-40-px object-fit-cover rounded-circle" />
             </button>
-            <div
-                ref={dropdownRef}
-                className={`dropdown-menu to-top dropdown-menu-sm xpo_z-10 ${menuOpened ? 'show d-block' : ''}`}
-            >
+            
+            {menuOpened && <div className="xpo_fixed xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full xpo_z-10" onClick={(e) => setMenuOpened(false)}></div>}
+            
+            <div ref={dropdownRef} className={`dropdown-menu to-top dropdown-menu-sm xpo_z-10 ${menuOpened ? 'show d-block' : ''}`}>
                 <div className="py-12 px-16 radius-8 bg-primary-50 mb-16 d-flex align-items-center justify-content-between gap-2">
                     <div>
                         <h6 className="text-lg text-primary-light fw-semibold mb-2">{[user?.firstName??'', user?.lastName??''].join(' ')}</h6>

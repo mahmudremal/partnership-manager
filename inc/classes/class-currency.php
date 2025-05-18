@@ -36,7 +36,6 @@ class Currency {
 		[ 'code' => 'KWD', 'sign' => 'د.ك', 'position' => 'prefix', 'rate' => 0.31 ],
 		[ 'code' => 'BHD', 'sign' => 'د.ب', 'position' => 'prefix', 'rate' => 0.38 ],
 		[ 'code' => 'OMR', 'sign' => 'ر.ع', 'position' => 'prefix', 'rate' => 0.38 ],
-		[ 'code' => 'ILS', 'sign' => '₪', 'position' => 'prefix', 'rate' => 3.76 ],
 		[ 'code' => 'JOD', 'sign' => 'د.ا', 'position' => 'prefix', 'rate' => 0.71 ],
 		[ 'code' => 'LBP', 'sign' => 'ل.ل', 'position' => 'prefix', 'rate' => 89000 ],
 		[ 'code' => 'EGP', 'sign' => '£', 'position' => 'prefix', 'rate' => 47.08 ],

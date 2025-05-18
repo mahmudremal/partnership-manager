@@ -72,7 +72,7 @@ class Error {
         register_rest_route('partnership/v1', '/error/report', [
             'methods' => 'POST',
             'callback' => [$this, 'handle_error_report'],
-            'permission_callback' => [Security::get_instance(), 'permission_callback']
+            // 'permission_callback' => [Security::get_instance(), 'permission_callback']
         ]);
     }
 

@@ -15,6 +15,7 @@ class Payment_Tap {
         add_filter('partnersmanagerpayment/create_payment_intent', [ $this, 'tap_create_charge' ], 10, 3);
         add_filter('partnersmanagerpayment/verify',                [ $this, 'tap_verify'        ], 10, 4);
         add_filter('partnersmanagerpayment/refund_payment',        [ $this, 'tap_refund'        ], 10, 4);
+        add_filter('partnersmanagerpayment/payout',                [ $this, 'tap_payout'        ], 10, 3);
         add_filter('partnersmanagerpayment/webhook',               [ $this, 'tap_handle_webhook'], 10, 1);
         add_filter('partnership/payment/gateways',                 [ $this, 'push_gateways'], 10, 1);
         add_filter('partnership/payment/gateway/switched',         [ $this, 'switch_gateways'], 10, 3);
@@ -191,6 +192,27 @@ class Payment_Tap {
             'reason'    => $args['reason'] ?? '',
         ];
         return $this->request('v2/refunds', $payload);  // :contentReference[oaicite:2]{index=2}
+    }
+
+    public function tap_payout($false, $args, $provider) {
+        if (!apply_filters('payment/provider/match', $provider === 'tap', 'tap', $provider)) {
+            return $false;
+        }
+        
+        $payload = [
+            'amount' => $args['amount'],
+            'currency' => $args['currency'],
+            'toAccountId' => $args['account_id'],
+            'description' => sprintf(__('Payout to account %s', 'domain'), $args['account_id'])
+        ];
+
+        return $payload;
+        
+        if (empty($payload['toAccountId']) || empty($payload['amount']) || empty($payload['currency'])) {
+            return ['success' => false, 'message' => 'Incomplete payout information.'];
+        }
+        
+        return $this->create_payout($payload);
     }
 
     public function tap_handle_webhook($payload) {

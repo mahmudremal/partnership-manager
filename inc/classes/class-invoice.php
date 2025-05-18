@@ -73,6 +73,11 @@ class Invoice {
 			'callback' => [$this, 'api_pay_invoice'],
 			// 'permission_callback' => [Security::get_instance(), 'permission_callback']
 		]);
+		register_rest_route('partnership/v1', '/invoice/(?P<invoice_id>[^/]+)/share', [
+			'methods' => 'POST',
+			'callback' => [$this, 'api_share_invoice'],
+			'permission_callback' => [Security::get_instance(), 'permission_callback']
+		]);
 	}
 
     public function register_activation_hook() {
@@ -82,7 +87,7 @@ class Invoice {
         $sql_invoice = "CREATE TABLE IF NOT EXISTS {$this->invoice_table} (
             id BIGINT NOT NULL AUTO_INCREMENT,
             invoice_id VARCHAR(50) NOT NULL,
-            status VARCHAR(50) DEFAULT 'unpaid',
+            status ENUM('unpaid', 'paid', 'cancel', 'expired') DEFAULT 'unpaid',
             client_email TEXT,
             currency VARCHAR(50) DEFAULT 'USD',
             total DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
@@ -94,17 +99,17 @@ class Invoice {
 
         $sql_items = "CREATE TABLE IF NOT EXISTS {$this->item_table} (
             id BIGINT NOT NULL AUTO_INCREMENT,
-            invoice_id TEXT NOT NULL,
+            invoice_id BIGINT(20) NOT NULL,
             label VARCHAR(255) NOT NULL,
             price DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
-            type VARCHAR(255) NOT NULL DEFAULT 'custom',
-            indentifier BIGINT NOT NULL DEFAULT 0,
+            type ENUM('custom', 'package') DEFAULT 'custom',
+            identifier text NULL,
             PRIMARY KEY (id)
         ) $charset_collate;";
 
         $sql_metas = "CREATE TABLE IF NOT EXISTS {$this->meta_table} (
             id BIGINT NOT NULL AUTO_INCREMENT,
-            invoice_id TEXT NOT NULL,
+            invoice_id BIGINT(20) NOT NULL,
             meta_key VARCHAR(255) NOT NULL,
             meta_value TEXT NOT NULL DEFAULT '',
             PRIMARY KEY (id)
@@ -229,9 +234,15 @@ class Invoice {
         // 
         $invoice = $this->get_invoice($invoice_id);
 
-        $metadata = [];
+        $_metadata = (array) $request->get_param('metadata');
+        foreach ($_metadata as $meta_key => $meta_value) {
+            if (! $meta_key || ! $meta_value) {continue;}
+            $this->update_invoice_meta((int) $invoice['id'], $meta_key, $meta_value);
+        }
+        
+        $_items = [];
         foreach ($invoice['items'] as $index => $item) {
-            $metadata[$item['label']] = $item['price'];
+            $_items[$item['label']] = $item['price'];
         }
         
         $payload = [
@@ -239,7 +250,7 @@ class Invoice {
             'currency'          => $invoice['currency'],
             'save_card'         => true,
             'description'       => 'N/A',
-            'metadata'          => $metadata,
+            'metadata'          => $_items,
             'reference'         => [
                 'product_info' => $args['title'],
                 'customer_id' => $args['user']['id'] ?? 0,
@@ -247,13 +258,13 @@ class Invoice {
                 'invoice_id' => $invoice['invoice_id']
             ],
             'customer' => [
-                'first_name' => $request->get_param('firstName'),
-                'middle_name' => $request->get_param('middleName'),
-                'last_name' => $request->get_param('lastName'),
-                'email' => $request->get_param('email'),
+                'first_name' => $_metadata['first_name'] ?? '',
+                'middle_name' => $_metadata['middle_name'] ?? '',
+                'last_name' => $_metadata['last_name'] ?? '',
+                'email' => $request->get_param('client_email'),
                 'phone' => [
-                    'country_code' => strtoupper($request->get_param('countryCode')),
-                    'number' => $request->get_param('phone')
+                    'country_code' => strtoupper($_metadata['phone_code'] ?? ''),
+                    'number' => $_metadata['phone'] ?? ''
                 ]
             ],
             'source'            => [
@@ -271,18 +282,6 @@ class Invoice {
                 ['id' => $invoice['id']],
                 ['%s'], ['%d']
             );
-            if ($_updated) {
-                $this->update_invoice_meta($invoice['id'], 'first_name', $payload['customer']['first_name']);
-                $this->update_invoice_meta($invoice['id'], 'middle_name', $payload['customer']['middle_name']);
-                $this->update_invoice_meta($invoice['id'], 'last_name', $payload['customer']['last_name']);
-                
-                $this->update_invoice_meta($invoice['id'], 'city', $request->get_param('city'));
-                $this->update_invoice_meta($invoice['id'], 'address', $request->get_param('address'));
-                $this->update_invoice_meta($invoice['id'], 'emirate', $request->get_param('emirate'));
-
-                $this->update_invoice_meta($invoice['id'], 'phone', $payload['customer']['phone']['number']);
-                $this->update_invoice_meta($invoice['id'], 'phone_code', $payload['customer']['phone']['country_code']);
-            }
         }
         
         
@@ -327,7 +326,7 @@ class Invoice {
         $client_email = sanitize_email($args['client_email'] ?? '');
         $items = $args['items'] ?? [];
         $metadata = $args['metadata'] ?? [];
-        $currency = $args['currency'] ?? 'USD';
+        $currency = $args['currency'] ?? null;
         $total = array_sum(array_map(fn($item) => floatval($item['price'] ?? 0), $items));
     
         if ($_invoice) {
@@ -336,8 +335,9 @@ class Invoice {
     
             $wpdb->update($this->invoice_table, [
                 'client_email' => $client_email,
-                'total' => $total,
-                'status' => 'unpaid'
+                'total' => $args['total'] ?? $total,
+                'status' => 'unpaid',
+                'currency' => $currency ? $currency : $_invoice['currency']
             ], ['invoice_id' => $invoice_id]);
     
             if ($wpdb->last_error) {
@@ -350,7 +350,7 @@ class Invoice {
                 'invoice_id' => $invoice_id,
                 'currency' => $currency,
                 'client_email' => $client_email,
-                'total' => $total,
+                'total' => $args['total'] ?? $total,
                 'status' => 'unpaid'
             ]);
     
@@ -364,8 +364,10 @@ class Invoice {
         foreach ($items as $item) {
             $wpdb->insert($this->item_table, [
                 'invoice_id' => $invoice_db_id,
+                'type' => sanitize_text_field($item['type'] ?? 'custom'),
                 'label' => sanitize_text_field($item['label'] ?? ''),
-                'price' => floatval($item['price'] ?? 0)
+                'price' => floatval($item['price'] ?? 0),
+                'identifier' => sanitize_text_field($item['identifier'] ?? null)
             ]);
         }
     
@@ -398,6 +400,7 @@ class Invoice {
         
         return $invoice_data;
     }
+    
     public function mark_paid_invoice($invoice_id) {
         global $wpdb;
         $invoice = $this->get_invoice($invoice_id);
@@ -478,6 +481,24 @@ class Invoice {
             ));
             return $meta_value !== null ? $meta_value : null;
         }
+    }
+
+    public function api_share_invoice(WP_REST_Request $request) {
+        $invoice_id = $request->get_param('invoice_id');
+        $emails = $request->get_param('emails');
+        $subject = $request->get_param('subject');
+        $body = $request->get_param('body');
+        $invoice = $this->get_invoice($invoice_id);
+        if (is_wp_error($invoice)) {
+            return rest_ensure_response($invoice);
+        }
+        $subject = empty($subject) ? sprintf(__('Invoice #%s', 'wp-partnershipm'), $invoice['invoice_id']) : $subject;
+        $_sent = wp_mail($emails, $subject, $body);
+        return rest_ensure_response([
+            'mail' => [$emails, $subject, $body],
+            'success' => $_sent, 'message' => $_sent ? __('Invoice shared successfully.', 'wp-partnershipm') : __('Failed to share invoice.', 'wp-partnershipm')
+        ]);
+        // ->set_status($_sent ? 200 : 500);
     }
 
 }

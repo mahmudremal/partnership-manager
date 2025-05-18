@@ -16,15 +16,17 @@ class Payment {
     }
 
     protected function setup_hooks() {
-        add_filter('template_include', [ $this, 'payment_status_template' ]);
-        add_action('wp_ajax_nopriv_payment_webhook', [ $this, 'handle_webhook' ]);
-        add_action('wp_ajax_payment_webhook', [ $this, 'handle_webhook' ]);
+        add_filter('template_include', [$this, 'payment_status_template']);
+        add_action('wp_ajax_nopriv_payment_webhook', [$this, 'handle_webhook']);
+        add_action('wp_ajax_payment_webhook', [$this, 'handle_webhook']);
         add_action('rest_api_init', [$this, 'register_routes']);
 
-        add_action('init', [ $this, 'register_post_type' ]);
-        add_action('init', [ $this, 'add_payment_rewrite_rules' ]);
-        add_filter('query_vars', [ $this, 'payment_query_vars' ]);
-        add_filter('template_include', [ $this, 'payment_status_template' ]);
+        add_action('init', [$this, 'register_post_type']);
+        add_action('init', [$this, 'add_payment_rewrite_rules']);
+        add_filter('query_vars', [$this, 'payment_query_vars']);
+        add_filter('template_include', [$this, 'payment_status_template']);
+
+        add_filter('partnership/payment/payout', [$this, 'payout_payment'], 1, 3);
     }
 
     public function add_payment_rewrite_rules() {
@@ -142,6 +144,11 @@ class Payment {
         $is_refunded = apply_filters('partnersmanagerpayment/refund_payment', false, $payment_id, $args, $provider);
         do_action('partnersmanagerpayment/subscription_refunded', $is_refunded, $subscription_id, $provider, $args);
         return $is_refunded;
+    }
+
+    public function payout_payment($_null, $payload, $provider) {
+        $_payment_made = apply_filters('partnersmanagerpayment/payout', false, $payload, $provider);
+        return $_payment_made ? $_payment_made : $_null;
     }
 
     public function handle_webhook() {

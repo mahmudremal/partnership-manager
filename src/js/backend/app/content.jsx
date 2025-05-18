@@ -18,7 +18,15 @@ const PayoutsScreen = lazy(() => import('./pages/payouts/screen'));
 const Settings = lazy(() => import('./pages/settings'));
 
 const PartnerDocs = lazy(() => import('./pages/resources/partner-docs'));
+const PartnerDocsCategory = lazy(() => import('./pages/resources/partner-docs-category'));
+const PartnerDocsSingle = lazy(() => import('./pages/resources/partner-docs-single'));
+
+const ServiceDocs = lazy(() => import('./pages/resources/service-docs'));
+const ServiceDocsCategory = lazy(() => import('./pages/resources/service-docs-category'));
+const ServiceDocsSingle = lazy(() => import('./pages/resources/service-docs-single'));
+
 const Supports = lazy(() => import('./pages/support/supports'));
+const OpenTicket = lazy(() => import('./pages/support/open-ticket'));
 
 const Contracts_Actives = lazy(() => import('./pages/contracts/active'));
 const Contracts_Inactives = lazy(() => import('./pages/contracts/inactive'));
@@ -37,6 +45,7 @@ export default function Content() {
             <Suspense fallback={<div className="text-center p-4">Loading...</div>}>
                 <Routes>
                     <Route path={home_route('/')} element={<Home />} />
+                    <Route path={home_route('/insights')} element={<Home />} />
                     <Route path={home_route('/sales')} element={<Home />} />
                     <Route path={home_route('/analytics')} element={<Home />} />
 
@@ -44,10 +53,16 @@ export default function Content() {
                     <Route path={home_route('/users/:userid/view')} element={<UsersView />} />
                     <Route path={home_route('/users/:userid/edit')} element={<UsersEdit />} />
 
-                    <Route path={home_route('/resources/partner-docs')} element={<PartnerDocs />} />
-                    <Route path={home_route('/resources/service-docs')} element={<PartnerDocs />} />
+                    <Route path={home_route('/resources/partner-docs')} element={<PartnerDocs/>} />
+                    <Route path={home_route('/resources/partner-docs/:category_slug')} element={<PartnerDocsCategory/>} />
+                    <Route path={home_route('/resources/partner-docs/:category_slug/:doc_slug')} element={<PartnerDocsSingle/>} />
+                    
+                    <Route path={home_route('/resources/service-docs')} element={<ServiceDocs />} />
+                    <Route path={home_route('/resources/service-docs/:category_slug')} element={<ServiceDocsCategory />} />
+                    <Route path={home_route('/resources/service-docs/:category_slug/:doc_slug')} element={<ServiceDocsSingle />} />
+
                     <Route path={home_route('/support/supports')} element={<Supports />} />
-                    <Route path={home_route('/support/open-ticket')} element={<Supports />} />
+                    <Route path={home_route('/support/open-ticket')} element={<OpenTicket />} />
 
                     <Route path={home_route('/referrals')} element={<ReferralsScreen />} />
                     <Route path={home_route('/referrals/active')} element={<Active_Referrals />} />

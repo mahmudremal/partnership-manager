@@ -16,6 +16,7 @@ class Payout {
 	}
 	protected function setup_hooks() {
         register_activation_hook(WP_PARTNERSHIPM__FILE__, [$this, 'register_activation_hook']);
+        register_deactivation_hook(WP_PARTNERSHIPM__FILE__, [$this, 'register_deactivation_hook']);
 		add_action('rest_api_init', [$this, 'register_routes']);
 	}
     public function register_routes() {
@@ -46,6 +47,7 @@ class Payout {
             currency VARCHAR(50) DEFAULT 'USD',
             method VARCHAR(50) DEFAULT 'tap',
             amount DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+            account_id TEXT NULL,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             approved_at DATETIME NULL,
@@ -57,6 +59,11 @@ class Payout {
         
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta($sql_table);
+    }
+
+    public function register_deactivation_hook() {
+        global $wpdb;
+        $wpdb->query("DROP TABLE IF EXISTS {$this->payout_table}");
     }
 
     public function get_payouts(WP_REST_Request $request) {
@@ -128,19 +135,7 @@ class Payout {
         // Prepare response data
         $response_data = array();
         foreach ($payouts as $payout) {
-            $response_data[] = array(
-                'id'         => $payout->id,
-                'user_id'    => $payout->user_id,
-                'status'     => $payout->status,
-                'currency'   => $payout->currency,
-                'method'     => $payout->method,
-                'amount'     => $payout->amount,
-                'created_at' => $payout->created_at,
-                'updated_at' => $payout->updated_at,
-                'approved_at' => $payout->approved_at,
-                'approved_by' => $payout->approved_by,
-                'comment'    => $payout->comment,
-            );
+            $response_data[] = (array) $payout;
         }
     
         // Prepare the response
@@ -170,6 +165,7 @@ class Payout {
         $method = $request->get_param('method') ?? 'bank';
         $amount = $request->get_param('amount') ?? 0;
         $comment = $request->get_param('comment') ?? '';
+        $account_id = $request->get_param('account_id') ?? '';
         $approved_by = $request->get_param('approved_by');
     
         $data = [
@@ -179,6 +175,7 @@ class Payout {
             'method' => $method,
             'amount' => $amount,
             'comment' => $comment,
+            'account_id' => $account_id,
             'approved_by' => $approved_by,
             'created_at' => current_time('mysql')
         ];
@@ -215,8 +212,12 @@ class Payout {
     public function update_payout_status(WP_REST_Request $request) {
         global $wpdb;
     
-        $payout_id = $request->get_param('payout_id');
-        $payout_status = $request->get_param('payout_status');
+        $payout_id = (int) $request->get_param('payout_id');
+        // $payout_status = $request->get_param('payout_status');
+        $payout_status = 'pending';
+
+        $_payout = $this->get_payout($payout_id);
+        $_payout->amount = (float) $_payout->amount;
         
         $approved_by = Security::get_instance()->user_id;
     
@@ -224,12 +225,30 @@ class Payout {
             'status' => $payout_status,
             'updated_at' => current_time('mysql'),
         ];
-    
+        
         // If the status is 'approved', set additional fields
         if ($payout_status === 'approved') {
             $data['approved_at'] = current_time('mysql');
             $data['approved_by'] = $approved_by;
+            // Payment execution logic can be added here
+            $payload = [
+                'payout' => (array) $_payout,
+                // 
+                'amount' => $_payout->amount,
+                'currency' => $_payout->currency,
+                'account_id' => $_payout->account_id,
+                'description' => 'Payout to account ' . $_payout->account_id
+            ];
+            // Execute the payment using the appropriate method
+            $_payment_executed = apply_filters('partnership/payment/payout', null, $payload, $_payout->method);
+            if (is_wp_error($_payment_executed)) {
+                return new WP_Error('payment_execution_error', $_payment_executed->get_error_message(), ['status' => 500]);
+            }
+            if (! $_payment_executed) {
+                return new WP_Error('payment_execution_error', __('Failed to execute the payment.', 'domain'), ['status' => 500]);
+            }
         }
+
         $updated = $wpdb->update(
             $this->payout_table,
             $data,
@@ -237,13 +256,13 @@ class Payout {
         );
     
         if ($updated === false) {
-            return new WP_Error('database_update_error', __('Failed to update the payout status.'), ['status' => 500]);
+            return new WP_Error('database_update_error', __('Failed to update the payout status.', 'domain'), ['status' => 500]);
         }
     
         // Return a success response
         return rest_ensure_response([
             'success' => true,
-            'message' => __('Payout status updated successfully.'),
+            'message' => __('Payout status updated successfully.', 'domain'),
             'payout_id' => $payout_id,
             'new_status' => $payout_status,
         ]);

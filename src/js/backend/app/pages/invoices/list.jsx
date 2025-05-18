@@ -95,7 +95,7 @@ export default function InvoicesList({  }) {
                     </select>
                 </div>
 
-                <Link to={ home_url('/invoices/0/edit') } className="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
+                <Link to={ home_url('/invoices/0/view') } className="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
                     <Plus className="icon text-xl line-height-1" />
                     {__('Add New Invoice')}
                 </Link>
@@ -123,7 +123,7 @@ export default function InvoicesList({  }) {
                                     <tr key={invoice.id}>
                                         <td>{(page - 1) * perPage + index + 1}</td>
                                         <td>
-                                            <Link to={ home_url(`/invoices/${invoice.invoice_id}/view`) } class="text-primary-600">#{invoice.invoice_id}</Link>
+                                            <Link to={ home_url(`/invoices/${invoice.invoice_id}/view`) } className="text-primary-600">#{invoice.invoice_id}</Link>
                                         </td>
                                         <td>{invoice.client_email}</td>
                                         <td>{dayjs.unix(invoice.created_at).utc().format('DD MMM YYYY')}</td>

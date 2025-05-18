@@ -19,4 +19,5 @@ import '@sass/main.scss';
 // import '../icons/upay.svg';
 // import '../icons/teams.svg';
 import '../icons/fixing-bugs.svg';
+import '../icons/mail-open.svg';
 
