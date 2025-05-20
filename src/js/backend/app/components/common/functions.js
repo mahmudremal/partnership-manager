@@ -1,6 +1,9 @@
 import toast from 'react-hot-toast';
 // import { Notyf } from 'notyf';
 // import 'notyf/notyf.min.css';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
 
 const location_host = location.host ; //"tools4everyone.local"; // location.host;
 
@@ -77,6 +80,15 @@ export const timeAgo = (timestamp) => {
   if (minutes > 0) return `${minutes} min${minutes > 1 ? "s" : ""} ago`;
   return "Just now";
 };
+
+export const sleep = (ms) => {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export const strtotime = (date) => {
+    const dobj = typeof parseInt(date) === 'number' && ! date.toString().includes(':') ? parseInt(date) : Math.floor(new Date(date).getTime() / 1000);
+    return dayjs.unix(dobj).utc();
+}
 
 export const change_url_state = (newUrl, newTitle = document.title) => {
     if (typeof window.history.pushState === 'function') {

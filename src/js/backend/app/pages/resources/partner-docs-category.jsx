@@ -6,6 +6,7 @@ import request from '@common/request';
 import { Bell } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import faqImg from '@img/faq-img.png';
+import emptyStreet from '@icons/empty-street.svg';
 
 export default function PartnerDocsCategory({ post_type = 'partner_doc', post_taxonomy = 'partner_category', app_slug = 'partner-docs' }) {
     const { __ } = useTranslation();
@@ -32,8 +33,9 @@ export default function PartnerDocsCategory({ post_type = 'partner_doc', post_ta
                             <h4 className="mb-20">{category.name}</h4>        
                             <p className="mb-0 text-secondary-light max-w-634-px text-xl">{category.description}</p>
                         </div>
-                        <div className="col-xl-5 d-xl-block d-none">
+                        <div className="col-xl-5 d-xl-block d-none xpo_relative">
                             <img src={faqImg} alt={__('Remote Meeting')} />
+                            <div className="xpo_absolute xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full"></div>
                         </div>
                     </div>
                 </div>
@@ -41,8 +43,17 @@ export default function PartnerDocsCategory({ post_type = 'partner_doc', post_ta
             <div className="card-body bg-base responsive-padding-40-150">
                 <div className="row gy-4">
                     <div className="col-lg-12">
-                        {docs.length === 0 ? <p className="text-secondary-light">{__('No documents found.')}</p> : (
-                            <ul class="list-group xpo_mt-5">
+                        {docs.length === 0 ? (
+                            <div className="text-center">
+                                <div className="xpo_h-200 xpo_d-flex xpo_justify-content-center xpo_align-items-center">
+                                    <div className="xpo_relative">
+                                        <img src={emptyStreet} alt={__('No documents found')} className="xpo_w-100 xpo_h-100" />
+                                        <div className="xpo_absolute xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full xpo_d-flex xpo_justify-content-center xpo_align-items-center"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <ul className="list-group xpo_mt-5">
                                 {docs.map((doc, docIndex) => (
                                     <li className="list-group-item border text-secondary-light p-16 bg-base">
                                         <div key={docIndex} className="xpo_gap-2">

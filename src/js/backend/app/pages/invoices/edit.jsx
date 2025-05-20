@@ -11,7 +11,6 @@ import { Loader, X } from "lucide-react";
 import { sprintf } from "sprintf-js";
 
 
-
 export default function InvoiceEdit() {
   const { print_money, currency, currencyList } = useCurrency();
   const { __ } = useTranslation();
@@ -356,7 +355,6 @@ export default function InvoiceEdit() {
     </div>
   );
 }
-
 
 
 const ShareInperson = ({ form, link, __ }) => {

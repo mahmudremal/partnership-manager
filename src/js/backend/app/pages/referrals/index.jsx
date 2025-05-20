@@ -1,16 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Link } from '@common/link';
 import request from "@common/request";
-import { home_url, rest_url } from "@functions";
+import { home_url, rest_url, strtotime } from "@functions";
 import { usePopup } from '@context/PopupProvider';
 import { useTranslation } from '@context/LanguageProvider';
 import { Trash2, SquarePen, Eye, Search, ChevronsLeft, ChevronsRight, Mail, Globe, LocateOffIcon } from 'lucide-react';
 import { sprintf } from 'sprintf-js';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 // import { useParams } from "react-router";
 import ReferralShareBox from "@components/element/ReferralShareBox";
-dayjs.extend(utc);
 
 const PER_PAGE_OPTIONS = [5, 10, 20, 50];
 const STATUS_OPTIONS = ["any", "active", "inactive"];
@@ -118,7 +115,7 @@ const Referrals = ({ filters = 'any' }) => {
                                 {referrals.length > 0 ? referrals.map((referral, index) => (
                                     <tr key={index}>
                                         <td>{(page - 1) * perPage + index + 1}</td>
-                                        <td>{dayjs.unix(referral.join_date).utc().format('DD MMM YYYY')}</td>
+                                        <td>{strtotime(referral.join_date).format('DD MMM YYYY')}</td>
                                         <td>{referral.id}</td>
                                         <td>{referral.display_name } #{referral.user_id}</td>
                                         <td className="text-center">

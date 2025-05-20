@@ -1,6 +1,7 @@
 <?php
 namespace PARTNERSHIP_MANAGER\inc;
 use PARTNERSHIP_MANAGER\inc\Traits\Singleton;
+use WP_Error;
 
 class Payment_Tap {
     use Singleton;
@@ -77,6 +78,12 @@ class Payment_Tap {
         }
         $resp = curl_exec($ch);
         curl_close($ch);
+        if ($resp === false) {
+            return new WP_Error('request_failed', __('Request failed', 'wp-partnershipm'));
+        }
+        if (empty($resp)) {
+            return new WP_Error('empty_response', __('Empty response', 'wp-partnershipm'));
+        }
         return json_decode($resp, true);
     }
 
@@ -261,13 +268,18 @@ class Payment_Tap {
             'last_name' => $user['lastName'] ?? '',
             'email' => $user['email'] ?? '',
             'phone' => [
-                'country_code' => (int) $user['phone_country_code'] ?? '965',
+                'country_code' => get_user_meta($user['ID'], 'phone_code', true),
                 'number' => (int) $user['phone'] ?? '51234567'
             ]
         ];
         $res = $this->request("v2/customers", $payload);
-        update_user_meta((int) $user['id'], '_tap_customer_id', $res['id']);
-        return $res['id'];
+        if (is_wp_error($res)) {
+            return $res;
+        }
+        if (isset($res['id'])) {
+            update_user_meta((int) $user['ID'], '_tap_customer_id', $res['id']);
+        }
+        return $res['id'] ?? null;
     }
     private function get_stored_cards($user_id) {
         global $wpdb;

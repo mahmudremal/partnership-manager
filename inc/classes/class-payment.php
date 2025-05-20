@@ -226,7 +226,10 @@ class Payment {
 
     public function get_switch_gateway(WP_REST_Request $request) {
         $gateway = $request->get_param('gateway');
-        $user_id = Security::get_instance()->user_id;
+        $user_id = (int) Security::get_instance()->user_id;
+        if (!$user_id) {
+            return new WP_Error('user_not_found', 'User not found.', ['status' => 404]);
+        }
         $response = apply_filters('partnership/payment/gateway/switched', null, $gateway, $user_id);
         if (! $response) {$response = ['type' => 'none'];}
         return rest_ensure_response($response);

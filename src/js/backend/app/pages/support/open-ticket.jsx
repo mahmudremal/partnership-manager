@@ -6,6 +6,7 @@ import { home_route, rest_url, notify } from '@functions';
 import request from '@common/request';
 import { useNavigate } from 'react-router-dom';
 
+
 export default function OpenTicket() {
     const { __ } = useTranslation();
     let navigate = useNavigate();
@@ -35,8 +36,9 @@ export default function OpenTicket() {
                             <h4 className="mb-20">{__('Open New Ticket')}</h4>        
                             <p className="mb-0 text-secondary-light max-w-634-px text-xl">{__('We\'re always being waiting for your message. Please feel free to contact us.')}</p>
                         </div>
-                        <div className="col-xl-5 d-xl-block d-none">
+                        <div className="col-xl-5 d-xl-block d-none xpo_relative">
                             <img src={faqImg} alt={__('Remote Meeting')} />
+                            <div className="xpo_absolute xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full"></div>
                         </div>
                     </div>
                 </div>
@@ -89,9 +91,9 @@ export default function OpenTicket() {
                         </div>
                         
 
-                        <div class="col-12">
-                            <label class="form-label">{__('Attachment(s)')}</label>
-                            <input class="form-control" type="file" name="attachments[]" multiple style={{lineHeight: 1.3}} />
+                        <div className="col-12">
+                            <label className="form-label">{__('Attachment(s)')}</label>
+                            <input className="form-control" type="file" name="attachments[]" multiple style={{lineHeight: 1.3}} />
                         </div>
                         
 

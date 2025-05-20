@@ -75,11 +75,10 @@ export const UserCard = ({ user, index }) => {
             </div>
 
             <div className="ps-16 pb-16 pe-16 text-center mt--50">
-                <img
-                    src={ user?.avater??'' }
-                    alt=""
-                    className="border br-white border-width-2-px w-100-px h-100-px rounded-circle object-fit-cover"
-                />
+                <div className="xpo_relative">
+                    <img src={ user?.avater??'' } alt={__('User Avatar')} className="border br-white border-width-2-px w-100-px h-100-px rounded-circle object-fit-cover" />
+                    <div className="xpo_absolute xpo_top-0 xpo_right-0 xpo_w-full xpo_h-full"></div>
+                </div>
                 <h6 className="text-lg mb-0 mt-4">{user.name}</h6>
                 <span className="text-secondary-light mb-16">{user.email}</span>
 

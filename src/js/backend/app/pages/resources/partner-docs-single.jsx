@@ -28,8 +28,9 @@ export default function PartnerDocsSingle({ post_type = 'partner_doc', post_taxo
                             <h4 className="mb-20">{doc.post_title}</h4>        
                             <p className="mb-0 text-secondary-light max-w-634-px text-xl">{doc.post_excerpt}</p>
                         </div>
-                        <div className="col-xl-5 d-xl-block d-none">
+                        <div className="col-xl-5 d-xl-block d-none xpo_relative">
                             <img src={faqImg} alt={__('Remote Meeting')} />
+                            <div className="xpo_absolute xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full"></div>
                         </div>
                     </div>
                 </div>

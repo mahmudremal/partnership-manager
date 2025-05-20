@@ -2,15 +2,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link } from '@common/link';
 import request from "@common/request";
-import { home_url, rest_url } from "@functions";
+import { home_url, rest_url, strtotime } from "@functions";
 import { usePopup } from '@context/PopupProvider';
 import { useTranslation } from '@context/LanguageProvider';
 import { Trash2, SquarePen, Eye, Plus, Search, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { sprintf } from 'sprintf-js';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import { UserCard } from "@components/element/usercard";
-dayjs.extend(utc);
 
 const PER_PAGE_OPTIONS = [5, 10, 20, 50];
 const STATUS_OPTIONS = ["any", "active", "inactive"];
@@ -146,10 +143,13 @@ export default function Users({ viewType = 'list' }) {
                                     {users.length > 0 ? users.map((user, index) => (
                                         <tr key={user.id}>
                                             <td>{(page - 1) * perPage + index + 1}</td>
-                                            <td>{dayjs.unix(user.join_date).utc().format('DD MMM YYYY')}</td>
+                                            <td>{strtotime(user.join_date).format('DD MMM YYYY')}</td>
                                             <td>
-                                                <div className="d-flex align-items-center">
-                                                    <img src={user.avater} alt="" className="w-40-px h-40-px rounded-circle me-12" />
+                                                <div className="d-flex align-items-center xpo_gap-3">
+                                                    <div className="xpo_relative">
+                                                        <img src={user.avater} alt="" className="w-40-px h-40-px rounded-circle" />
+                                                        <div className="xpo_absolute xpo_top-0 xpo_start-0 xpo_end-0 xpo_bottom-0 xpo_w-full xpo_h-full"></div>
+                                                    </div>
                                                     <span>{user.name}</span>
                                                 </div>
                                             </td>

@@ -38,6 +38,7 @@ module.exports = {
       '@context': path.resolve(__dirname, 'src/js/backend/app/components/context'),
       '@common': path.resolve(__dirname, 'src/js/backend/app/components/common'),
       '@components': path.resolve(__dirname, 'src/js/backend/app/components'),
+      '@icons': path.resolve(__dirname, 'src/icons'),
       '@sass': path.resolve(__dirname, 'src/sass'),
       '@img': path.resolve(__dirname, 'src/img'),
       '@js': path.resolve(__dirname, 'src/js'),
@@ -117,12 +118,12 @@ module.exports = {
       ],
     })
   ].filter(Boolean),
-  optimization: {
-    splitChunks: {
-      chunks: 'all',
-    },
-    runtimeChunk: 'single',
-  },
+  // optimization: {
+  //   splitChunks: {
+  //     chunks: 'all',
+  //   },
+  //   runtimeChunk: 'single',
+  // },
   // optimization: {
   //   splitChunks: {
   //     chunks: 'all',

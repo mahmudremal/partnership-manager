@@ -6,6 +6,7 @@ import { home_url, rest_url, notify } from '@functions';
 import request from '@common/request';
 import { Download, TicketPlus } from 'lucide-react';
 import faqImg from '@img/faq-img.png';
+import emptyStreet from '@icons/empty-street.svg';
 
 export default function Supports() {
     const { __ } = useTranslation();
@@ -63,8 +64,9 @@ export default function Supports() {
                                 </Link>
                             </div>
                         </div>
-                        <div className="col-xl-5 d-xl-block d-none">
+                        <div className="col-xl-5 d-xl-block d-none xpo_relative">
                             <img src={faqImg} alt={__('Remote Meeting')} />
+                            <div className="xpo_absolute xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full"></div>
                         </div>
                     </div>
                 </div>
@@ -72,41 +74,52 @@ export default function Supports() {
             <div className="card-body bg-base responsive-padding-40-150">
                 <div className="row gy-4">
                     <div className="col-lg-12">
-                        <div className="accordion">
-                            {tickets.map((ticket, index) => (
-                                <div className="accordion-item" key={index}>
-                                    <h2 className="accordion-header">
-                                        <button className={`accordion-button xpo_gap-3 ${active === ticket.id ? '' : 'collapsed'}`} type="button" onClick={() => setActive(active === ticket.id ? null : ticket.id)}>
-                                            <span className="icon">
-                                                <TicketPlus className="text-xl" />
-                                            </span>
-                                            <span>{ticket.title} - {ticket.date}</span>
-                                        </button>
-                                    </h2>
-                                    <div className={`accordion-collapse collapse ${active === ticket.id ? 'show' : ''}`}>
-                                        <div className="accordion-body">
-                                            {ticket.content}
-                                            <div className="xpo_my-4 xpo_flex xpo_flex-wrap xpo_gap-3">
-                                                {ticket.attachements.map((file, index) => (
-                                                    <a
-                                                        key={index}
-                                                        target="_blank"
-                                                        href={forceHTTPS(file.file_url)}
-                                                        download={file.file_name}
-                                                        className="btn btn-outline-primary mt-4 ms-2 xpo_flex xpo_items-center xpo_gap-2"
-                                                    >
-                                                        <span>{shortenMiddle(file.file_name)}</span>
-                                                        <span className="icon">
-                                                            <Download className="text-xl" />
-                                                        </span>
-                                                    </a>
-                                                ))}
+                        {tickets.length === 0 ? (
+                            <div className="text-center">
+                                <div className="xpo_h-200 xpo_d-flex xpo_justify-content-center xpo_align-items-center">
+                                    <div className="xpo_relative">
+                                        <img src={emptyStreet} alt={__('No documents found')} className="xpo_w-100 xpo_h-100" />
+                                        <div className="xpo_absolute xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full xpo_d-flex xpo_justify-content-center xpo_align-items-center"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="accordion">
+                                {tickets.map((ticket, index) => (
+                                    <div className="accordion-item" key={index}>
+                                        <h2 className="accordion-header">
+                                            <button className={`accordion-button xpo_gap-3 ${active === ticket.id ? '' : 'collapsed'}`} type="button" onClick={() => setActive(active === ticket.id ? null : ticket.id)}>
+                                                <span className="icon">
+                                                    <TicketPlus className="text-xl" />
+                                                </span>
+                                                <span>{ticket.title} - {ticket.date}</span>
+                                            </button>
+                                        </h2>
+                                        <div className={`accordion-collapse collapse ${active === ticket.id ? 'show' : ''}`}>
+                                            <div className="accordion-body">
+                                                {ticket.content}
+                                                <div className="xpo_my-4 xpo_flex xpo_flex-wrap xpo_gap-3">
+                                                    {ticket.attachements.map((file, index) => (
+                                                        <a
+                                                            key={index}
+                                                            target="_blank"
+                                                            href={forceHTTPS(file.file_url)}
+                                                            download={file.file_name}
+                                                            className="btn btn-outline-primary mt-4 ms-2 xpo_flex xpo_items-center xpo_gap-2"
+                                                        >
+                                                            <span>{shortenMiddle(file.file_name)}</span>
+                                                            <span className="icon">
+                                                                <Download className="text-xl" />
+                                                            </span>
+                                                        </a>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

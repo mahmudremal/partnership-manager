@@ -46,7 +46,7 @@ defined('WP_PARTNERSHIPM_OPTIONS') || define('WP_PARTNERSHIPM_OPTIONS', get_opti
 require_once WP_PARTNERSHIPM_DIR_PATH . '/inc/helpers/autoloader.php';
 require_once WP_PARTNERSHIPM_DIR_PATH . '/inc/helpers/template-tags.php';
 try {
-	add_action('wp_enqueue_scripts', 'enqueue_all_chunks_except_specific');
+	// add_action('wp_enqueue_scripts', 'enqueue_all_chunks_except_specific');
 	\PARTNERSHIP_MANAGER\inc\Project::get_instance();
 } catch (\Throwable $th) {
 	//throw $th;

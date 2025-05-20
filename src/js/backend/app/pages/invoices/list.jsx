@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Link } from '@common/link';
 import request from "@common/request";
-import { home_url, rest_url } from "@functions";
+import { home_url, rest_url, strtotime } from "@functions";
 import { usePopup } from '@context/PopupProvider';
 import { useCurrency } from "@context/CurrencyProvider";
 import { useTranslation } from '@context/LanguageProvider';
 import { Trash2, SquarePen, Eye, Plus, Search, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { sprintf } from 'sprintf-js';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-dayjs.extend(utc);
+
 
 const PER_PAGE_OPTIONS = [5, 10, 20, 50];
 const STATUS_OPTIONS = ["any", "active", "inactive"];
@@ -126,23 +124,37 @@ export default function InvoicesList({  }) {
                                             <Link to={ home_url(`/invoices/${invoice.invoice_id}/view`) } className="text-primary-600">#{invoice.invoice_id}</Link>
                                         </td>
                                         <td>{invoice.client_email}</td>
-                                        <td>{dayjs.unix(invoice.created_at).utc().format('DD MMM YYYY')}</td>
+                                        <td>{strtotime(invoice.created_at).format('DD MMM YYYY')}</td>
                                         <td>{print_money(invoice.total, invoice.currency)}</td>
                                         <td className="text-center">
                                             <span
-                                                className={ `border ${invoice.status === 'paid' ? 'bg-success-focus text-success-600 border-success-main text-success-main' : 'bg-warning-focus text-warning-600 border-warning-main text-warning-main'} px-24 py-4 radius-4 fw-medium text-sm xpo_capitalize'` }
+                                                className={ `border ${invoice.status === 'paid' ? 'bg-success-focus text-success-600 border-success-main text-success-main' : 'bg-warning-focus text-warning-600 border-warning-main text-warning-main'} px-24 py-4 radius-4 fw-medium text-sm xpo_capitalize` }
                                             >{__(invoice.status)}</span>
                                         </td>
                                         <td className="text-center">
                                             <div className="d-flex align-items-center gap-10 justify-content-center">
-                                                <a href={ home_url(`../invoice/${invoice.invoice_id}/pay`) } className="bg-info-focus text-info-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center" target="_blank"><Eye className="icon text-xl" /></a>
+                                                <a
+                                                    href={ invoice.status === 'paid' ? '#' : home_url(`../invoice/${invoice.invoice_id}/pay`) }
+                                                    className="bg-info-focus text-info-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center" target="_blank"
+                                                    onClick={(e) => {
+                                                        if (invoice.status === 'paid') {
+                                                            e.preventDefault();
+                                                            setPopup(
+                                                                <div className="text-center">
+                                                                    <h4>{__('Invoice has been paid!')}</h4>
+                                                                    <p>{__('Please find below your invoice issued by automattic system.')}</p>
+                                                                </div>
+                                                            );
+                                                        }
+                                                    }}
+                                                ><Eye className="icon text-xl" /></a>
                                                 <Link
                                                     to={ home_url(`/invoices/${invoice.invoice_id}/view`) }
                                                     className="bg-success-focus text-success-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center"
                                                 ><SquarePen className="icon" /></Link>
                                                 <button
                                                     className="bg-danger-focus text-danger-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center"
-                                                    onClick={() => setPopup(<div>Hello from popup!</div>)}
+                                                    onClick={() => setPopup(<div>{__('Once an invoice generated, its not possible to delete permanently!')}</div>)}
                                                 ><Trash2 className="icon" /></button>
                                             </div>
                                         </td>

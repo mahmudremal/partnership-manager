@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-// import { Link } from "react-router-dom";
 import { Nav } from '@components/sidebar/nav';
 import { Link } from '@common/link';
 import { home_url } from '@functions';
 import Footer from '@components/element/Footer';
-import { ChevronRight, Home, Menu, MoonStar, Search, SunMedium, X } from 'lucide-react';
+import { ChevronRight, Menu, MoonStar, Search, SunMedium, X } from 'lucide-react';
 import LanguageSwitcher from '@components/element/LanguageSwitcher';
-// import MessageNotification from '@components/element/MessageNotification';
 import Notifications from '@components/element/Notifications';
 import { useTranslation } from '@context/LanguageProvider';
 import ProfilePannel from '@components/element/ProfilePannel';
@@ -15,6 +13,7 @@ import { useTheme } from '@context/ThemeProvider';
 import logo from '@img/logo.png';
 import logoIcon from '@img/logo-icon.png';
 import logoLight from '@img/logo-light.png';
+import Breadcrumb from '@components/sidebar/breadcrumb';
 
 
 const MainLayout = ({ children }) => {
@@ -81,22 +80,7 @@ const MainLayout = ({ children }) => {
                 </div>
                 
                 <div className="dashboard-main-body xpo_h-[calc(100vh-72px)] xpo_overflow-hidden xpo_overflow-y-scroll">
-                    <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-                        <h6 className="fw-semibold mb-0">{__('Dashboard')}</h6>
-                        <ul className="d-flex align-items-center gap-2">
-                            <li className="fw-medium">
-                                <Link to="/" className="d-flex align-items-center gap-1 hover-text-primary">
-                                    <Home className="icon text-lg" />
-                                    {__('Dashboard')}
-                                </Link>
-                            </li>
-                            <li>-</li>
-                            <li className="fw-medium">{__('AI')}</li>
-                        </ul>
-                    </div>
-
-
-
+                    <Breadcrumb />
                     {/* Main section will be placed here */}
                     <div>
                         {children}

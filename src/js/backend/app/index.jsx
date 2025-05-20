@@ -1,4 +1,4 @@
-import Content from './Content';
+import Content from './content';
 import MainLayout from './MainLayout';
 import LoadStyles from './LoadStyles';
 import { Toaster } from 'react-hot-toast';

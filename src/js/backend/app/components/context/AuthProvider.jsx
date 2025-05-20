@@ -9,6 +9,7 @@ import axios from 'axios';
 import request from '@common/request';
 import logo from '@img/logo.png';
 import authImage from '@img/auth-img.png';
+import resetImage from '@img/forgot-pass-img.png';
 import { useNavigate } from 'react-router-dom';
 import { useSession } from '@context/SessionProvider';
 import { useLoading } from '@context/LoadingProvider';
@@ -122,7 +123,7 @@ export const AuthProvider = ({ children }) => {
                 <section className="auth bg-base d-flex flex-wrap xpo_h-screen xpo_overflow-hidden xpo_overflow-y-auto">  
                     <div className="auth-left d-lg-block d-none">
                         <div className="d-flex align-items-center flex-column h-100 justify-content-center xpo_relative">
-                            <img src={authImage} alt={__('Authentication screen banner')} />
+                            <img src={isReset ? resetImage : authImage} alt={__('Authentication screen banner')} />
                             <div className="xpo_absolute xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full"></div>
                         </div>
                     </div>
@@ -159,7 +160,7 @@ export const AuthProvider = ({ children }) => {
                                                 const formData = new FormData();
                                                 formData.append('email', email);
                                                 request(rest_url('/partnership/v1/reset-password'), {
-                                                    method: 'POST', 'Cache-Control': 'no-cache', body: formData
+                                                    method: 'POST', headers: {'Cache-Control': 'no-cache'}, body: formData
                                                 })
                                                 .then(res => {
                                                     setPopup(

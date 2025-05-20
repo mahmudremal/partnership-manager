@@ -100,7 +100,7 @@ export const Nav = () => {
         },
         {
           label: __('Previous contracts'),
-          route: '/contracts/previous',
+          route: '/contracts/archive',
           icon: ChevronFirst
         }
       ]
@@ -184,8 +184,8 @@ export const Nav = () => {
         {navMenus().filter(r => 
         location.host !== 'partners.ecommerized.com' ? r :
         (
-          // , '/resources/service-docs', '/resources/partner-docs'
-          !['/users', '/stores', '/contracts', '/packages', '/invoices', '/support', '/team', '/settings'].includes(r.route)
+          // , '/resources/service-docs', '/resources/partner-docs', '/packages', '/stores', '/support', '/contracts'
+          !['/users', '/invoices', '/team', '/settings'].includes(r.route)
           && ! ['sidebar-menu-group-title'].includes(r?.class)
         )
       ).map((item, index) => (

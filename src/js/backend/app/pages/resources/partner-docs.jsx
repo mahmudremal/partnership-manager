@@ -5,6 +5,7 @@ import { home_url, rest_url, notify } from '@functions';
 import request from '@common/request';
 import { Bell, ChevronDown, SquareArrowOutUpRight } from 'lucide-react';
 import faqImg from '@img/faq-img.png';
+import emptyStreet from '@icons/empty-street.svg';
 
 export default function PartnerDocs({ post_type = 'partner_doc', post_taxonomy = 'partner_category', app_slug = 'partner-docs', pageData = {} }) {
     const { __ } = useTranslation();
@@ -28,8 +29,9 @@ export default function PartnerDocs({ post_type = 'partner_doc', post_taxonomy =
                             <h4 className="mb-20">{pageTitle}</h4>        
                             <p className="mb-0 text-secondary-light max-w-634-px text-xl">{pageDescription}</p>
                         </div>
-                        <div className="col-xl-5 d-xl-block d-none">
+                        <div className="col-xl-5 d-xl-block d-none xpo_relative">
                             <img src={faqImg} alt={__('Remote Meeting')} />
+                            <div className="xpo_absolute xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full"></div>
                         </div>
                     </div>
                 </div>
@@ -37,46 +39,57 @@ export default function PartnerDocs({ post_type = 'partner_doc', post_taxonomy =
             <div className="card-body bg-base responsive-padding-40-150">
                 <div className="row gy-4">
                     <div className="col-lg-12">
-                        <div className="accordion">
-                            {docs.map((term, index) => (
-                                <div className="accordion-item" key={index}>
-                                    <div className="accordion-header xpo_flex xpo_justify-between xpo_gap-5" onClick={() => setActive(prev => prev === term.id ? null : term.id)}>
-                                        <div className="xpo_cursor-pointer">
-                                            <h2>
-                                                <button className="accordion-button text-primary-light text-xl xpo_flex xpo_gap-2" type="button">
-                                                    <span>{term.name}</span>
-                                                    <Link to={home_url(`/resources/${app_slug}/${term.slug}`)} className="text-secondary-light text-xl">
-                                                        <SquareArrowOutUpRight className="text-secondary-light text-xl xpo_h-4" />
-                                                    </Link>
-                                                </button>
-                                            </h2>
-                                            <p>{term.description}</p>
-                                        </div>
-                                        <div>
-                                            <span className="d-flex"><ChevronDown className={ `text-xl ${term.id === active && 'xpo_rotate-180'}` } /></span>
-                                        </div>
-                                    </div>
-                                    <div className={`accordion-collapse collapse ${active === term.id && 'show'}`}>
-                                        <div className="accordion-body">
-                                            {term.docs.length === 0 ? <p className="text-secondary-light">{__('No documents found.')}</p> : (
-                                                <ul className="list-group xpo_mt-5">
-                                                    {term.docs.map((doc, docIndex) => (
-                                                        <li key={docIndex} className="list-group-item border text-secondary-light p-16 bg-base border-bottom-0">
-                                                            <div className="d-flex align-items-center gap-2">
-                                                                <Link to={home_url(`/resources/${app_slug}/${term.slug}/${doc.slug}`)} className="text-decoration-none d-flex align-items-center gap-2">
-                                                                    <span className="d-flex"><Bell className="text-xl" /></span>
-                                                                    <span className="text-primary-light text-xl">{doc.title}</span>
-                                                                </Link>
-                                                            </div>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            )}
-                                        </div>
+                        {docs.length === 0 ? (
+                            <div className="text-center">
+                                <div className="xpo_h-200 xpo_d-flex xpo_justify-content-center xpo_align-items-center">
+                                    <div className="xpo_relative">
+                                        <img src={emptyStreet} alt={__('No documents found')} className="xpo_w-100 xpo_h-100" />
+                                        <div className="xpo_absolute xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full xpo_d-flex xpo_justify-content-center xpo_align-items-center"></div>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
+                            </div>
+                        ) : (
+                            <div className="accordion">
+                                {docs.map((term, index) => (
+                                    <div className="accordion-item" key={index}>
+                                        <div className="accordion-header xpo_flex xpo_justify-between xpo_gap-5" onClick={() => setActive(prev => prev === term.id ? null : term.id)}>
+                                            <div className="xpo_cursor-pointer">
+                                                <h2>
+                                                    <button className="accordion-button text-primary-light text-xl xpo_flex xpo_gap-2" type="button">
+                                                        <span>{term.name}</span>
+                                                        <Link to={home_url(`/resources/${app_slug}/${term.slug}`)} className="text-secondary-light text-xl">
+                                                            <SquareArrowOutUpRight className="text-secondary-light text-xl xpo_h-4" />
+                                                        </Link>
+                                                    </button>
+                                                </h2>
+                                                <p>{term.description}</p>
+                                            </div>
+                                            <div>
+                                                <span className="d-flex"><ChevronDown className={ `text-xl ${term.id === active && 'xpo_rotate-180'}` } /></span>
+                                            </div>
+                                        </div>
+                                        <div className={`accordion-collapse collapse ${active === term.id && 'show'}`}>
+                                            <div className="accordion-body">
+                                                {term.docs.length === 0 ? <p className="text-secondary-light">{__('No documents found.')}</p> : (
+                                                    <ul className="list-group xpo_mt-5">
+                                                        {term.docs.map((doc, docIndex) => (
+                                                            <li key={docIndex} className="list-group-item border text-secondary-light p-16 bg-base border-bottom-0">
+                                                                <div className="d-flex align-items-center gap-2">
+                                                                    <Link to={home_url(`/resources/${app_slug}/${term.slug}/${doc.slug}`)} className="text-decoration-none d-flex align-items-center gap-2">
+                                                                        <span className="d-flex"><Bell className="text-xl" /></span>
+                                                                        <span className="text-primary-light text-xl">{doc.title}</span>
+                                                                    </Link>
+                                                                </div>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

@@ -260,7 +260,11 @@ class Users {
             ...(array) $user,
         ];
         if (empty($data['avater'])) {
-            $data['avater'] = 'https://randomuser.me/api/portraits/men/' . $user->ID . '.jpg';
+            if (!empty($user->first_name) && !empty($user->last_name)) {
+                $data['avater'] = 'https://placehold.co/128x128/EEE/31343C?text=' . strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) . '&font=poppins';
+            } else {
+                $data['avater'] = 'https://placehold.co/128x128/EEE/31343C?text=' . strtoupper(substr($user->user_login, 0, 2)) . '&font=poppins';
+            }
         }
         if (isset($data['data']->user_pass)) {unset($data['data']->user_pass);}
         if (isset($data['data']->user_activation_key)) {unset($data['data']->user_activation_key);}

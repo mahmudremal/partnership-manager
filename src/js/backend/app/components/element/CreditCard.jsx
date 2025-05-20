@@ -35,7 +35,6 @@ export default function CreditCard({ store = [], pk = '', setAllowProceed = () =
     const initializeTap = () => {
         if (!window.Tapjsli) return;
 
-        console.log('pk', pk)
         const tapInstance = window.Tapjsli(pk);
         cardRef.current.tap = tapInstance;
 

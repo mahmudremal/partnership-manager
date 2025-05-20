@@ -1,0 +1,318 @@
+import React, { useEffect, useState } from "react";
+import { Link } from '@common/link';
+import request from "@common/request";
+import { home_url, rest_url, notify } from "@functions";
+import { usePopup } from '@context/PopupProvider';
+import { useLoading } from '@context/LoadingProvider';
+import { useTranslation } from '@context/LanguageProvider';
+import { BriefcaseBusiness, Check, ChevronDown, ChevronRight, Loader, Package, Play, X } from "lucide-react";
+import { useParams } from "react-router-dom";
+import CreditCard from "@components/element/CreditCard";
+import { useCurrency } from "@context/CurrencyProvider";
+
+export default function InvoiceCheckout() {
+    const { print_money } = useCurrency();
+    const { __ } = useTranslation();
+    const { setPopup } = usePopup();
+    const { setLoading } = useLoading();
+    const [doing, setDoing] = useState(null);
+    const { invoice_id } = useParams();
+    const [pricing, setPricing] = useState({});
+    const [methodOpen, setMethodOpen] = useState(null);
+    const [startDate, setStartDate] = useState(new Date());
+    const [gateways, setGateways] = useState([]);
+    const [selectedGateWay, setSelectedGateWay] = useState(null);
+    const [currency, setCurrency] = useState('USD');
+    const [showCardForm, setShowCardForm] = useState(null);
+    const [storedCards, setstoredCards] = useState([]);
+    const [allowProceed, setAllowProceed] = useState(true);
+    const [invoice, setInvoice] = useState({});
+    const [packages, setPackages] = useState([]);
+    
+    const fetchThings = async () => {
+        setLoading(true);
+        request(rest_url(`/partnership/v1/invoice/${invoice_id}`))
+        .then(res => setInvoice(res))
+        .catch(err => notify.error(err?.response?.message??err?.message??__('Something went wrong!')))
+        .finally(() => setLoading(false));
+        // 
+        request(rest_url(`/partnership/v1/contracts/packages`))
+        .then(packs => setPackages(packs))
+        .catch(err => notify.error(err?.response?.message??err?.message??__('Something went wrong!')));
+        // 
+        request(rest_url(`/partnership/v1/payment/gateways`))
+        .then(data => Object.keys(data).map(k => ({id: k, ...data[k]})))
+        .then(data => {setGateways(data);if (data?.length) {setSelectedGateWay(0);}})
+        .catch(err => notify.error(err?.response?.message??err?.message??__('Something went wrong!')));
+    };
+
+    useEffect(() => {
+        fetchThings();
+    }, []);
+
+    useEffect(() => {
+        if (!gateways[selectedGateWay]?.id) {return;}
+        setMethodOpen(false);
+        request(rest_url(`/partnership/v1/payment/switch/${gateways[selectedGateWay]?.id}`)).then(data => {
+            if (!data) {return;}
+            switch (data?.type) {
+                case 'card':
+                    const cards = data?.cards;
+                    const customer_id = data?.customer_id;
+                    setShowCardForm(atob(`${data?.pk}=`));
+                    setAllowProceed(false);
+                    setstoredCards(cards?.length ? cards : []);
+                    break;
+                default:
+                    setShowCardForm(false);
+                    setAllowProceed(true);
+                    setstoredCards([]);
+                    break;
+            }
+        }).catch(err => console.error(err));
+    }, [selectedGateWay]);
+
+    const handle_checkout = () => {
+        setDoing(true);
+        request(rest_url('/partnership/v1/payment/create'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                package_id, pricing_plan,
+                starting: startDate, currency,
+                gateway: gateways[selectedGateWay]?.id??'',
+                card: allowProceed?.selected
+            })
+        })
+        .then(data => {
+            if (data?.errors) {
+                console.error(data?.errors);
+                return;
+            }
+            const transactionId = data.id;
+            const paymentUrl = data.transaction?.url;
+
+            if (!paymentUrl) {return;}
+        
+            const handlePayment = () => {
+                const win = window.open(paymentUrl, '_blank', 'width=600,height=800');
+        
+                const checkClosed = setInterval(() => {
+                    if (win.closed) {
+                        clearInterval(checkClosed);
+        
+                        // Verify transaction
+                        request(rest_url(`/partnership/v1/payment/verify/${gateways[selectedGateWay]?.id}/${transactionId}`))
+                        .then(verify => {
+                            if (verify?.success) {
+                                setPopup(
+                                    <div className="text-center xpo_p-8">
+                                        <span className="w-100-px h-100-px bg-success-600 rounded-circle d-inline-flex justify-content-center align-items-center text-2xxl mb-32 text-white">
+                                            <Check />
+                                        </span>
+                                        <h5 className="mb-8 text-2xl">{__('Payment Successful')}</h5>
+                                        <p className="text-neutral-500 mb-0">{__('Thank you for your payment!')}</p>
+                                    </div>
+                                );
+                            } else {
+                                setPopup(
+                                    <div className="text-center xpo_p-8">
+                                        <span className="w-100-px h-100-px bg-danger-600 rounded-circle d-inline-flex justify-content-center align-items-center text-2xxl mb-32 text-white">
+                                            <X />
+                                        </span>
+                                        <h5 className="mb-8 text-2xl">{__('Payment Failed')}</h5>
+                                        <p className="text-neutral-500 mb-0">{__('The transaction could not be completed.')}</p>
+                                    </div>
+                                );
+                            }
+                        })
+                        .catch(() => {
+                            setPopup(
+                                <div className="text-center xpo_p-8">
+                                    <h5 className="mb-8 text-2xl">{__('Error')}</h5>
+                                    <p className="text-neutral-500">{__('Failed to verify payment. Please try again.')}</p>
+                                </div>
+                            );
+                        });
+                    }
+                }, 500);
+            };
+        
+            // Initial success + Pay Now button
+            setPopup(
+                <div className="text-center xpo_p-8">
+                    <span className="w-100-px h-100-px bg-success-600 rounded-circle d-inline-flex justify-content-center align-items-center text-2xxl mb-32 text-white">
+                        <Check />
+                    </span>
+                    <h5 className="mb-8 text-2xl">{__('Your payment link was created successfully!')}</h5>
+                    <p className="text-neutral-500 mb-0">
+                        <span className="text-primary-600">{data.amount} {data.currency}</span> {__('Payment initiated.')}
+                    </p>
+                    <button
+                        onClick={handlePayment}
+                        className="btn btn-primary-600 mt-32 px-24"
+                    >
+                        {__('Pay now')}
+                    </button>
+                </div>
+            );
+        })
+        
+        .finally(() => setDoing(false))
+    }
+
+    return (
+        <div className="row gy-4">
+            <div className="col-xxl-9 col-lg-8">
+                <div className="card h-100 p-0 radius-12">
+                    <div className="card-body px-24 py-32">
+
+                        <div className="d-flex align-items-center justify-content-between mb-24">
+                            <div className="d-flex align-items-center">
+                                <Package className="w-72-px h-72-px rounded-circle flex-shrink-0 me-12 overflow-hidden" />
+                                <div className="flex-grow-1 d-flex xpo_flex-col">
+                                    <h4 className="mb-4">{__('Invoice')}</h4>
+                                    <span className="text-md mb-0 fw-medium text-neutral-500 d-block">#{invoice_id}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="xpo_my-5">
+                            <h6 className="mb-16">{__('About')}</h6>
+                            <p className="text-secondary-light">{pricing?.shortdesc??''}</p>
+                        </div>
+                        
+                        {(invoice?.items??[]).map((item, iIndex) => {
+                            if (item.type == 'package' && item.identifier?.split) {
+                                item.identifier = item.identifier.split('->');
+                                const [package_id, pricing_plan] = item.identifier;
+                                const packg = packages.find(p => p.id == parseInt(package_id));
+                                console.log(package_id, packg, packages);
+                                if (!packg) {return null;}
+                                item.label = `${__(packg.name)} (${__(pricing_plan)})`;
+                                item.price = packg?.pricing?.[pricing_plan];
+                                item.features = packg?.list??[];
+                            }
+                            return (
+                                <div key={iIndex} className="border radius-12 p-24">
+                                    <h6 className="text-md mb-16">{pricing?.list_title??__('What’s included')}: {invoice.items.length >= 1 && item.label}</h6>
+                                    <div className="table-responsive scroll-sm">
+                                        <table className="table bordered-table rounded-table sm-table mb-0">
+                                            <tbody>
+                                                {(item?.features??[]).map((itemTitle, itemIndex) => 
+                                                    <tr key={itemIndex}>
+                                                        <td>
+                                                            <h6 className="text-md mb-4 text-neutral-500">{itemTitle}</h6>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        
+                    </div>
+                </div>
+            </div>
+            <div className="col-xxl-3 col-lg-4">
+                <div className="card h-100">
+                    <div className="card-body p-0">
+                        <div className="p-24 border-bottom">
+                            <div className="xpo_flex xpo_flex-col xpo_gap-5 xpo_justify-between">
+                                <div>
+                                    <div className="text-center mt-24">
+                                        <h3 className="text-neutral-400 mb-16">{print_money((pricing?.pricing?.[pricing_plan]??0).toFixed(2))}</h3>
+                                        <span className="text-neutral-500 text-sm">{__('You can upgrade/downgrade later.')}</span>
+                                    </div>
+                                    <div className="mt-24 border radius-8 position-relative">
+                                        <div className="p-16 d-flex align-items-center border-bottom">
+                                            <span className="text-neutral-500 fw-medium w-76-px border-end">{__("Date")}</span>
+                                            <div className="d-flex align-items-center justify-content-between flex-grow-1 ps-16">
+                                                <div className="xpo_w-full">
+                                                    <div>
+                                                        <input
+                                                            type="date"
+                                                            className="form-control"
+                                                            value={startDate.toISOString().split('T')[0]}
+                                                            onChange={(e) => setStartDate(new Date(e.target.value))}
+                                                        ></input>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="p-16 d-flex align-items-center">
+                                            <span className="text-neutral-500 fw-medium w-76-px border-end">{__('Pay with')}</span>
+                                            <div className="d-flex align-items-center justify-content-between flex-grow-1 ps-16">
+                                                <div className="xpo_relative xpo_select-none">
+                                                    <div className="d-flex align-items-center gap-8">
+                                                        <img src={gateways[selectedGateWay]?.icon??''} alt={gateways[selectedGateWay]?.title??''} className="w-24-px h-24-px rounded-circle flex-shrink-0 overflow-hidden" />
+                                                        <div className="flex-grow-1 d-flex xpo_flex-col">
+                                                            <span className="text-sm mb-0 fw-medium text-primary-light d-block">{gateways[selectedGateWay]?.title??''}</span>
+                                                        </div>
+                                                    </div>
+                                                    <ul className={ `dropdown-menu xpo_translate-y-2.5 ${methodOpen && 'show'} ${gateways.length <= 1 && 'xpo_hidden'}` }>
+                                                        {/* .filter((g, index) => index !== selectedGateWay) */}
+                                                        {gateways.map((g, index) => 
+                                                            index == selectedGateWay ? <li key={index} className="xpo_hidden"></li> : 
+                                                            <li
+                                                                key={index}
+                                                                onClick={() => setSelectedGateWay(index)}
+                                                                className="dropdown-item xpo_px-2 xpo_py-3 xpo_cursor-pointer rounded text-secondary-light bg-hover-neutral-200 text-hover-neutral-900"
+                                                            >
+                                                                <div className="d-flex align-items-center gap-8">
+                                                                    <img src={ g?.icon??'' } alt="" className="w-24-px h-24-px rounded-circle flex-shrink-0 overflow-hidden" />
+                                                                    <div className="flex-grow-1 d-flex xpo_flex-col">
+                                                                        <span className="text-sm mb-0 fw-medium text-primary-light d-block">{g?.title??'N/A'}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </li>
+                                                        )}
+                                                    </ul>
+                                                </div>
+                                                <ChevronDown
+                                                    onClick={() => setMethodOpen(prev => !prev)}
+                                                    className={ `text-md text-neutral-500 text-hover-primary-600 xpo_transition-all xpo_duration-300 xpo_ease-in-out ${methodOpen && 'xpo_rotate-180'} ${gateways.length <= 1 && 'xpo_hidden'}` }
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {showCardForm && 
+                                        <div className="mt-24 border radius-8 position-relative">
+                                            <CreditCard store={[storedCards, setstoredCards]} pk={showCardForm} setAllowProceed={setAllowProceed} />
+                                        </div>
+                                    }
+                                    <button
+                                        type="button"
+                                        disabled={doing || !allowProceed}
+                                        onClick={handle_checkout}
+                                        className="btn btn-primary text-sm btn-sm px-12 py-16 w-100 radius-8 mt-24 pb-8 xpo_flex xpo_gap-4 xpo_justify-center"
+                                    >
+                                        {doing && <Loader className="xpo_icon text-xl xpo_line-height-1 xpo_animate-spin" />}
+                                        {__('Pay now')}
+                                    </button>
+                                </div>
+                                <div>
+                                    <div className="xpo_w-full">
+                                        <div className="card h-100 radius-12 bg-gradient-danger text-center">
+                                            <div className="card-body p-24">
+                                                <div className="w-64-px h-64-px d-inline-flex align-items-center justify-content-center bg-danger-600 text-white mb-16 radius-12">
+                                                    <BriefcaseBusiness className="h5 mb-0" /> 
+                                                </div>
+                                                <h6 className="mb-8">{__('Business Strategy')}</h6>
+                                                <p className="card-text mb-8 text-secondary-light">{__('Businesses prioritizing trust, reliability, and professionalism are best positioned for lasting success. These core values cultivate strong relationships and a resilient reputation, driving long-term growth.')}</p>
+                                                <Link to="#" className="btn text-danger-600 hover-text-danger px-0 py-10 d-inline-flex align-items-center gap-2">{__('Read More')} <ChevronRight className="text-xl" /></Link>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

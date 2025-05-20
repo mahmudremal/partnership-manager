@@ -1,5 +1,5 @@
 // __webpack_public_path__ = window.__webpack_public_path__ || document.currentScript?.src?.replace(/\/[^/]+$/, '/') || '';
-__webpack_public_path__ = `https://${location.host}/wp-content/plugins/partnership-manager/dist/`;
+// __webpack_public_path__ = `https://${location.host}/wp-content/plugins/partnership-manager/dist/`;
 
 
 // Scripts

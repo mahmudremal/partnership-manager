@@ -2,16 +2,13 @@
 import React, { useEffect, useState } from "react";
 import { Link } from '@common/link';
 import request from "@common/request";
-import { home_url, rest_url, notify } from "@functions";
+import { home_url, rest_url, notify, strtotime } from "@functions";
 import { usePopup } from '@context/PopupProvider';
 import { useTranslation } from '@context/LanguageProvider';
 import { Trash2, SquarePen, Eye, Plus, Search, ChevronsLeft, ChevronsRight, CheckCircle, XCircle } from 'lucide-react';
 import { sprintf } from 'sprintf-js';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import { useSettings } from "@context/SettingsProvider";
 import { useCurrency } from "@context/CurrencyProvider";
-dayjs.extend(utc);
 
 const PER_PAGE_OPTIONS = [5, 10, 20, 50];
 const STATUS_OPTIONS = ["any", "active", "inactive"];
@@ -135,7 +132,7 @@ export default function Payouts({ maxAmount = 0, viewType = 'list' }) {
                                 {transactions?.length > 0 ? transactions.map((item, index) => (
                                     // <tr key={item.id}>
                                     //     <td>{(page - 1) * perPage + index + 1}</td>
-                                    //     <td>{dayjs.unix(item.created_at).utc().format('DD MMM YYYY')}</td>
+                                    //     <td>{strtotime(item.created_at).format('DD MMM YYYY')}</td>
                                     //     <td>{item.amount}</td>
                                     //     <td>{item.type}</td>
                                     //     <td>{item.reference}</td>
@@ -155,7 +152,7 @@ export default function Payouts({ maxAmount = 0, viewType = 'list' }) {
                                     // </tr>
                                     <tr key={item.id}>
                                         <td>{(page - 1) * perPage + index + 1}</td>
-                                        <td>{dayjs(item.created_at).format('DD MMM YYYY')}</td>
+                                        <td>{strtotime(item.created_at).format('DD MMM YYYY')}</td>
                                         <td>{print_money(item.amount, item.currency)}</td>
                                         <td className="xpo_capitalize">{item.method}</td>
                                         <td className="xpo_capitalize">{item.status}</td>
@@ -401,14 +398,14 @@ function ViewPayout({ item, setItems }) {
                         )}
                     </p>
                     <p className="xpo_text-sm xpo_flex xpo_gap-1 xpo_items-center">
-                        <strong className="xpo_font-medium">{__('Created At:')}</strong><span>{dayjs.utc(created_at).format('DD MMM YYYY HH:mm')}</span>
+                        <strong className="xpo_font-medium">{__('Created At:')}</strong><span>{strtotime(created_at).format('DD MMM YYYY HH:mm')}</span>
                     </p>
                     <p className="xpo_text-sm xpo_flex xpo_gap-1 xpo_items-center">
-                        <strong className="xpo_font-medium">{__('Updated At:')}</strong><span>{dayjs.utc(updated_at).format('DD MMM YYYY HH:mm')}</span>
+                        <strong className="xpo_font-medium">{__('Updated At:')}</strong><span>{strtotime(updated_at).format('DD MMM YYYY HH:mm')}</span>
                     </p>
                     {approved_at && (
                         <p className="xpo_text-sm xpo_flex xpo_gap-1 xpo_items-center">
-                            <strong className="xpo_font-medium">{__('Approved At:')}</strong><span>{dayjs.utc(approved_at).format('DD MMM YYYY HH:mm')} ({sprintf('Approved by User ID: %d', approved_by)})</span>
+                            <strong className="xpo_font-medium">{__('Approved At:')}</strong><span>{strtotime(approved_at).format('DD MMM YYYY HH:mm')} ({sprintf('Approved by User ID: %d', approved_by)})</span>
                         </p>
                     )}
                     <p className="xpo_text-sm xpo_flex xpo_gap-1 xpo_items-center">

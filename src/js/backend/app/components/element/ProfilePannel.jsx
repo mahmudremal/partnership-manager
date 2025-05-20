@@ -46,7 +46,10 @@ export default function ProfilePannel() {
                 aria-expanded={menuOpened ? 'true' : 'false'}
                 className={`d-flex justify-content-center align-items-center rounded-circle ${menuOpened ? 'show' : ''}`}
             >
-                <img src={ user?.avater??'' } alt="image" className="w-40-px h-40-px object-fit-cover rounded-circle" />
+                <div className="xpo_relative">
+                    <img src={ user?.avater??'' } alt="image" className="w-40-px h-40-px object-fit-cover rounded-circle" />
+                    <div className="xpo_absolute xpo_top-0 xpo_right-0 xpo_w-full xpo_h-full"></div>
+                </div>
             </button>
             
             {menuOpened && <div className="xpo_fixed xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full xpo_z-10" onClick={(e) => setMenuOpened(false)}></div>}

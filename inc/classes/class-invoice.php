@@ -104,6 +104,7 @@ class Invoice {
             price DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
             type ENUM('custom', 'package') DEFAULT 'custom',
             identifier text NULL,
+            store text NULL,
             PRIMARY KEY (id)
         ) $charset_collate;";
 
@@ -359,6 +360,10 @@ class Invoice {
             }
     
             $invoice_db_id = $wpdb->insert_id;
+
+            if (Security::get_instance()->user_id) {
+                $this->update_invoice_meta($invoice_db_id, 'author_id', Security::get_instance()->user_id);
+            }
         }
     
         foreach ($items as $item) {
@@ -367,7 +372,8 @@ class Invoice {
                 'type' => sanitize_text_field($item['type'] ?? 'custom'),
                 'label' => sanitize_text_field($item['label'] ?? ''),
                 'price' => floatval($item['price'] ?? 0),
-                'identifier' => sanitize_text_field($item['identifier'] ?? null)
+                'identifier' => sanitize_text_field($item['identifier'] ?? null),
+                'store' => sanitize_text_field($item['store'] ?? null)
             ]);
         }
     
@@ -400,6 +406,15 @@ class Invoice {
         
         return $invoice_data;
     }
+
+    public function get_invoice_by_item_id($item_id) {
+        global $wpdb;
+        $item = $wpdb->get_row($wpdb->prepare("SELECT inv.invoice_id FROM {$this->invoice_table} inv LEFT JOIN {$this->item_table} itm ON itm.invoice_id = inv.id WHERE itm.id = %d", $item_id), ARRAY_A);
+        if (!$item) {
+            return new WP_Error('no_item', __('Item not found', 'wp-partnershipm'));
+        }
+        return $this->get_invoice($item['invoice_id']);
+    }
     
     public function mark_paid_invoice($invoice_id) {
         global $wpdb;
@@ -426,6 +441,13 @@ class Invoice {
                 );
             }
         }
+        
+        $_3rd_jobs = apply_filters('partnership/invoice/paid', true, $invoice, $_updated);
+
+        if (!$_3rd_jobs || is_wp_error($_3rd_jobs)) {
+            return new WP_Error('invoice_paid_error', __('Failed to mark invoice as paid.', 'wp-partnershipm'));
+        }
+        
         return $_updated;
     }
 
