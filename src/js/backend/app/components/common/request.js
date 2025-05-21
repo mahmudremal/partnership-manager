@@ -135,6 +135,12 @@ request.set = (key, value) => {
 };
 request.getConfig = (key) => configStore.get(key);
 
+
+request.error_notify = (err, __= t => t) => {
+    notify.error(err?.response?.message??err?.message??__('Something went wrong!'));
+}
+
+
 export default request;
 
 // // Set global config (e.g., nonce)
@@ -156,3 +162,5 @@ export default request;
 
 // // Get from cache manually
 // const data = request.cache.get('customKey');
+
+

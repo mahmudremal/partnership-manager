@@ -75,67 +75,87 @@ class Contract {
             'permission_callback' => [Security::get_instance(), 'permission_callback']
         ]);
 
-        register_rest_route('partnership/v1', '/contract/(?P<contract_id>\\d+)/columns', [
+        register_rest_route('partnership/v1', '/contracts/(?P<contract_id>\\d+)/columns', [
             'methods' => 'GET',
             'callback' => [$this, 'get_contract_columns'],
             'permission_callback' => [Security::get_instance(), 'permission_callback']
         ]);
 
-        register_rest_route('partnership/v1', '/contract/(?P<contract_id>\\d+)/column', [
+        register_rest_route('partnership/v1', '/contracts/(?P<contract_id>\\d+)/column', [
             'methods' => 'POST',
             'callback' => [$this, 'create_column'],
             'permission_callback' => [Security::get_instance(), 'permission_callback']
         ]);
+        register_rest_route('partnership/v1', '/columns/(?P<column_id>\\d+)', [
+            'methods' => 'POST',
+            'callback' => [$this, 'api_update_column'],
+            'permission_callback' => [Security::get_instance(), 'permission_callback']
+        ]);
+        register_rest_route('partnership/v1', '/columns/(?P<column_id>\\d+)', [
+            'methods' => 'DELETE',
+            'callback' => [$this, 'api_delete_column'],
+            'permission_callback' => [Security::get_instance(), 'permission_callback']
+        ]);
 
-        register_rest_route('partnership/v1', '/column/(?P<column_id>\\d+)/cards', [
+        register_rest_route('partnership/v1', '/columns/(?P<column_id>\\d+)/cards', [
             'methods' => 'GET',
             'callback' => [$this, 'get_column_cards'],
             'permission_callback' => [Security::get_instance(), 'permission_callback']
         ]);
 
-        register_rest_route('partnership/v1', '/column/(?P<column_id>\\d+)/card', [
+        register_rest_route('partnership/v1', '/columns/(?P<column_id>\\d+)/card', [
             'methods' => 'POST',
             'callback' => [$this, 'create_card'],
             'permission_callback' => [Security::get_instance(), 'permission_callback']
         ]);
 
-        register_rest_route('partnership/v1', '/card/(?P<card_id>\\d+)', [
+        register_rest_route('partnership/v1', '/cards/(?P<card_id>\\d+)', [
             'methods' => 'GET',
             'callback' => [$this, 'get_card_detail'],
             'permission_callback' => [Security::get_instance(), 'permission_callback']
         ]);
-
-        register_rest_route('partnership/v1', '/card/(?P<card_id>\\d+)/checklist', [
+        register_rest_route('partnership/v1', '/cards/(?P<card_id>\\d+)', [
             'methods' => 'POST',
-            'callback' => [$this, 'create_checklist_item'],
+            'callback' => [$this, 'api_update_card'],
+            'permission_callback' => [Security::get_instance(), 'permission_callback']
+        ]);
+        register_rest_route('partnership/v1', '/cards/(?P<card_id>\\d+)', [
+            'methods' => 'DELETE',
+            'callback' => [$this, 'api_delete_card'],
             'permission_callback' => [Security::get_instance(), 'permission_callback']
         ]);
 
-        register_rest_route('partnership/v1', '/card/(?P<card_id>\\d+)/checklists', [
+        register_rest_route('partnership/v1', '/cards/(?P<card_id>\\d+)/checklist', [
+            'methods' => 'POST',
+            'callback' => [$this, 'api_update_checklist_item'],
+            'permission_callback' => [Security::get_instance(), 'permission_callback']
+        ]);
+
+        register_rest_route('partnership/v1', '/cards/(?P<card_id>\\d+)/checklists', [
             'methods' => 'GET',
             'callback' => [$this, 'get_card_checklists'],
             'permission_callback' => [Security::get_instance(), 'permission_callback']
         ]);
 
-        register_rest_route('partnership/v1', '/card/(?P<card_id>\\d+)/comment', [
+        register_rest_route('partnership/v1', '/cards/(?P<card_id>\\d+)/comment', [
             'methods' => 'POST',
             'callback' => [$this, 'add_card_comment'],
             'permission_callback' => [Security::get_instance(), 'permission_callback']
         ]);
 
-        register_rest_route('partnership/v1', '/card/(?P<card_id>\\d+)/comments', [
+        register_rest_route('partnership/v1', '/cards/(?P<card_id>\\d+)/comments', [
             'methods' => 'GET',
             'callback' => [$this, 'get_card_comments'],
             'permission_callback' => [Security::get_instance(), 'permission_callback']
         ]);
 
-        register_rest_route('partnership/v1', '/card/(?P<card_id>\\d+)/attachment', [
+        register_rest_route('partnership/v1', '/cards/(?P<card_id>\\d+)/attachment', [
             'methods' => 'POST',
             'callback' => [$this, 'upload_card_attachment'],
             'permission_callback' => [Security::get_instance(), 'permission_callback']
         ]);
 
-        register_rest_route('partnership/v1', '/card/(?P<card_id>\\d+)/attachments', [
+        register_rest_route('partnership/v1', '/cards/(?P<card_id>\\d+)/attachments', [
             'methods' => 'GET',
             'callback' => [$this, 'get_card_attachments'],
             'permission_callback' => [Security::get_instance(), 'permission_callback']
@@ -507,6 +527,9 @@ class Contract {
             $wpdb->prepare("SELECT * FROM {$this->contract_table}"),
             ARRAY_A
         );
+        if (!$deals) {
+            return new WP_Error('no_contracts_found', 'No contracts found.', ['status' => 404]);
+        }
         foreach ($deals as $index => $deal) {
             $deals[$index]['invoice_item'] = Invoice::get_instance()->get_invoice_by_item_id($deal['invoice_item_id']);
         }
@@ -520,7 +543,9 @@ class Contract {
         $user_id = Security::get_instance()->user_id;
 
         $response = $this->get_contract($contract_id, false);
-
+        if (is_wp_error($response)) {
+            return $response;
+        }
         return rest_ensure_response($response);
     }
 
@@ -528,76 +553,322 @@ class Contract {
     public function api_create_contract(WP_REST_Request $request) {
         $data = $request->get_json_params();
         $response = $this->create_contract($data);
+        if (is_wp_error($response)) {
+            return $response;
+        }
         return rest_ensure_response($response);
     }
 
     public function get_contract_columns(WP_REST_Request $request) {
+        global $wpdb;
         $contract_id = (int) $request->get_param('contract_id');
-        $response = []; // Fetch columns
+        $response = $wpdb->get_results(
+            $wpdb->prepare("SELECT * FROM {$this->column_table} WHERE contract_id = %d ORDER BY sort_order ASC", $contract_id),
+            ARRAY_A
+        );
+        if (!$response) {
+            return new WP_Error('no_columns_found', 'No columns found for this contract.', ['status' => 404]);
+        }
         return rest_ensure_response($response);
     }
 
     public function create_column(WP_REST_Request $request) {
+        global $wpdb;
         $contract_id = (int) $request->get_param('contract_id');
         $data = $request->get_json_params();
-        $response = []; // Insert column
+        $response = $wpdb->insert(
+            $this->column_table,
+            [
+                'contract_id' => $contract_id,
+                'title' => $data['title'] ?? '',
+                'sort_order' => $data['sort_order'] ?? 0
+            ],
+            ['%d', '%s', '%d']
+        );
+        if ($response === false) {
+            return new WP_Error('column_creation_failed', 'Failed to create column.', ['status' => 500]);
+        }
+        return rest_ensure_response($response);
+    }
+    public function api_update_column(WP_REST_Request $request) {
+        global $wpdb;
+        $column_id = (int) $request->get_param('column_id');
+        $data = $request->get_json_params();
+        $response = ($column_id === 0) ? $wpdb->insert(
+            $this->column_table,
+            [
+                'title' => $data['title'] ?? '',
+                'sort_order' => (int) $data['sort_order'] ?? 0,
+                'contract_id' => (int) $data['contract_id'] ?? 0
+            ],
+            ['%s', '%d', '%d']
+        ) : $wpdb->update(
+            $this->column_table,
+            [
+                'title' => $data['title'] ?? '',
+                'sort_order' => (int) $data['sort_order'] ?? 0
+            ],
+            ['id' => $column_id],
+            ['%s', '%d'],
+            ['%d']
+        );
+        if ($response === false) {
+            return new WP_Error('column_update_failed', 'Failed to update column.', ['status' => 500]);
+        }
+        if ($column_id === 0) {
+            $column_id = $wpdb->insert_id;
+            $response = $wpdb->get_row(
+                $wpdb->prepare("SELECT * FROM {$this->column_table} WHERE id = %d", $column_id),
+                ARRAY_A
+            );
+        }
+        return rest_ensure_response($response);
+    }
+    public function api_delete_column(WP_REST_Request $request) {
+        global $wpdb;
+        $column_id = (int) $request->get_param('column_id');
+        $response = $wpdb->delete($this->column_table, ['id' => $column_id], ['%d']);
+        if ($response === false) {
+            return new WP_Error('column_deletion_failed', 'Failed to delete column.', ['status' => 500]);
+        }
+        $cards = $wpdb->get_results(
+            $wpdb->prepare("SELECT id FROM {$this->card_table} WHERE column_id = %d", $column_id),
+            ARRAY_A
+        );
+        foreach ($cards as $card) {
+            $card_id = (int) $card['id'];
+            $wpdb->delete($this->checklist_table, ['card_id' => $card_id], ['%d']);
+            $wpdb->delete($this->comment_table, ['card_id' => $card_id], ['%d']);
+            $wpdb->delete($this->attachment_table, ['card_id' => $card_id], ['%d']);
+        }
+        // 
         return rest_ensure_response($response);
     }
 
     public function get_column_cards(WP_REST_Request $request) {
+        global $wpdb;
         $column_id = (int) $request->get_param('column_id');
-        $response = []; // Get cards under column
+        $response = $wpdb->get_results(
+            $wpdb->prepare("SELECT * FROM {$this->card_table} WHERE column_id = %d ORDER BY sort_order ASC", $column_id),
+            ARRAY_A
+        );
+        if (!$response) {
+            return new WP_Error('no_cards_found', 'No cards found in this column.', ['status' => 404]);
+        }
+        foreach ($response as $index => $card) {
+            $response[$index]['checklists'] = $wpdb->get_results(
+                $wpdb->prepare("SELECT * FROM {$this->checklist_table} WHERE card_id = %d ORDER BY sort_order ASC", $card['id']),
+                ARRAY_A
+            );
+
+            $response[$index]['comments'] = $wpdb->get_results(
+                $wpdb->prepare("SELECT * FROM {$this->comment_table} WHERE card_id = %d ORDER BY created_at ASC", $card['id']),
+                ARRAY_A
+            );
+
+            $response[$index]['attachments'] = $wpdb->get_results(
+                $wpdb->prepare("SELECT * FROM {$this->attachment_table} WHERE card_id = %d ORDER BY created_at ASC", $card['id']),
+                ARRAY_A
+            );
+        }
         return rest_ensure_response($response);
     }
 
     public function create_card(WP_REST_Request $request) {
+        global $wpdb;
         $column_id = (int) $request->get_param('column_id');
         $data = $request->get_json_params();
-        $response = []; // Create new card
+        $response = $wpdb->insert(
+            $this->card_table,
+            [
+                'column_id' => $column_id,
+                'title' => $data['title'] ?? '',
+                'description' => $data['description'] ?? '',
+                'sort_order' => $data['sort_order'] ?? 0,
+                'due_date' => $data['due_date'] ?? null
+            ],
+            ['%d', '%s', '%s', '%d', '%s']
+        );
+        if ($response === false) {
+            return new WP_Error('card_creation_failed', 'Failed to create card.', ['status' => 500]);
+        }
         return rest_ensure_response($response);
     }
 
     public function get_card_detail(WP_REST_Request $request) {
+        global $wpdb;
         $card_id = (int) $request->get_param('card_id');
-        $response = []; // Fetch card detail
+        $response = $wpdb->get_row(
+            $wpdb->prepare("SELECT * FROM {$this->card_table} WHERE id = %d", $card_id),
+            ARRAY_A
+        );
+        if (!$response) {
+            return new WP_Error('card_not_found', 'Card not found.', ['status' => 404]);
+        }
+        return rest_ensure_response($response);
+    }
+    public function api_update_card(WP_REST_Request $request) {
+        global $wpdb;
+        $card_id = (int) $request->get_param('card_id');
+        $data = $request->get_json_params();
+        $response = ($card_id === 0) ? $wpdb->insert(
+            $this->card_table,
+            [
+                'title' => $data['title'] ?? '',
+                'description' => $data['description'] ?? '',
+                'column_id' => (int) $data['column_id'] ?? 0,
+                'sort_order' => (int) $data['sort_order'] ?? 0,
+                'due_date' => $data['due_date'] ?? null
+            ],
+            ['%s', '%s', '%d', '%d', '%s']
+        ) : $wpdb->update(
+            $this->card_table,
+            [
+                'title' => $data['title'] ?? '',
+                'description' => $data['description'] ?? '',
+                'sort_order' => (int) $data['sort_order'] ?? 0,
+                'due_date' => $data['due_date'] ?? null,
+                'column_id' => (int) $data['column_id'] ?? 0
+            ],
+            ['id' => $card_id],
+            ['%s', '%s', '%d', '%s', '%d'],
+            ['%d']
+        );
+        if ($response === false) {
+            return new WP_Error('card_update_failed', 'Failed to update card.', ['status' => 500]);
+        }
+
+        if ($card_id === 0) {
+            $card_id = $wpdb->insert_id;
+            $response = $wpdb->get_row(
+                $wpdb->prepare("SELECT * FROM {$this->card_table} WHERE id = %d", $card_id),
+                ARRAY_A
+            );
+        }
+        
+        return rest_ensure_response($response);
+    }
+    public function api_delete_card(WP_REST_Request $request) {
+        global $wpdb;
+        $card_id = (int) $request->get_param('card_id');
+        $response = $wpdb->delete($this->card_table, ['id' => $card_id], ['%d']);
+        if ($response === false) {
+            return new WP_Error('card_deletion_failed', 'Failed to delete card.', ['status' => 500]);
+        }
         return rest_ensure_response($response);
     }
 
-    public function create_checklist_item(WP_REST_Request $request) {
+    public function api_update_checklist_item(WP_REST_Request $request) {
+        global $wpdb;
         $card_id = (int) $request->get_param('card_id');
+        $checklist_id = (int) $request->get_param('id');
         $data = $request->get_json_params();
-        $response = []; // Insert checklist item
-        return rest_ensure_response($response);
+        $response = ($checklist_id === 0) ? $wpdb->insert(
+            $this->checklist_table,
+            [
+                'title' => $data['title'] ?? '',
+                'card_id' => (int) $card_id ?? 0,
+                'sort_order' => (int) $data['sort_order'] ?? 0,
+                'is_completed' => (bool) $data['is_completed'] ?? false,
+            ],
+            ['%s', '%d', '%d', '%d']
+        ) : $wpdb->update(
+            $this->checklist_table,
+            [
+                'title' => $data['title'] ?? '',
+                'is_completed' => (bool) $data['is_completed'] ?? false,
+                'sort_order' => (int) $data['sort_order'] ?? 0
+            ],
+            ['id' => $checklist_id],
+            ['%s', '%d', '%d'],
+            ['%d']
+        );
+        if ($response === false) {
+            return new WP_Error('checklist_creation_failed', 'Failed to create checklist item.', ['status' => 500]);
+        }
+        if ($checklist_id === 0) {
+            $checklist_id = $wpdb->insert_id;
+            $response = $wpdb->get_row(
+                $wpdb->prepare("SELECT * FROM {$this->checklist_table} WHERE id = %d", $checklist_id),
+                ARRAY_A
+            );
+        }
+        return rest_ensure_response($response ? ['success' => $response] : ['message' => sprintf('Failed to update checklist item.\nError: %s', $wpdb->last_error)]);
     }
 
     public function get_card_checklists(WP_REST_Request $request) {
+        global $wpdb;
         $card_id = (int) $request->get_param('card_id');
-        $response = []; // Get checklist items
+        $response = $wpdb->get_results(
+            $wpdb->prepare("SELECT * FROM {$this->checklist_table} WHERE card_id = %d ORDER BY sort_order ASC", $card_id),
+            ARRAY_A
+        );
+        if (!$response) {
+            return new WP_Error('no_checklists_found', 'No checklists found for this card.', ['status' => 404]);
+        }
         return rest_ensure_response($response);
     }
 
     public function add_card_comment(WP_REST_Request $request) {
+        global $wpdb;
         $card_id = (int) $request->get_param('card_id');
         $data = $request->get_json_params();
-        $response = []; // Insert comment
+        $response = $wpdb->insert(
+            $this->comment_table,
+            [
+                'card_id' => $card_id,
+                'user_id' => Security::get_instance()->user_id,
+                'comment' => $data['comment'] ?? ''
+            ],
+            ['%d', '%d', '%s']
+        );
+        if ($response === false) {
+            return new WP_Error('comment_creation_failed', 'Failed to add comment.', ['status' => 500]);
+        }
         return rest_ensure_response($response);
     }
 
     public function get_card_comments(WP_REST_Request $request) {
+        global $wpdb;
         $card_id = (int) $request->get_param('card_id');
-        $response = []; // Fetch comments
+        $response = $wpdb->get_results(
+            $wpdb->prepare("SELECT * FROM {$this->comment_table} WHERE card_id = %d ORDER BY created_at ASC", $card_id),
+            ARRAY_A
+        );
+        if (!$response) {
+            return new WP_Error('no_comments_found', 'No comments found for this card.', ['status' => 404]);
+        }
         return rest_ensure_response($response);
     }
 
     public function upload_card_attachment(WP_REST_Request $request) {
+        global $wpdb;
         $card_id = (int) $request->get_param('card_id');
-        $response = []; // Handle file upload and attach
+        $response = $wpdb->insert(
+            $this->attachment_table,
+            [
+                'card_id' => $card_id,
+                'file_url' => $request->get_param('file_url') ?? '',
+                'uploaded_by' => Security::get_instance()->user_id
+            ],
+            ['%d', '%s', '%d']
+        );
+        if ($response === false) {
+            return new WP_Error('attachment_upload_failed', 'Failed to upload attachment.', ['status' => 500]);
+        }
         return rest_ensure_response($response);
     }
 
     public function get_card_attachments(WP_REST_Request $request) {
+        global $wpdb;
         $card_id = (int) $request->get_param('card_id');
-        $response = []; // Get attachment list
+        $response = $wpdb->get_results(
+            $wpdb->prepare("SELECT * FROM {$this->attachment_table} WHERE card_id = %d ORDER BY uploaded_at ASC", $card_id),
+            ARRAY_A
+        );
+        if (!$response) {
+            return new WP_Error('no_attachments_found', 'No attachments found for this card.', ['status' => 404]);
+        }
         return rest_ensure_response($response);
     }
 
