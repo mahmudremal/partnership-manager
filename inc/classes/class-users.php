@@ -247,9 +247,9 @@ class Users {
     
     public static function prepare_user_data_for_response( $user ) {
         $data = [
-            'id'          => $user->ID,
+            ...(array) $user,
             'phone'       => '',
-            'roles'       => $user->roles,
+            'id'          => $user->ID,
             'username'    => $user->user_login,
             'email'       => $user->user_email,
             'firstName'   => $user->first_name,
@@ -257,7 +257,7 @@ class Users {
             'displayName' => $user->display_name,
             'avater'      => get_user_meta($user->ID, 'avater', true),
             'locale'      => get_user_meta($user->ID, 'partnership_dashboard_locale', true),
-            ...(array) $user,
+            'roles'       => array_map(function ($role) {return Roles::get_instance()->get_roles()[$role];}, $user->roles),
         ];
         if (empty($data['avater'])) {
             if (!empty($user->first_name) && !empty($user->last_name)) {

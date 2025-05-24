@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
-import { notify, request_headers, rest_url } from '@functions';
+import { notify, request_headers, rest_url, strtotime } from '@functions';
 import { X } from 'lucide-react';
 import Pagination from './pagination';
 
@@ -41,20 +41,6 @@ export default function Issues({ setLoading }) {
         setSelectedIssue(null);
     };
 
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-
-        const options = {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        };
-
-        return date.toLocaleDateString('en-US', options).replace(',', '').replace(',', '');
-    };
-
     return (
         <div className="xpo_w-full xpo_p-6 xpo_rounded-lg">
             <h1 className="xpo_text-2xl xpo_font-semibold xpo_mb-6">Issues List</h1>
@@ -75,15 +61,13 @@ export default function Issues({ setLoading }) {
                             <td className="xpo_border xpo_border-gray-300 xpo_p-4">{issue.id}</td>
                             <td className="xpo_border xpo_border-gray-300 xpo_p-4">{issue.error_platform}</td>
                             <td className="xpo_border xpo_border-gray-300 xpo_p-4">{issue.error_subject}</td>
-                            <td className="xpo_border xpo_border-gray-300 xpo_p-4">{formatDate(issue.created_at)}</td>
+                            <td className="xpo_border xpo_border-gray-300 xpo_p-4">{strtotime(issue.created_at).format('DD MMM, YYYY')}</td>
                             <td className="xpo_border xpo_border-gray-300 xpo_p-4">{issue.user_id}</td>
                             <td className="xpo_border xpo_border-gray-300 xpo_p-4">
                                 <button 
                                     className="xpo_px-4 xpo_py-2 xpo_bg-primary-500 xpo_text-white xpo_rounded hover:xpo_bg-primary-700"
                                     onClick={() => handleIssueClick(issue)}
-                                >
-                                    Details
-                                </button>
+                                >{__('Details')}</button>
                             </td>
                         </tr>
                     ))}
@@ -116,7 +100,7 @@ const IssueDetail = ({ issue }) => {
             <p><strong>ID:</strong> {issue.id}</p>
             <p><strong>Platform:</strong> {issue.error_platform}</p>
             <p><strong>Subject:</strong> {issue.error_subject}</p>
-            <p><strong>Created At:</strong> {issue.created_at}</p>
+            <p><strong>Created At:</strong> {strtotime(issue.created_at).format('DD MMM, YYYY')}</p>
             <p><strong>User ID:</strong> {issue.user_id}</p>
             <p><strong>Error Message:</strong></p>
             <pre className="xpo_whitespace-pre-wrap xpo_bg-gray-100 xpo_p-4 xpo_rounded-lg xpo_mt-2">{issue.error_message}</pre>

@@ -139,6 +139,33 @@ class ToastNotification {
 export const notify = new ToastNotification();
 
 
+class RoleManager {
+    constructor() {
+        this.roles = [];
+        this.caps = [];
+    }
+    
+    setRoles(roles) {
+        this.roles = roles;
+    }
+    getRole(role) {
+        return this.roles.find(r => r.id === role);
+    }
+
+    set_abilitites(caps) {
+        if (!caps) {return;}
+        // console.log(caps)
+        this.caps = Object.keys(caps).filter(k => caps[k]);
+    }
+
+    has_ability(ability = null) {
+        if (!ability) return false;
+        if (typeof ability === 'string') {ability = [ability];}
+        return this.caps.some(cap => cap && ['all_access', ...ability].includes(cap));
+    }
+}
+export const roles = new RoleManager();
+
 
 // https://react-hot-toast.com/docs/toast
 // toast.promise(myPromise, {

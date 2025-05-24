@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { home_route } from '@functions';
+import { home_route, roles } from '@functions';
+import NoAccess from '@components/element/noaccess.jsx'
 
 // Lazy-loaded components
 const Home = lazy(() => import('./home'));
@@ -29,6 +30,7 @@ const ServiceDocsSingle = lazy(() => import('./pages/resources/service-docs-sing
 const Supports = lazy(() => import('./pages/support/supports'));
 const OpenTicket = lazy(() => import('./pages/support/open-ticket'));
 
+const Contracts = lazy(() => import('./pages/contracts'));
 const Contracts_Actives = lazy(() => import('./pages/contracts/active'));
 const Contracts_Inactives = lazy(() => import('./pages/contracts/inactive'));
 const Contract_Board = lazy(() => import('./pages/contracts/board'));
@@ -49,46 +51,47 @@ export default function Content() {
             <Suspense fallback={<div className="text-center p-4">Loading...</div>}>
                 <Routes>
                     <Route path={home_route('/')} element={<Home />} />
-                    <Route path={home_route('/insights')} element={<Home />} />
-                    <Route path={home_route('/sales')} element={<Home />} />
-                    <Route path={home_route('/analytics')} element={<Home />} />
+                    <Route path={home_route('/insights')} element={!roles.has_ability('project_manager') ? <NoAccess /> : <Home />} />
+                    <Route path={home_route('/sales')} element={!roles.has_ability('project_manager') ? <NoAccess /> : <Home />} />
+                    <Route path={home_route('/analytics')} element={!roles.has_ability('read') ? <NoAccess /> : <Home />} />
 
-                    <Route path={home_route('/users')} element={<UsersList />} />
+                    <Route path={home_route('/users')} element={!roles.has_ability('project_manager', 'users') ? <NoAccess /> : <UsersList />} />
                     <Route path={home_route('/users/:userid/view')} element={<UsersView />} />
                     <Route path={home_route('/users/:userid/edit')} element={<UsersEdit />} />
 
-                    <Route path={home_route('/stores')} element={<Stores />} />
+                    <Route path={home_route('/stores')} element={!roles.has_ability('stores') ? <NoAccess /> : <Stores />} />
 
-                    <Route path={home_route('/resources/partner-docs')} element={<PartnerDocs/>} />
-                    <Route path={home_route('/resources/partner-docs/:category_slug')} element={<PartnerDocsCategory/>} />
-                    <Route path={home_route('/resources/partner-docs/:category_slug/:doc_slug')} element={<PartnerDocsSingle/>} />
+                    <Route path={home_route('/resources/partner-docs')} element={!roles.has_ability('partner-docs') ? <NoAccess /> : <PartnerDocs/>} />
+                    <Route path={home_route('/resources/partner-docs/:category_slug')} element={!roles.has_ability('partner-docs') ? <NoAccess /> : <PartnerDocsCategory/>} />
+                    <Route path={home_route('/resources/partner-docs/:category_slug/:doc_slug')} element={!roles.has_ability('partner-docs') ? <NoAccess /> : <PartnerDocsSingle/>} />
                     
-                    <Route path={home_route('/resources/service-docs')} element={<ServiceDocs />} handle={{ breadcrumb: 'Service Documentations' }} />
-                    <Route path={home_route('/resources/service-docs/:category_slug')} element={<ServiceDocsCategory />} />
-                    <Route path={home_route('/resources/service-docs/:category_slug/:doc_slug')} element={<ServiceDocsSingle />} />
+                    <Route path={home_route('/resources/service-docs')} element={!roles.has_ability('service-docs') ? <NoAccess /> : <ServiceDocs />} handle={{ breadcrumb: 'Service Documentations' }} />
+                    <Route path={home_route('/resources/service-docs/:category_slug')} element={!roles.has_ability('service-docs') ? <NoAccess /> : <ServiceDocsCategory />} />
+                    <Route path={home_route('/resources/service-docs/:category_slug/:doc_slug')} element={!roles.has_ability('service-docs') ? <NoAccess /> : <ServiceDocsSingle />} />
 
-                    <Route path={home_route('/support/supports')} element={<Supports />} />
-                    <Route path={home_route('/support/open-ticket')} element={<OpenTicket />} />
+                    <Route path={home_route('/support/supports')} element={!roles.has_ability('support-ticket') ? <NoAccess /> : <Supports />} />
+                    <Route path={home_route('/support/open-ticket')} element={!roles.has_ability('support-ticket') ? <NoAccess /> : <OpenTicket />} />
 
-                    <Route path={home_route('/referrals')} element={<ReferralsScreen />} />
-                    <Route path={home_route('/referrals/active')} element={<Active_Referrals />} />
-                    <Route path={home_route('/referrals/inactive')} element={<Inactive_Referrals />} />
+                    <Route path={home_route('/referrals')} element={!roles.has_ability('referral') ? <NoAccess /> : <ReferralsScreen />} />
+                    <Route path={home_route('/referrals/active')} element={!roles.has_ability('referral') ? <NoAccess /> : <Active_Referrals />} />
+                    <Route path={home_route('/referrals/inactive')} element={!roles.has_ability('referral') ? <NoAccess /> : <Inactive_Referrals />} />
                     
-                    <Route path={home_route('/packages')} element={<Packages />} />
-                    <Route path={home_route('/packages/:package_id/:pricing_plan/checkout')} element={<Checkout />} />
+                    <Route path={home_route('/packages')} element={!roles.has_ability('packages') ? <NoAccess /> : <Packages />} />
+                    <Route path={home_route('/packages/:package_id/:pricing_plan/checkout')} element={!roles.has_ability('packages') ? <NoAccess /> : <Checkout />} />
                     
-                    <Route path={home_route('/contracts/active')} element={<Contracts_Actives />} />
-                    <Route path={home_route('/contracts/archive')} element={<Contracts_Inactives />} />
-                    <Route path={home_route('/contracts/:contract_id/board')} element={<Contract_Board />} />
+                    <Route path={home_route('/contracts')} element={!roles.has_ability('contracts') ? <NoAccess /> : <Contracts />} />
+                    <Route path={home_route('/contracts/active')} element={!roles.has_ability('contracts') ? <NoAccess /> : <Contracts_Actives />} />
+                    <Route path={home_route('/contracts/archive')} element={!roles.has_ability('contracts') ? <NoAccess /> : <Contracts_Inactives />} />
+                    <Route path={home_route('/contracts/:contract_id/board')} element={!roles.has_ability('contracts') ? <NoAccess /> : <Contract_Board />} />
 
-                    <Route path={home_route('/payouts')} element={<PayoutsScreen />} />
+                    <Route path={home_route('/payouts')} element={!roles.has_ability('payouts') ? <NoAccess /> : <PayoutsScreen />} />
                     <Route path={home_route('/settings')} element={<Settings />} />
-                    <Route path={home_route('/team')} element={<UsersGrid />} />
+                    <Route path={home_route('/team')} element={!roles.has_ability('team') ? <NoAccess /> : <UsersGrid />} />
 
 
-                    <Route path={home_route('/invoices')} element={<Invoices />} />
-                    <Route path={home_route('/invoices/:invoice_id/view')} element={<InvoiceEdit />} />
-                    <Route path={home_route('/invoices/:invoice_id/checkout')} element={<InvoiceCheckout />} />
+                    <Route path={home_route('/invoices')} element={!roles.has_ability('invoices') ? <NoAccess /> : <Invoices />} />
+                    <Route path={home_route('/invoices/:invoice_id/view')} element={!roles.has_ability('invoices') ? <NoAccess /> : <InvoiceEdit />} />
+                    <Route path={home_route('/invoices/:invoice_id/checkout')} element={!roles.has_ability('invoices') ? <NoAccess /> : <InvoiceCheckout />} />
 
                     <Route path="*" element={<ErrorPage />} />
                 </Routes>

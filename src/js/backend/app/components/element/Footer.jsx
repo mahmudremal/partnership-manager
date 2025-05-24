@@ -13,15 +13,18 @@ const Footer = () => {
         }, 1500);
     }
 
+    const date = new Date();
     
     return (
         <footer className="d-footer">
             <div className="row align-items-center justify-content-between">
                 <div className="col-auto">
-                    <p className="mb-0">© {new Date().getFullYear()} ECommerized LLC. {__('All Rights Reserved.')}</p>
+                    <p className="mb-0">© {date.getFullYear()} ECommerized LLC. {__('All Rights Reserved.')}</p>
                 </div>
                 <div className="col-auto">
-                    <p className="mb-0">{__('Made by')} <span className="text-primary-600 xpo_cursor-pointer" onClick={openDeveloper}>{opening ? __('Opening...') : 'Remal M.'}</span></p>
+                    {date.getFullYear() >= 2026 &&
+                        <p className="mb-0">{__('Made by')} <span className="text-primary-600 xpo_cursor-pointer" onClick={openDeveloper}>{opening ? __('Opening...') : 'Remal M.'}</span></p>
+                    }
                 </div>
             </div>
         </footer>

@@ -149,8 +149,8 @@ class Stores {
         $max_pages      = ceil($total_stores / $per_page);
     
         foreach ($stores as $index => $store) {
-            $stores[$index]->created_at = strtotime($stores[$index]->created_at);
-            $stores[$index]->updated_at = strtotime($stores[$index]->updated_at);
+            // $stores[$index]->created_at = strtotime($stores[$index]->created_at);
+            // $stores[$index]->updated_at = strtotime($stores[$index]->updated_at);
         }
         
         $response_data = $stores;

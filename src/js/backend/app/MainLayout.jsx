@@ -79,7 +79,7 @@ const MainLayout = ({ children }) => {
                     </div>
                 </div>
                 
-                <div className="dashboard-main-body xpo_h-[calc(100vh-72px)] xpo_overflow-hidden xpo_overflow-y-scroll">
+                <div className="dashboard-main-body xpo_h-[calc(100vh-72px*2)] xpo_overflow-hidden xpo_overflow-y-scroll">
                     <Breadcrumb />
                     {/* Main section will be placed here */}
                     <div>

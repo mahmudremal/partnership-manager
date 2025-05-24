@@ -6,7 +6,6 @@ import { useLoading } from "@context/LoadingProvider";
 import { usePopup } from "@context/PopupProvider";
 import { useTranslation } from "@context/LanguageProvider";
 import { HandCoins, Wallet, BanknoteArrowDown, UsersRound } from "lucide-react";
-import { sprintf } from "sprintf-js";
 
 export default function PayoutsScreen({ filters = 'any' }) {
     const { __ } = useTranslation();

@@ -4,15 +4,17 @@ import request from "@common/request";
 import { Link } from '@common/link';
 import { usePopup } from '@context/PopupProvider';
 import { useTranslation } from '@context/LanguageProvider';
+import { useSession } from '@context/SessionProvider';
 import { useParams } from "react-router-dom";
-import { AlignLeft, CalendarDays, CirclePlus, Copy, EllipsisVertical, ListTodo, Paperclip, SquareCheckBig, SquarePen, Tag, Trash2, User, UserMinus, UserPlus } from "lucide-react";
+import { AlignLeft, CalendarDays, CirclePlus, Copy, EllipsisVertical, ListTodo, MessagesSquare, Paperclip, Send, SquareCheckBig, SquarePen, Tag, Trash2, User, UserMinus, UserPlus } from "lucide-react";
 import { createPopper } from '@popperjs/core';
-
+import { EditorProvider, DefaultEditor as Editor } from 'react-simple-wysiwyg';
 
 export default function Contract_Board() {
     const { __ } = useTranslation();
     const { setPopup } = usePopup();
     const { contract_id } = useParams();
+    const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [project, setProject] = useState({columns: []});
 
@@ -32,17 +34,17 @@ export default function Contract_Board() {
     
     const fetchContract = () => {
         // Simulate an API call to fetch contracts
-        request(rest_url(`/partnership/v1/contracts/${contract_id}`))
+        request(rest_url(`/partnership/v1/contracts/${contract_id}`), {headers: {'Cache-Control': 'no-cache'}})
         .then(data => {
             const { contract, columns } = data;
             if (!contract) {return notify.error(__('No contract found!'))}
             setProject({...contract, columns: columns});
-            // request(rest_url(`/partnership/v1/contracts/${contract_id}/columns`))
+            // request(rest_url(`/partnership/v1/contracts/${contract_id}/columns`), {headers: {'Cache-Control': 'no-cache'}})
             // .then(columns => {
             //     const { columns: contract_columns } = columns;
             //     if (!contract_columns) {return notify.error(__('No contract columns found!'))}
             //     setProject(prev => ({...prev, columns: contract_columns}));
-            //     request(rest_url(`/partnership/v1/contracts/${contract_id}/cards`))
+            //     request(rest_url(`/partnership/v1/contracts/${contract_id}/cards`), {headers: {'Cache-Control': 'no-cache'}})
             //     .then(cards => {
             //         const { cards: contract_cards } = cards;
             //         if (!contract_cards) {return notify.error(__('No contract cards found!'))}
@@ -52,10 +54,18 @@ export default function Contract_Board() {
         })
         .catch(err => notify.error(err?.response?.message??err?.message??__('Something went wrong!')))
         .finally(() => setLoading(false));
+        request(rest_url(`/partnership/v1/contracts/${contract_id}/members`), {method: 'GET', headers: {'Cache-Control': 'no-cache'}}).then(res => setUsers(res.map(u => ({...u, id: parseInt(u.id)})))).catch(e => request.error_notify(e, __));
     }
 
     const whether_empty = (text, empty) => {
         return text === '' || !text ? empty : text;
+    }
+
+    const get_users = (user_id = false) => {
+        if (user_id) {
+            return users.find(user => user.id === user_id);
+        }
+        return users;
     }
 
     useEffect(() => {
@@ -80,7 +90,8 @@ export default function Contract_Board() {
                                     hooks={{
                                         onUpdateColumn,
                                         onDeleteColumn,
-                                        onAddColumn
+                                        onAddColumn,
+                                        get_users
                                     }}
                                 />
                             ))}
@@ -162,7 +173,7 @@ const SingleColumn = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
         setColumn(data);
         if (column === null && data && data.id !== null) {return;}
         const isCreating = data.id === null;data.id = data.id === null ? 0 : data.id;
-        request(rest_url(`/partnership/v1/columns/${data.id}`), {method: 'POST', headers: {"Content-Type": "application/json"}, body: JSON.stringify({...data, cards: null})})
+        request(rest_url(`/partnership/v1/columns/${data.id}`), {method: 'POST', headers: {"Content-Type": "application/json", 'Cache-Control': 'no-cache'}, body: JSON.stringify({...data, cards: null})})
         .then(res => onUpdateColumn(res))
         .then(() => notify.success(isCreating ? __('Column created successfully!') : __('Column updated successfully!')))
         .catch(err => notify.error(err?.response?.message??err?.message??__('Something went wrong!')))
@@ -189,7 +200,7 @@ const SingleColumn = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
     }
 
     const onUpdateCard = (data) => {
-        column.cards = column.cards.filter(c => c.id !== data.id);
+        column.cards = column.cards.map(c => c.id == data.id ? data : c);
         setProject(prev => ({...prev, columns: prev.columns.map(col => col.id === column.id ? column : col)}));
         return Promise.resolve(true);
     }
@@ -201,11 +212,24 @@ const SingleColumn = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
     }
     
     return (
-        <div className="w-25 xpo_w-80 kanban-item radius-12 pending-card">
-            <div className="card p-0 radius-12 overflow-hidden shadow-none">
+        <div className="w-25 xpo_w-80 kanban-item radius-12 pending-card xpo_min-w-60 md:xpo_min-w-80">
+            <div className="card p-0 radius-12 overflow-unset shadow-none">
                 <div className="card-body p-0 pb-24">
                     <div className="d-flex align-items-center gap-2 justify-content-between ps-24 pt-24 pe-24">
-                        <h6 className="text-lg fw-semibold mb-0">{empty(column?.title, __('Untitled column'))}</h6>
+                        <h6 className="text-lg fw-semibold mb-0">
+                            <input
+                                type="text"
+                                className="form-control bg-transparent text-lg fw-semibold xpo_border-none focus:xpo_border-solid focus:xpo_border-primary-600"
+                                value={empty(column?.title, __('Untitled Column'))}
+                                onChange={(e) => setColumn(prev => ({...prev, title: e.target.value}))}
+                                onBlur={(e) => {
+                                    e.preventDefault();
+                                    request(rest_url(`/partnership/v1/columns/${column.id}`), {method: 'POST', headers: {"Content-Type": "application/json", 'Cache-Control': 'no-cache'}, body: JSON.stringify({...column, title: e.target.value})})
+                                    // .then(res => onUpdateColumn(res))
+                                    .catch(err => notify.error(err?.response?.message??err?.message??__('Something went wrong!')))
+                                }}
+                            />
+                        </h6>
                         <div className="d-flex align-items-center gap-3 justify-content-between mb-0">
                             <button type="button" className="text-2xl hover-text-primary add-task-button" onClick={() => onAddCard({id: null, column_id: column.id, title: '', description: '', tags: [], created_at: Date.now(), updated_at: Date.now()})}>
                                 <CirclePlus className="icon" />
@@ -237,7 +261,7 @@ const SingleColumn = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
                                                             <button className="btn btn-light-100 text-dark radius-8 px-15 py-6" onClick={() => setPopup(null)}>{__('No, cancel')}</button>
                                                             <button className="btn btn-danger-600 radius-8 px-15 py-6" onClick={(e) => {
                                                                 e.preventDefault();
-                                                                request(rest_url(`/partnership/v1/columns/${column.id}`), {method: 'DELETE',})
+                                                                request(rest_url(`/partnership/v1/columns/${column.id}`), {method: 'DELETE', headers: {"Content-Type": "application/json", 'Cache-Control': 'no-cache'}})
                                                                 .then(data => notify.success(__('Column deleted successfully!')))
                                                                 .then(() => onDeleteColumn(column))
                                                                 .catch(err => notify.error(err?.response?.message??err?.message??__('Something went wrong!')))
@@ -268,6 +292,7 @@ const SingleColumn = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
                                 empty={empty}
                                 setProject={setProject}
                                 hooks={{
+                                    ...hooks,
                                     onUpdateCard,
                                     onDeleteCard,
                                     onAddCard
@@ -296,7 +321,8 @@ const SingleCard = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
         setCard(data);
         if (card === null && data && data.id !== null) {return;}
         const isCreating = data.id === null;data.id = data.id === null ? 0 : data.id;
-        request(rest_url(`/partnership/v1/cards/${data.id}`), {method: 'POST', headers: {"Content-Type": "application/json"}, body: JSON.stringify({...data})})
+        if (!isCreating) {return;}
+        request(rest_url(`/partnership/v1/cards/${data.id}`), {method: 'POST', headers: {"Content-Type": "application/json", 'Cache-Control': 'no-cache'}, body: JSON.stringify({...data})})
         .then(res => onUpdateCard(res))
         .then(() => notify.success(isCreating ? __('Card created successfully!') : __('Card updated successfully!')))
         .catch(err => notify.error(err?.response?.message??err?.message??__('Something went wrong!')))
@@ -355,7 +381,7 @@ const SingleCard = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
                                         <button className="btn btn-danger-600 radius-8 px-15 py-6" onClick={(e) => {
                                             e.preventDefault();
                                             // contracts/${contract_id}/
-                                            request(rest_url(`/partnership/v1/cards/${card.id}`), {method: 'DELETE',})
+                                            request(rest_url(`/partnership/v1/cards/${card.id}`), {method: 'DELETE', headers: {"Content-Type": "application/json", 'Cache-Control': 'no-cache'}})
                                             .then(data => notify.success(__('Card deleted successfully!')))
                                             .then(() => onDeleteCard(card))
                                             .catch(err => notify.error(err?.response?.message??err?.message??__('Something went wrong!')))
@@ -375,7 +401,8 @@ const SingleCard = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
     );
 }
 const CardViewer = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
-    const { onUpdateCard, onDeleteCard, onAddCard } = hooks;
+    const { onUpdateCard, onDeleteCard, onAddCard, get_users } = hooks;
+    const { session: { user_id } } = useSession();
     const { contract_id } = useParams();
     const [card, setCard] = useState({...data});
     const [inited, setInited] = useState(false);
@@ -384,9 +411,11 @@ const CardViewer = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
     const [checklists, setChecklists] = useState([]);
     const [attachments, setAttachments] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [myUserID, setMyUserID] = useState(0);
+    const [myUserID, setMyUserID] = useState(user_id);
     const [members, setMembers] = useState([]);
     const [ShowPops, setShowPops] = useState(null);
+    const [firstTime, setFirstTime] = useState(true);
+    const [editingComment, setEditingComment] = useState({id: null, comment: 'my <b>HTML</b>'});
 
     const buttonRef = useRef(null);
     const dropdownRef = useRef(null);
@@ -396,11 +425,16 @@ const CardViewer = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
     };
 
     const fetch_all = async () => {
-        await request(rest_url(`/partnership/v1/cards/${card.id}/comments`), {method: 'GET'}).then(res => setComments(res)).catch(error_handler);
-        await request(rest_url(`/partnership/v1/cards/${card.id}/checklists`), {method: 'GET'}).then(res => setChecklists(
+        await request(rest_url(`/partnership/v1/cards/${card.id}/members`), {method: 'GET', headers: {'Cache-Control': 'no-cache'}})
+        .then(res => (res.members_id ? res.members_id : '').split(',').map(id => parseInt(id)))
+        .then(user_ids => get_users().map(u => ({...u, assigned: user_ids.includes(u.id)})))
+        .then(res => setMembers(res))
+        .catch(error_handler);
+        await request(rest_url(`/partnership/v1/cards/${card.id}/comments`), {method: 'GET', headers: {'Cache-Control': 'no-cache'}}).then(res => setComments(res)).catch(error_handler);
+        await request(rest_url(`/partnership/v1/cards/${card.id}/checklists`), {method: 'GET', headers: {'Cache-Control': 'no-cache'}}).then(res => setChecklists(
             res.map(i => ({...i, is_completed: parseInt(i.is_completed) === 1}))
         )).catch(error_handler);
-        await request(rest_url(`/partnership/v1/cards/${card.id}/attachments`), {method: 'GET'}).then(res => setAttachments(res)).catch(error_handler);
+        await request(rest_url(`/partnership/v1/cards/${card.id}/attachments`), {method: 'GET', headers: {'Cache-Control': 'no-cache'}}).then(res => setAttachments(res)).catch(error_handler);
     }
     useEffect(() => {
         try {
@@ -413,8 +447,8 @@ const CardViewer = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
     useEffect(() => {
         const delayDebounce = setTimeout(() => {
             if (card === null || !data || !data?.id) {return;}
-            // onUpdateCard(card);
-            console.log(card);
+            onUpdateCard({...card, checklists: [], attachments: [], comments: [], tags: [], updated_at: Date.now()});
+            // console.log({...card, checklists: [], attachments: [], comments: [], tags: [], updated_at: Date.now()});
         }, 2000); // 2000ms = 2 second delay
 
         return () => clearTimeout(delayDebounce);
@@ -436,7 +470,7 @@ const CardViewer = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
     const update_checklist = (cItem) => {
         const update = (cItem, isCreating, resolve) => {
             cItem.id = isCreating ? Date.now() : cItem.id;
-            request(rest_url(`/partnership/v1/cards/${card.id}/checklist`), {method: 'POST', headers: {"Content-Type": "application/json"}, body: JSON.stringify({...cItem, id: isCreating ? 0 : cItem.id})})
+            request(rest_url(`/partnership/v1/cards/${card.id}/checklist`), {method: 'POST', headers: {"Content-Type": "application/json", headers: {'Cache-Control': 'no-cache'}}, body: JSON.stringify({...cItem, id: isCreating ? 0 : cItem.id})})
             .then(res => isCreating && setChecklists(prev => isCreating ? [...prev, res] : prev.map(i => i.id === cItem.id ? cItem : i)))
             .catch(err => request.error_notify(err, __))
             .finally(() => resolve(true))
@@ -445,17 +479,24 @@ const CardViewer = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
         if (isCreating) {
             return new Promise((resolve, reject) => update(cItem, isCreating, resolve));
         } else {
-            update(cItem, isCreating, Promise.resolve);
+            update(cItem, isCreating);
             setChecklists(prev => prev.map(i => i.id === cItem.id ? cItem : i));
             return true;
         }
     }
-    
+
+
+    useEffect(() => {
+        if (firstTime) {setFirstTime(false);return;}
+        request(rest_url(`/partnership/v1/cards/${card.id}/members`), {method: 'POST', headers: {"Content-Type": "application/json", 'Cache-Control': 'no-cache'}, body: JSON.stringify({members: members.filter(m => m.assigned).map(m => m.id).join(',')})}).catch(error_handler);
+        // console.log('members', members);
+    }, [members]);
+
     return (
         <div className="xpo_w-[1000px] xpo_max-w-full">
             <div className="xpo_flex xpo_flex-col xpo_w-full xpo_gap-3">
                 <div className="xpo_block xpo_relative">
-                    <div className="xpo_grid xpo_grid-cols-1 md:xpo_grid-cols-[3fr_1fr] xpo_gap-5 xpo_overflow-auto xpo_max-h-[60vh]">
+                    <div className="xpo_grid xpo_grid-cols-1 md:xpo_grid-cols-[3fr_1fr] xpo_gap-5 xpo_overflow-hidden xpo_overflow-y-auto xpo_max-h-[60vh]">
                         <div className="xpo_flex xpo_flex-col xpo_gap-3 xpo_p-3">
                             <div className="xpo_grid xpo_grid-cols-[0px_1fr] hover:xpo_grid-cols-[40px_1fr] xpo_gap-2 xpo_transition-all xpo_delay-75 xpo_items-center">
                                 <div className="xpo_overflow-hidden">
@@ -467,7 +508,7 @@ const CardViewer = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
                                             checked={card?.is_completed??false}
                                             onChange={(e) => {
                                                 setCard(prev => ({...prev, is_completed: e.target.checked}));
-                                                request(rest_url(`/partnership/v1/cards/${card.id}`), {method: 'POST', headers: {"Content-Type": "application/json"}, body: JSON.stringify({...card, is_completed: e.target.checked})})
+                                                request(rest_url(`/partnership/v1/cards/${card.id}`), {method: 'POST', headers: {"Content-Type": "application/json", 'Cache-Control': 'no-cache'}, body: JSON.stringify({...card, is_completed: e.target.checked})})
                                                 // .then(res => onUpdateCard(res))
                                                 .catch(err => request.error_notify(err, __))
                                             }}
@@ -479,7 +520,7 @@ const CardViewer = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
                                         type="text"
                                         onBlur={(e) => {
                                             e.preventDefault();
-                                            request(rest_url(`/partnership/v1/cards/${card.id}`), {method: 'POST', headers: {"Content-Type": "application/json"}, body: JSON.stringify({...card, title: e.target.value})})
+                                            request(rest_url(`/partnership/v1/cards/${card.id}`), {method: 'POST', headers: {"Content-Type": "application/json", 'Cache-Control': 'no-cache'}, body: JSON.stringify({...card, title: e.target.value})})
                                             // .then(res => onUpdateCard(res))
                                             .catch(err => request.error_notify(err, __))
                                         }}
@@ -494,16 +535,17 @@ const CardViewer = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
                                     <AlignLeft className="xpo_block xpo_mt-1" />
                                 </div>
                                 <textarea
-                                rows="3"
+                                spellCheck={false}
                                 value={card?.description}
+                                rows={card?.description?.length >= 200 ? 8 : 3}
                                 onChange={(e) => setCard(prev => ({...prev, description: e.target.value}))}
                                 onBlur={(e) => {
                                     e.preventDefault();
-                                    request(rest_url(`/partnership/v1/cards/${card.id}`), {method: 'POST', headers: {"Content-Type": "application/json"}, body: JSON.stringify({...card, description: e.target.value})})
+                                    request(rest_url(`/partnership/v1/cards/${card.id}`), {method: 'POST', headers: {"Content-Type": "application/json", 'Cache-Control': 'no-cache'}, body: JSON.stringify({...card, description: e.target.value})})
                                     // .then(res => onUpdateCard(res))
                                     .catch(err => request.error_notify(err, __))
                                 }}
-                                className="xpo_w-full form-control xpo_border-none focus:xpo_border-solid xpo_py-2 xpo_px-3 xpo_text-lg"
+                                className="xpo_w-full form-control xpo_border-none focus:xpo_border-solid xpo_py-2 xpo_px-3 xpo_text-lg xpo_overflow-hidden focus:xpo_overflow-auto"
                                 ></textarea>
                             </div>
                             {attachments?.length ? (
@@ -550,6 +592,13 @@ const CardViewer = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
                                                             }
                                                         }}
                                                         onBlur={(e) => update_checklist({...item, title: e.target.value})} />
+                                                        <Trash2 className="hover:xpo_text-danger-500 xpo_cursor-pointer xpo_h-4" onClick={(e) => {
+                                                            const sure = confirm(__('Are you sure you want to delete this checklist item? This can\'t be undone!'));
+                                                            if (!sure) {return;}
+                                                            request(rest_url(`/partnership/v1/checklists/${item.id}`), {method: 'DELETE', headers: {"Content-Type": "application/json", 'Cache-Control': 'no-cache'}})
+                                                            .then(() => setChecklists(prev => prev.filter(i => i.id !== item.id)))
+                                                            .catch(err => request.error_notify(err, __))
+                                                        }} />
                                                 </div>
                                             ))}
                                         </div>
@@ -557,23 +606,50 @@ const CardViewer = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
                                 </div>
                             ) : null}
 
-                            {comments?.length ? (
-                                <div className="xpo_grid xpo_grid-cols-[30px_1fr] xpo_gap-2 xpo_items-start">
-                                    <div>
-                                        <ListTodo className="xpo_block xpo_mt-1" />
+                            <div className="xpo_grid xpo_grid-cols-[30px_1fr] xpo_gap-2 xpo_items-start">
+                                <div>
+                                    <MessagesSquare className="xpo_block xpo_mt-1" />
+                                </div>
+                                <div className="xpo_flex xpo_flex-col xpo_gap-2">
+                                    <h6 className="xpo_font-semibold xpo_text-primary-light xpo_text-md">{__('Comments')}</h6>
+                                    <div className="xpo_flex xpo_flex-col xpo_gap-2 xpo_max-w-[650px]">
+                                        <EditorProvider>
+                                            <Editor value={editingComment.comment} onChange={(e) => setEditingComment(prev => ({...prev, comment: e.target.value}))}></Editor>
+                                            <button type="button" className="btn btn-primary mt-2 xpo_flex xpo_items-center xpo_justify-center xpo_w-fit xpo_gap-3 xpo_px-6 xpo_py-2 disabled:xpo_bg-slate-300 disabled:xpo_border-slate-300" disabled={editingComment.comment.trim() === '<br>' || editingComment.comment.trim() === ''} onClick={(e) => 
+                                                request(rest_url(`/partnership/v1/cards/${card.id}/comment`), {method: 'POST', body: JSON.stringify({...editingComment, id: editingComment.id??null}), headers: {"Content-Type": "application/json", 'Cache-Control': 'no-cache'}})
+                                                .then(res => 
+                                                    setComments(prev => editingComment.id === null ? [...prev, editingComment] : prev.map(i => i.id === editingComment.id ? {...i, comment: editingComment.comment} : i))
+                                                )
+                                                .catch(request.error_notify)
+                                                .finally(() => setEditingComment({id: null, comment: ''}))
+                                            }>
+                                                <Send className="icon" />
+                                                <span>{__('Send')}</span>
+                                            </button>
+                                        </EditorProvider>
                                     </div>
-                                    <div className="xpo_flex xpo_flex-col xpo_gap-2">
-                                        <div className="xpo_font-semibold xpo_text-primary-light xpo_text-sm xpo_mb-8">{__('Comments')}</div>
-                                        <div className="xpo_flex xpo_flex-col xpo_gap-2">
+                                    {comments?.length ? (
+                                        <div className="xpo_flex xpo_flex-col xpo_gap-2 xpo_mt-2">
                                             {comments.map((item, itemIndex) => (
-                                                <div key={itemIndex} className="xpo_flex xpo_flex-nowrap xpo_items-center xpo_gap-2">
-                                                    <input type="text" className="xpo_w-full form-control xpo_border-none focus:xpo_border-solid xpo_py-2 xpo_px-3" value={item?.comment} onChange={(e) => setComments(prev => prev.map(i => i.id === item.id ? {...i, comment: e.target.checked} : i))} />
+                                                <div key={itemIndex} className="xpo_flex xpo_flex-col xpo_items-center xpo_gap-2">
+                                                    {/* <input type="text" className="xpo_w-full form-control xpo_border-none focus:xpo_border-solid xpo_py-2 xpo_px-3" value={item?.comment} onChange={(e) => setComments(prev => prev.map(i => i.id === item.id ? {...i, comment: e.target.checked} : i))} /> */}
+                                                    <p className="xpo_block xpo_w-full xpo_whitespace-normal comments-list-item" dangerouslySetInnerHTML={{__html: item.comment}}></p>
+                                                    <div className="xpo_flex xpo_self-end xpo_items-center xpo_gap-2 xpo_flex-nowrap">
+                                                        <SquarePen className="xpo_text-danger-500 xpo_cursor-pointer xpo_h-4" onClick={e => setEditingComment(item)} />
+                                                        <Trash2 className="xpo_text-danger-500 xpo_cursor-pointer xpo_h-4" onClick={(e) => {
+                                                            const sure = confirm(__('Are you sure you want to delete this comment? This can\'t be undone!'));
+                                                            if (!sure) {return;}
+                                                            request(rest_url(`/partnership/v1/comments/${item.id}`), {method: 'DELETE', headers: {"Content-Type": "application/json", 'Cache-Control': 'no-cache'}})
+                                                            .then(() => setComments(prev => prev.filter(i => i.id !== item.id)))
+                                                            .catch(err => request.error_notify(err, __))
+                                                        }} />
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
-                                    </div>
+                                    ) : null}
                                 </div>
-                            ) : null}
+                            </div>
                             
                         </div>
                         <div className="xpo_flex xpo_flex-col xpo_gap-3 xpo_sticky xpo_top-4 xpo_self-start">
@@ -592,10 +668,10 @@ const CardViewer = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
                                     <button
                                         type="button"
                                         className="btn btn-light-100 text-dark radius-8 px-14 py-6 text-sm xpo_flex xpo_justify-start xpo_items-center xpo_gap-2"
-                                        onClick={(e) => setMembers(prev => prev.map(m => m.id === myUserID ? {...m, is_member: !m.is_member} : m))}
+                                        onClick={(e) => setMembers(prev => prev.map(m => m.id == myUserID ? {...m, assigned: !m.assigned} : m))}
                                     >
-                                        {! members.some(m => m.id == myUserID) ? <UserPlus /> : <UserMinus />}
-                                        <span>{__('Join')}</span>
+                                        {members.some(m => m.assigned && m.id == myUserID) ? <UserMinus /> : <UserPlus />}
+                                        <span>{members.some(m => m.assigned && m.id == myUserID) ? __('Leave') : __('Join')}</span>
                                     </button>
                                 ) : null}
                                 {members?.length ? (
@@ -604,19 +680,45 @@ const CardViewer = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
                                         className="btn btn-light-100 text-dark radius-8 px-14 py-6 text-sm xpo_flex xpo_justify-start xpo_items-center xpo_gap-2"
                                         onClick={(e) => {
                                             e.preventDefault();
-                                            setShowPops(() => () => 
-                                                <div className="xpo_flex xpo_flex-col xpo_gap-3">
-                                                    <h6 className="xpo_text-primary-500 text-lg fw-semibold">{__('Members')}</h6>
+                                            setShowPops(() => () => {
+                                                const [people, setPeople] = useState([]);
+                                                const [first, setFirst] = useState(true);
+
+                                                useEffect(() => {
+                                                    if (people.length) {return;}
+                                                    setPeople(members);
+                                                }, [members]);
+
+                                                useEffect(() => {
+                                                    if (!people.length) {return;}
+                                                    if (first) {setFirst(p => false);return;}
+                                                    setMembers(people);
+                                                }, [people]);
+
+                                                return (
                                                     <div className="xpo_flex xpo_flex-col xpo_gap-2">
-                                                        {members.map((member, memberIndex) => (
-                                                            <div key={memberIndex} className="xpo_flex xpo_flex-nowrap xpo_items-center xpo_gap-2">
-                                                                <img src={member?.avatar} alt={member?.name} className="xpo_w-10 xpo_h-10 xpo_object-cover xpo_border-radius-8" />
-                                                                <span className="xpo_text-sm xpo_font-semibold">{member?.name}</span>
+                                                        <h6 className="xpo_text-primary-500 text-lg fw-semibold">{__('Members')}</h6>
+                                                        {people.length ? (
+                                                            <div>
+                                                                <p className="xpo_block">{__('Members')}</p>
+                                                                <div className="xpo_flex xpo_flex-col xpo_gap-2">
+                                                                    {people.sort((a, b) => (b?.assigned - a?.assigned)).map((member, memberIndex) => (
+                                                                        <div
+                                                                            key={memberIndex}
+                                                                            onClick={(e) => setPeople(prev => prev.map(m => m.id == member.id ? {...m, assigned: !m.assigned} : m))}
+                                                                            className="xpo_flex xpo_flex-nowrap xpo_items-center xpo_gap-2 xpo_cursor-pointer hover:xpo_bg-gray-100 xpo_transition-all xpo_duration-75 xpo_px-2 xpo_py-2 xpo_rounded-md"
+                                                                        >
+                                                                            <img src={member?.avater} alt={__('Avater')} className="xpo_w-10 xpo_h-10 xpo_object-cover xpo_p-2 xpo_rounded-full" />
+                                                                            <span className="xpo_text-sm xpo_font-semibold">{[member?.first_name, member?.last_name].join(' ').trim()}</span>
+                                                                            {member?.assigned ? <UserMinus className="xpo_text-primary-500 xpo_ml-auto" /> : <UserPlus className="xpo_text-primary-500 xpo_ml-auto" />}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
                                                             </div>
-                                                        ))}
+                                                        ) : null}
                                                     </div>
-                                                </div>
-                                            );
+                                                );
+                                            });
                                         }}
                                     >
                                         <User />
@@ -666,9 +768,10 @@ const CardViewer = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
                                     <span>{__('Checklist')}</span>
                                 </button>
 
-
+                                {ShowPops && <div className="xpo_absolute xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full card xpo_opacity-25" onClick={(e) => setShowPops(null)}></div>}
                                 <div
-                                    className={ `card xpo_p-3 xpo_py-5 xpo_w-80 xpo_max-w-full xpo_shadow-lg xpo_border-radius-8 ${!ShowPops ? 'xpo_hidden' : null}` }
+                                    className={ `card xpo_p-3 xpo_py-5 xpo_w-80 xpo_max-w-full xpo_shadow-lg xpo_border-radius-8 xpo_z-10 ${!ShowPops ? 'xpo_hidden' : null}` }
+                                    style={{top: '50%', left: '0', width: '100%', height: 'auto', position: 'absolute', transform: 'translate(-50%, -50%)'}}
                                 >
                                     {ShowPops && <ShowPops />}
                                 </div>

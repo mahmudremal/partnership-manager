@@ -16,11 +16,13 @@ export default function Supports() {
     const [pageDescription, setPageDescription] = useState(pageData?.description??__('Here we explained all necessery documentation and frequently asked questions regarding your partner program. Please find below or search them or if you didn\'t found any, please let us know.'));
     const [tickets, setTickets] = useState([]);
     const [active, setActive] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         request(rest_url(`partnership/v1/supports/tickets`))
         .then(res => {setTickets(res.list);setActive(res.list?.[0]?.id);})
-        .catch(e => notify.error(e?.response?.message??e?.message??__('Error fetching partner docs.')));
+        .catch(e => notify.error(e?.response?.message??e?.message??__('Error fetching partner docs.')))
+        .finally(() => setLoading(false));
     }, [post_type]);
 
     const forceHTTPS = (url) => {
@@ -74,7 +76,16 @@ export default function Supports() {
             <div className="card-body bg-base responsive-padding-40-150">
                 <div className="row gy-4">
                     <div className="col-lg-12">
-                        {tickets.length === 0 ? (
+                        {loading ? (
+                            <div className="text-center">
+                                <div className="xpo_h-200 xpo_d-flex xpo_justify-content-center xpo_align-items-center">
+                                    <div className="xpo_relative">
+                                        <p className="xpo_text-secondary xpo_text-xl">{__('Loading...')}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ) :
+                        tickets.length === 0 ? (
                             <div className="text-center">
                                 <div className="xpo_h-200 xpo_d-flex xpo_justify-content-center xpo_align-items-center">
                                     <div className="xpo_relative">

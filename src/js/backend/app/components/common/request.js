@@ -78,7 +78,7 @@ function request(url, options = {}) {
                 case 401:
                     console.log("Ah it's 401 error", status);
                     if (request?.setAuth) {
-                        request.setAuth(true);
+                        request.setAuth(prev => true);
                     }
                     break;
                 default:

@@ -104,7 +104,12 @@ class Security {
 		$full_name = trim($first_name . ' ' . $last_name);
 
 		$token = $this->encode_token($payload);
-		return ['token' => $token, 'bearer' => $user->ID, 'user' => Users::prepare_user_data_for_response($user)];
+		return [
+			'token' => $token,
+			'bearer' => $user->ID,
+			'user' => Users::prepare_user_data_for_response($user),
+			// 'role' => Roles::get_role($user->ID)
+		];
 	}
 
 	public function validate_token(WP_REST_Request $request) {

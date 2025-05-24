@@ -112,3 +112,10 @@ body .input-group .btn,
 body .input-group .btn:focus {
     z-index: unset;
 }
+
+button.rsw-btn {
+    text-align: center;
+}
+.comments-list-item * {
+    white-space: unset !important;
+}

@@ -1,196 +1,219 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 // import { Link } from '../common/link';
 import { NavLink, Outlet } from "react-router-dom";
+import { useAuth } from "@context/AuthProvider";
 import { useTranslation } from "@context/LanguageProvider";
 
 
 import { Bolt, BookMarked, BookOpenText, Boxes, ChevronFirst, ChevronRight, CreditCard, HeartHandshake, LayoutDashboard, Network, Receipt, Signature, Store, ToggleRight, Users, UsersRound } from 'lucide-react';
-import { home_route } from '../common/functions';
+import { home_route, roles } from '@functions';
 
 const Icon = ({ icon: IconComponent, ...attrs }) => {
   return <IconComponent {...attrs} />;
 };
 
 export const Nav = () => {
+  const { auth } = useAuth();
   const { __ } = useTranslation();
 
-  const navMenus = () => [
-    {
-      label: __('Dashboard'),
-      icon: LayoutDashboard,
-      route: '/insights',
-      order: 0,
-      // childrens: [
-      //   {
-      //     label: __('Analytics'),
-      //     route: '/analytics',
-      //     icon: ChartNoAxesCombined,
-      //   },
-      //   {
-      //     label: __('Sales'),
-      //     route: '/sales',
-      //     icon: ChartSpline,
-      //   }
-      // ]
-    },
-    {
-      label: __('Application'),
-      order: 1,
-      class: 'sidebar-menu-group-title'
-    },
-    {
-      label: __('Users'),
-      icon: Users,
-      route: '/users',
-      order: 3,
-      // childrens: [
-      //   {
-      //     label: __('Users List'),
-      //     route: '/users',
-      //     icon: LayoutList,
-      //     iconClass: 'text-primary-600'
-      //   },
-      //   {
-      //     label: __('Add User'),
-      //     route: '/users/0/edit',
-      //     icon: UserRoundPlus,
-      //     iconClass: 'text-info-main'
-      //   }
-      // ]
-    },
-    {
-      label: __('Stores'),
-      icon: Store,
-      route: '/stores',
-      order: 4
-    },
-    {
-      label: __('Referrals'),
-      icon: Network,
-      route: '/referrals',
-      order: 5,
-      // childrens: [
-      //   {
-      //     label: __('Active referrals'),
-      //     route: '/referrals/active',
-      //     icon: ToggleRight
-      //   },
-      //   {
-      //     label: __('Inactive referrals'),
-      //     route: '/referrals/inactive',
-      //     icon: ToggleLeft
-      //   },
-      //   // {
-      //   //   label: __('Retargetting'),
-      //   //   route: '/referrals/retargetting',
-      //   //   icon: Crosshair
-      //   // }
-      // ]
-    },
-    {
-      label: __('Contracts'),
-      icon: Signature,
-      route: '/contracts',
-      order: 6,
-      childrens: [
-        {
-          label: __('Active contracts'),
-          route: '/contracts/active',
-          icon: ToggleRight
-        },
-        {
-          label: __('Previous contracts'),
-          route: '/contracts/archive',
-          icon: ChevronFirst
-        }
-      ]
-    },
-    {
-      label: __('Packages'),
-      icon: Boxes,
-      route: '/packages',
-      order: 7
-    },
-    {
-      label: __('Invoices'),
-      icon: Receipt,
-      route: '/invoices',
-      order: 7
-    },
-    {
-      label: __('Resources'),
-      order: 8,
-      class: 'sidebar-menu-group-title'
-    },
-    {
-      label: __('Partner docs'),
-      icon: BookMarked,
-      route: '/resources/partner-docs',
-      order: 9
-    },
-    {
-      label: __('Service docs'),
-      icon: BookOpenText,
-      route: '/resources/service-docs',
-      order: 10
-    },
-    {
-      label: __('Support'),
-      icon: HeartHandshake,
-      route: '/support/supports',
-      order: 11,
-      // childrens: [
-      //   {
-      //     label: __('Supports'),
-      //     route: '/support/supports',
-      //     icon: LifeBuoy
-      //   },
-      //   {
-      //     label: __('Open Ticket'),
-      //     route: '/support/open-ticket',
-      //     icon: TicketPlus
-      //   }
-      // ]
-    },
-    {
-      label: __('Admin'),
-      order: 12,
-      class: 'sidebar-menu-group-title'
-    },
-    {
-      label: __('Payouts'),
-      icon: CreditCard,
-      route: '/payouts',
-      order: 13
-    },
-    {
-      label: __('Team'),
-      icon: UsersRound,
-      route: '/team',
-      order: 14
-    },
-    {
-      label: __('Settings'),
-      icon: Bolt,
-      route: '/settings',
-      order: 15
-    }
-  ];
+  const [navMenus, setNavMenus] = useState([]);
 
+  useEffect(() => {
+    setNavMenus(prev => auth ? [] : [
+      {
+        label: __('Dashboard'),
+        icon: LayoutDashboard,
+        route: '/',
+        order: 0,
+        caps: ['project_manager', 'read'],
+        // childrens: [
+        //   {
+        //     label: __('Analytics'),
+        //     route: '/analytics',
+        //     icon: ChartNoAxesCombined,
+        //     caps: ['read']
+        //   },
+        //   {
+        //     label: __('Sales'),
+        //     route: '/sales',
+        //     icon: ChartSpline,
+        //     caps: ['project_manager']
+        //   }
+        // ]
+      },
+      {
+        label: __('Application'),
+        order: 1,
+        caps: ['read'],
+        class: 'sidebar-menu-group-title'
+      },
+      {
+        label: __('Users'),
+        icon: Users,
+        route: '/users',
+        order: 3,
+        caps: ['project_manager', 'users'],
+        // childrens: [
+        //   {
+        //     label: __('Users List'),
+        //     route: '/users',
+        //     icon: LayoutList,
+        //     iconClass: 'text-primary-600'
+        //   },
+        //   {
+        //     label: __('Add User'),
+        //     route: '/users/0/edit',
+        //     icon: UserRoundPlus,
+        //     iconClass: 'text-info-main'
+        //   }
+        // ]
+      },
+      {
+        label: __('Stores'),
+        icon: Store,
+        route: '/stores',
+        order: 4,
+        caps: ['stores'],
+      },
+      {
+        label: __('Referrals'),
+        icon: Network,
+        route: '/referrals',
+        order: 5,
+        caps: ['referral'],
+        // childrens: [
+        //   {
+        //     label: __('Active referrals'),
+        //     route: '/referrals/active',
+        //     icon: ToggleRight
+        //   },
+        //   {
+        //     label: __('Inactive referrals'),
+        //     route: '/referrals/inactive',
+        //     icon: ToggleLeft
+        //   },
+        //   // {
+        //   //   label: __('Retargetting'),
+        //   //   route: '/referrals/retargetting',
+        //   //   icon: Crosshair
+        //   // }
+        // ]
+      },
+      {
+        label: __('Contracts'),
+        icon: Signature,
+        route: '/contracts',
+        order: 6,
+        caps: ['contracts'],
+        // childrens: [
+        //   {
+        //     label: __('Active contracts'),
+        //     route: '/contracts/active',
+        //     icon: ToggleRight
+        //   },
+        //   {
+        //     label: __('Previous contracts'),
+        //     route: '/contracts/archive',
+        //     icon: ChevronFirst
+        //   }
+        // ]
+      },
+      {
+        label: __('Packages'),
+        icon: Boxes,
+        route: '/packages',
+        order: 7,
+        caps: ['packages'],
+      },
+      {
+        label: __('Invoices'),
+        icon: Receipt,
+        route: '/invoices',
+        order: 7,
+        caps: ['invoices'],
+      },
+      {
+        label: __('Resources'),
+        order: 8,
+        caps: ['partner-docs', 'service-docs', 'support-ticket'],
+        class: 'sidebar-menu-group-title'
+      },
+      {
+        label: __('Partner docs'),
+        icon: BookMarked,
+        route: '/resources/partner-docs',
+        order: 9,
+        caps: ['partner-docs'],
+      },
+      {
+        label: __('Service docs'),
+        icon: BookOpenText,
+        route: '/resources/service-docs',
+        order: 10,
+        caps: ['service-docs'],
+      },
+      {
+        label: __('Support'),
+        icon: HeartHandshake,
+        route: '/support/supports',
+        order: 11,
+        caps: ['support-ticket'],
+        // childrens: [
+        //   {
+        //     label: __('Supports'),
+        //     route: '/support/supports',
+        //     icon: LifeBuoy
+        //   },
+        //   {
+        //     label: __('Open Ticket'),
+        //     route: '/support/open-ticket',
+        //     icon: TicketPlus
+        //   }
+        // ]
+      },
+      {
+        label: __('Admin'),
+        order: 12,
+        caps: ['payouts', 'team'],
+        class: 'sidebar-menu-group-title'
+      },
+      {
+        label: __('Payouts'),
+        icon: CreditCard,
+        route: '/payouts',
+        order: 13,
+        caps: ['payouts'],
+      },
+      {
+        label: __('Team'),
+        icon: UsersRound,
+        route: '/team',
+        order: 14,
+        caps: ['team'],
+      },
+      // {
+      //   label: __('Settings'),
+      //   icon: Bolt,
+      //   route: '/settings',
+      //   order: 15,
+      //   caps: ['read'],
+      // }
+    ]);
+  }, [auth]);
+  
   return (
     <>
       <Outlet />
+        {/* // location.host !== 'partners.ecommerized.com' ? r :
+        // (
+        //   // , '/resources/service-docs', '/resources/partner-docs', '/packages', '/stores', '/support', '/contracts'
+        //   !['/users', '/invoices', '/team', '/settings'].includes(r.route)
+        //   && ! ['sidebar-menu-group-title'].includes(r?.class)
+        // ) */}
       <ul className="sidebar-menu" id="sidebar-menu">
-        {navMenus().filter(r => 
-        location.host !== 'partners.ecommerized.com' ? r :
-        (
-          // , '/resources/service-docs', '/resources/partner-docs', '/packages', '/stores', '/support', '/contracts'
-          !['/users', '/invoices', '/team', '/settings'].includes(r.route)
-          && ! ['sidebar-menu-group-title'].includes(r?.class)
-        )
-      ).map((item, index) => (
-          <NavItem key={index} item={item} />
-        ))}
+        {navMenus
+        .map(r => ({...r, childrens: (r?.childrens??[]).filter(i => roles.has_ability(i?.caps))})).filter(r => roles.has_ability(r?.caps))
+        .map((item, index) => <NavItem key={index} item={item} />)}
       </ul>
     </>
   );

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from '@common/link';
 import request from "@common/request";
-import { home_url, rest_url, notify, strtotime } from "@functions";
+import { home_url, rest_url, notify, strtotime, roles } from "@functions";
 import { usePopup } from '@context/PopupProvider';
 import { useTranslation } from '@context/LanguageProvider';
 import { Trash2, SquarePen, Eye, Plus, Search, ChevronsLeft, ChevronsRight, CheckCircle, XCircle } from 'lucide-react';
@@ -330,6 +330,7 @@ function PayoutRequestForm({ maxAmount }) {
 
 function ViewPayout({ item, setItems }) {
     const { __ } = useTranslation();
+    const { print_money } = useCurrency();
     const [loading, setLoading] = useState(null);
     const { id, user_id, status, currency, amount, method, account_id, created_at, updated_at, approved_at, approved_by, comment } = item;
 
@@ -375,7 +376,7 @@ function ViewPayout({ item, setItems }) {
                         <strong className="xpo_font-medium">{__('User ID:')}</strong><span>{user_id}</span>
                     </p>
                     <p className="xpo_text-sm xpo_flex xpo_gap-1 xpo_items-center">
-                        <strong className="xpo_font-medium">{__('Amount:')}</strong><span>{currency} {amount}</span>
+                        <strong className="xpo_font-medium">{__('Amount:')}</strong><span>{print_money(amount, currency)}</span>
                     </p>
                     <p className="xpo_text-sm xpo_flex xpo_gap-1 xpo_items-center">
                         <strong className="xpo_font-medium">{__('Method:')}</strong><span>{method}</span>
@@ -388,7 +389,7 @@ function ViewPayout({ item, setItems }) {
                         {status === "approved" ? (
                             <span className="text-success-main mb-0 xpo_capitalize"> {status}</span>
                         ) : (
-                            (true && status === 'pending') ? (
+                            (roles.has_ability('project_manager') && status === 'pending') ? (
                                 <select defaultChecked={status} onChange={handleStatusChange}>
                                     <option value="approved">{__('Pending')}</option>
                                     <option value="approved">{__('Approved')}</option>
@@ -408,9 +409,12 @@ function ViewPayout({ item, setItems }) {
                             <strong className="xpo_font-medium">{__('Approved At:')}</strong><span>{strtotime(approved_at).format('DD MMM YYYY HH:mm')} ({sprintf('Approved by User ID: %d', approved_by)})</span>
                         </p>
                     )}
-                    <p className="xpo_text-sm xpo_flex xpo_gap-1 xpo_items-center">
-                        <strong className="xpo_font-medium">{__('Comment:')}</strong><span>{comment}</span>
-                    </p>
+                    {comment.trim() === '' &&
+                        <p className="xpo_text-sm xpo_block">
+                            <strong className="xpo_font-medium xpo_block">{__('Comment:')}</strong>
+                            <p>{comment}</p>
+                        </p>
+                    }
                 </div>
             </div>
         </div>

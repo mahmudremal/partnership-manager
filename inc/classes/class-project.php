@@ -23,6 +23,7 @@ class Project {
 		Task::get_instance();
 		Error::get_instance();
 		Users::get_instance();
+		Roles::get_instance();
 		Menus::get_instance();
 		Option::get_instance();
 		Assets::get_instance();
