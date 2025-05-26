@@ -7,7 +7,10 @@ import NoAccess from '@components/element/noaccess.jsx'
 const Home = lazy(() => import('./home'));
 
 const ErrorPage = lazy(() => import('./pages/error'));
+
 const ReferralsScreen = lazy(() => import('./pages/referrals'));
+const Referral_View = lazy(() => import('./pages/referrals/view'));
+
 const Active_Referrals = lazy(() => import('./pages/referrals/active'));
 const Inactive_Referrals = lazy(() => import('./pages/referrals/inactive'));
 
@@ -75,6 +78,7 @@ export default function Content() {
                     <Route path={home_route('/referrals')} element={!roles.has_ability('referral') ? <NoAccess /> : <ReferralsScreen />} />
                     <Route path={home_route('/referrals/active')} element={!roles.has_ability('referral') ? <NoAccess /> : <Active_Referrals />} />
                     <Route path={home_route('/referrals/inactive')} element={!roles.has_ability('referral') ? <NoAccess /> : <Inactive_Referrals />} />
+                    <Route path={home_route('/referrals/:referral_id/view')} element={!roles.has_ability('referral') ? <NoAccess /> : <Referral_View />} />
                     
                     <Route path={home_route('/packages')} element={!roles.has_ability('packages') ? <NoAccess /> : <Packages />} />
                     <Route path={home_route('/packages/:package_id/:pricing_plan/checkout')} element={!roles.has_ability('packages') ? <NoAccess /> : <Checkout />} />

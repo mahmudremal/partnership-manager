@@ -210,7 +210,7 @@ class Payment_Tap {
             'amount' => $args['amount'],
             'currency' => $args['currency'],
             'toAccountId' => $args['account_id'],
-            'description' => sprintf(__('Payout to account %s', 'domain'), $args['account_id'])
+            'description' => sprintf(__('Payout to account %s', 'partnership-manager'), $args['account_id'])
         ];
 
         return $payload;

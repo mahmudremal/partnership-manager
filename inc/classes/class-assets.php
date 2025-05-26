@@ -64,7 +64,13 @@ class Assets {
 		wp_register_style('wp-partnershipm-tailwind', WP_PARTNERSHIPM_DIR_URI . '/assets/tailwind.css', [], $this->filemtime(WP_PARTNERSHIPM_DIR_PATH . '/assets/tailwind.css'), 'all');
 		wp_register_style('wp-partnershipm-admin', WP_PARTNERSHIPM_BUILD_CSS_URI . '/admin.css', [], $this->filemtime(WP_PARTNERSHIPM_BUILD_CSS_DIR_PATH . '/admin.css'), 'all');
 		wp_register_script('wp-partnershipm-admin', WP_PARTNERSHIPM_BUILD_JS_URI . '/admin.js', [ 'wp-partnershipm-runtime' ], $this->filemtime(WP_PARTNERSHIPM_BUILD_JS_DIR_PATH . '/admin.js'), true);
+		wp_register_script('wp-partnershipm-setting', WP_PARTNERSHIPM_BUILD_JS_URI . '/setting.js', [], $this->filemtime(WP_PARTNERSHIPM_BUILD_JS_DIR_PATH . '/setting.js'), true);
 		wp_localize_script('wp-partnershipm-admin', 'partnershipmangConfig', apply_filters('partnershipmang/siteconfig', []));
+		// 
+		if ($curr_page == 'settings_page_wp-partnershipm') {
+			wp_enqueue_script('wp-partnershipm-setting');
+		}
+		// 
 		if ($curr_page !== 'toplevel_page_pro-tools') {return;}
 		wp_enqueue_style('wp-partnershipm-tailwind');
 		wp_enqueue_style('wp-partnershipm-admin');

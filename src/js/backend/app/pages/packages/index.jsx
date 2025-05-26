@@ -66,7 +66,7 @@ export default function Packages({ viewType = 'list' }) {
             <div className="card-body xpo_px-4 xpo_py-2">
                 <div className="justify-content-center">
                     <div className="xpo_w-full">
-                        <div className="xpo_grid xpo_gap-4 xpo_grid-cols-3">
+                        <div className="xpo_grid xpo_gap-4 xpo_grid-cols-1 sm:xpo_grid-cols-2 lg:xpo_grid-cols-3">
                             {packages.map((pack, index) => 
                                 <div className="pricing-plan-wrapper" key={index}>
                                     {/* scale-item */}

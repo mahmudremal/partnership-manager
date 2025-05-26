@@ -68,6 +68,7 @@ class Security {
 		$firstName = $request->get_param('firstName');
 		$lastName = $request->get_param('lastName');
 		$password2 = $request->get_param('password2');
+		$role = $request->get_param('role');
 
 		if ($isSignUp && !empty($isSignUp)) {
 			if (!empty($password) && $password == $password2) {
@@ -80,7 +81,20 @@ class Security {
 				if ($user_id || email_exists( $email )) {
 					return new WP_REST_Response(['message' => __('User already exists.', 'wp-partnershipm')], 403);
 				}
-				$created = wp_create_user( $username, $password, $email );
+				// $created = wp_create_user( $username, $password, $email );
+				if (!in_array($role, ['partnership_partner', 'partnership_influencer', 'partnership_stuff'])) {
+					$role = 'partnership_client';
+				}
+				$created = wp_insert_user([
+					'user_pass' => $password,
+					'user_login' => $username,
+					'first_name' => $firstName,
+					'last_name' => $lastName,
+					'role' => $role,
+					'meta_input' => [
+						// key => value
+					]
+				]);
 				if (!$created || is_wp_error($created)) {
 					return new WP_REST_Response(['message' => __('Failed to create account!', 'wp-partnershipm'), 'error' => $created->get_error_message()], 403);
 				}

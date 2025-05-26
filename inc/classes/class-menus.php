@@ -13,8 +13,8 @@ class Menus {
 		$this->setup_hooks();
 	}
 	protected function setup_hooks() {
-		add_filter('pm_project/settings/general', [$this, 'general'], 10, 1);
-		add_filter('pm_project/settings/fields', [$this, 'menus'], 10, 1);
+		add_filter('pm_project/settings/general', [$this, 'general'], 1, 1);
+		add_filter('pm_project/settings/fields', [$this, 'menus'], 1, 1);
 	}
 	/**
 	 * WordPress Option page.
@@ -33,7 +33,7 @@ class Menus {
 	public function menus($args) {
 		// apply_filters('pm_project/system/isactive', 'general-paused')
 		// apply_filters('pm_project/system/getoption', 'general-paused', false)
-		$args['general']		= [
+		$args['general']	= [
 			'title'							=> __('General', 'wp-partnershipm'),
 			'description'					=> __('General settings for teddy-bear customization popup.', 'wp-partnershipm'),
 			'fields'						=> [
@@ -70,7 +70,7 @@ class Menus {
 				],
 			]
 		];
-		$args['payment']		= [
+		$args['payment']	= [
 			'title'							=> __('Payment', 'wp-partnershipm'),
 			'description'					=> __('Payment configurations, gateway setups and all necessery things will be done form here.', 'wp-partnershipm'),
 			'fields'						=> [
@@ -107,7 +107,7 @@ class Menus {
 
 			]
 		];
-		$args['checkout']		= [
+		$args['checkout']	= [
 			'title'							=> __('Checkout', 'wp-partnershipm'),
 			'description'					=> __('Checkout configurations, fields customization. Things enables and disables.', 'wp-partnershipm'),
 			'fields'						=> [

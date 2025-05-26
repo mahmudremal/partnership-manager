@@ -88,7 +88,7 @@ class Users {
             [
                 'methods'             => 'POST',
                 'callback'            => [$this, 'partnership_update_user_avater'],
-                // 'permission_callback' => [Security::get_instance(), 'permission_callback']
+                'permission_callback' => '__return_true'
             ]
         );
     }
@@ -145,11 +145,11 @@ class Users {
     public function partnership_get_user_details( WP_REST_Request $request ) {
         $user_id = $request->get_param( 'user_id' );
         if ( ! $user_id ) {
-            return new WP_Error( 'invalid_user_id', __( 'User ID is required.', 'domain' ), array( 'status' => 400 ) );
+            return new WP_Error( 'invalid_user_id', __( 'User ID is required.', 'partnership-manager' ), array( 'status' => 400 ) );
         }
         $user = get_userdata( $user_id );
         if ( ! $user ) {
-            return new WP_Error( 'rest_user_invalid_id', __( 'Invalid user ID.', 'domain' ), array( 'status' => 404 ) );
+            return new WP_Error( 'rest_user_invalid_id', __( 'Invalid user ID.', 'partnership-manager' ), array( 'status' => 404 ) );
         }
         // return rest_ensure_response( $this->prepare_user_data_for_response( $user ) );
         // $user_meta = get_user_meta($user_id, false, true);

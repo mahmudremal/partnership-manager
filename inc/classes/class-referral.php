@@ -272,7 +272,7 @@ class Referral {
 
 	public function maybe_create_user( $args ) {
 		if ( ! isset( $args['email'] ) || empty( $args['email'] ) ) {
-			return new WP_Error( 'email_required', __( 'Email is required.', 'domain' ) );
+			return new WP_Error( 'email_required', __( 'Email is required.', 'partnership-manager' ) );
 		}
 	
 		$email = sanitize_email( $args['email'] );
@@ -288,7 +288,7 @@ class Referral {
 				'user_pass'   => wp_generate_password(),
 				'first_name'  => isset( $args['first_name'] ) ? sanitize_text_field( $args['first_name'] ) : '',
 				'last_name'   => isset( $args['last_name'] ) ? sanitize_text_field( $args['last_name'] ) : '',
-				'role'        => 'subscriber',
+				'role'        => $args['role'] ?? 'subscriber',
 			);
 	
 			$user_id = wp_insert_user( $userdata );

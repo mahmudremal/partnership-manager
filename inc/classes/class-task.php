@@ -54,16 +54,20 @@ class Task {
 
     public function rest_api_init() {
         register_rest_route('partnership/v1', '/tasks/search', [
-            'methods' => 'GET', 'callback' => [$this, 'tasks_search']
+            'methods' => 'GET', 'callback' => [$this, 'tasks_search'],
+            'permission_callback' => '__return_true'
         ]);
         register_rest_route('partnership/v1', '/tasks/attachments/schemas/(?P<file_name>[^/]+)', [
-            'methods' => 'GET', 'callback' => [$this, 'get_attachment_schema']
+            'methods' => 'GET', 'callback' => [$this, 'get_attachment_schema'],
+            'permission_callback' => '__return_true'
         ]);
         register_rest_route('partnership/v1', '/tasks/(?P<task_id>\d+)', [
-            'methods' => 'POST', 'callback' => [$this, 'task_update']
+            'methods' => 'POST', 'callback' => [$this, 'task_update'],
+            'permission_callback' => '__return_true'
         ]);
         register_rest_route('partnership/v1', '/tasks/(?P<task_id>\d+)/submit', [
-            'methods' => 'POST', 'callback' => [$this, 'task_submit']
+            'methods' => 'POST', 'callback' => [$this, 'task_submit'],
+            'permission_callback' => '__return_true'
         ]);
         register_rest_route('partnership/v1', '/post-table/(?P<post_type>[a-zA-Z0-9_-]+)/(?P<post_id>\d+)', [
             'methods'  => 'GET',
@@ -79,7 +83,8 @@ class Task {
                     // 'validate_callback' => function ($param, $request, $key) {return is_numeric( $param );},
                     'description'       => __('The ID of the requested item.', 'wp-partnershipm')
                 ]
-            ]
+            ],
+            'permission_callback' => '__return_true'
         ]);
         register_rest_route('partnership/v1', '/post-table/(?P<post_type>[a-zA-Z0-9_-]+)/(?P<post_id>\d+)', [
             'methods'             => 'POST',
@@ -95,7 +100,8 @@ class Task {
                     'description'       => __('The ID of the requested item.', 'wp-partnershipm'),
                     // 'validate_callback' => function ($param, $request, $key) {return is_numeric( $param );}
                 ],
-            ]
+            ],
+            'permission_callback' => '__return_true'
         ]);
     }
 

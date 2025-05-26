@@ -60,7 +60,7 @@ class Payment {
 		register_rest_route('partnership/v1', '/payment/gateways', [
 			'methods' => 'GET',
 			'callback' => [$this, 'get_payment_gateways'],
-            // 'permission_callback' => [Security::get_instance(), 'permission_callback']
+            'permission_callback' => '__return_true'
 		]);
 		register_rest_route('partnership/v1', '/payment/switch/(?P<gateway>[^/]+)', [
 			'methods' => 'GET',

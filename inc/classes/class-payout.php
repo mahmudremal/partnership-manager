@@ -245,7 +245,7 @@ class Payout {
                 return new WP_Error('payment_execution_error', $_payment_executed->get_error_message(), ['status' => 500]);
             }
             if (! $_payment_executed) {
-                return new WP_Error('payment_execution_error', __('Failed to execute the payment.', 'domain'), ['status' => 500]);
+                return new WP_Error('payment_execution_error', __('Failed to execute the payment.', 'partnership-manager'), ['status' => 500]);
             }
         }
 
@@ -256,13 +256,13 @@ class Payout {
         );
     
         if ($updated === false) {
-            return new WP_Error('database_update_error', __('Failed to update the payout status.', 'domain'), ['status' => 500]);
+            return new WP_Error('database_update_error', __('Failed to update the payout status.', 'partnership-manager'), ['status' => 500]);
         }
     
         // Return a success response
         return rest_ensure_response([
             'success' => true,
-            'message' => __('Payout status updated successfully.', 'domain'),
+            'message' => __('Payout status updated successfully.', 'partnership-manager'),
             'payout_id' => $payout_id,
             'new_status' => $payout_status,
         ]);

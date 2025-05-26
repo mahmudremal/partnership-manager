@@ -103,10 +103,12 @@ class Supports {
 		register_rest_route('partnership/v1', '/supports/ticket', [
 			'methods' => 'POST',
 			'callback' => [$this, 'support_create_ticket'],
+            'permission_callback' => '__return_true'
 		]);
 		register_rest_route('partnership/v1', '/supports/tickets', [
 			'methods' => 'GET',
 			'callback' => [$this, 'support_list_tickets'],
+            'permission_callback' => '__return_true'
 		]);
     }
 

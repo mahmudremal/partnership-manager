@@ -50,7 +50,7 @@ class Partner_Docs {
                     'sanitize_callback' => 'absint',
                 ],
             ],
-			// 'permission_callback' => [Security::get_instance(), 'permission_callback']
+			'permission_callback' => '__return_true'
 		]);
 		register_rest_route('partnership/v1', '/docs/(?P<post_type>(service_doc|partner_doc))/(?P<post_taxonomy>(partner_category|service_category))', [
 			'methods' => 'GET',
@@ -61,7 +61,7 @@ class Partner_Docs {
                     'sanitize_callback' => 'sanitize_text_field',
                 ],
             ],
-			// 'permission_callback' => [Security::get_instance(), 'permission_callback']
+			'permission_callback' => '__return_true'
 		]);
 		register_rest_route('partnership/v1', '/docs/(?P<post_type>(service_doc|partner_doc))/(?P<post_taxonomy>(partner_category|service_category))/(?P<category_slug>[^/]+)', [
 			'methods' => 'GET',
@@ -76,7 +76,7 @@ class Partner_Docs {
                     'sanitize_callback' => 'sanitize_text_field',
                 ],
             ],
-			// 'permission_callback' => [Security::get_instance(), 'permission_callback']
+			'permission_callback' => '__return_true'
 		]);
 		register_rest_route('partnership/v1', '/docs/(?P<post_type>(service_doc|partner_doc))/raw/(?P<post_slug>[^/]+)', [
 			'methods' => 'GET',
@@ -91,7 +91,7 @@ class Partner_Docs {
                     'sanitize_callback' => 'sanitize_text_field',
                 ],
             ],
-			// 'permission_callback' => [Security::get_instance(), 'permission_callback']
+			'permission_callback' => '__return_true'
 		]);
     }
     

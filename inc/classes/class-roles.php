@@ -22,24 +22,45 @@ class Roles {
 	}
 
     protected function setup_hooks() {
+        add_action('rest_api_init', [$this, 'register_routes']);
         add_filter('init', [$this, 'register_custom_partnership_roles']);
+        add_filter('pm_project/settings/fields', [$this, 'settings'], 4, 1);
         add_filter('admin_init', [$this, 'restrict_partnership_roles_admin_access']);
         add_action('after_setup_theme', [$this, 'disable_toolbar_for_partnership_roles']);
     }
 
+    public function register_routes() {
+		register_rest_route('partnership/v1', '/settings/roles', [
+			'methods' => 'POST',
+			'callback' => [$this, 'api_settings_roles'],
+			'permission_callback' => function(WP_REST_Request $request) {
+                // if ( ! is_user_logged_in() ) {
+                //     return new WP_Error('rest_not_logged_in', __('You must be logged in to access this endpoint.', 'partnership-manager'), ['status' => 401]);
+                // }
+                // $_nonce = $request->get_header('X-WP-Nonce');
+                // return !empty($_nonce) && wp_verify_nonce($_nonce, '_role_settings_security');
+                return true;
+            },
+		]);
+		register_rest_route('partnership/v1', '/roles', [
+			'methods' => 'GET',
+			'callback' => [$this, 'api_list_roles'],
+            'permission_callback' => '__return_true'
+		]);
+    }
     
     public function get_roles() {
         if ( ! $this->roles ) {
+            $roles = get_option('_partnership_roles', []);
             $this->roles = [
                 'partnership_project_manager' => [
                     'label' => __('Partnership Project Manager', 'partnership-manager'),
                     'capabilities' => [
                         'all_access' => true,
                     ],
-                    
                 ],
                 'partnership_stuff'          => [
-                    'label' => __('Partnership Stuff', 'partnership-manager'),
+                    'label' => __('Partnership Freelancer', 'partnership-manager'),
                     'capabilities' => [
                         'read' => true,
                         'payouts' => true,
@@ -92,6 +113,11 @@ class Roles {
                     ],
                 ],
             ];
+            foreach ($this->roles as $role_key => $role) {
+                if (isset($roles[$role_key])) {
+                    $this->roles[$role_key]['capabilities'] = $roles[$role_key];
+                }
+            }
         }
         return $this->roles;
     }
@@ -133,4 +159,43 @@ class Roles {
         }
     }
 
+    public function api_settings_roles(WP_REST_Request $request) {
+        $form = (array) $request->get_param('form') ?: [];
+        if (empty($form)) {
+            return new WP_Error('no_data_found', 'No data found.', ['status' => 404]);
+        }
+        $_updated = update_option('_partnership_roles', $form, null);
+        // $_updated = $form;
+        return rest_ensure_response(['success' => $_updated]);
+    }
+
+    public function api_list_roles(WP_REST_Request $request) {
+        return rest_ensure_response($this->get_roles());
+    }
+    
+    public function settings($args) {
+		$args['roles']		= [
+			'title'							=> __('Roles', 'wp-partnershipm'),
+			'description'					=> __('Roles configurations, fields customization. Things enables and disables.', 'wp-partnershipm'),
+			'fields'						=> [
+				[
+					'id' 					=> 'roles-assign-interface',
+					'label'					=> __('N/A', 'wp-partnershipm'),
+					'description'			=> __('Role assign interface will be apear here.', 'wp-partnershipm'),
+					'type'					=> 'text',
+					'default'				=> '',
+					'attr'					=> [
+						'data-config'		=> esc_attr(
+							json_encode([
+								'_nonce'		=> wp_create_nonce('_role_settings_security'),
+								'roles'			=> Roles::get_instance()->get_roles()
+							])
+						),
+					]
+				],
+			]
+		];
+        return $args;
+    }
+    
 }

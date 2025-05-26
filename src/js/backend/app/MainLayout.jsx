@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Nav } from '@components/sidebar/nav';
 import { Link } from '@common/link';
 import { home_url } from '@functions';
@@ -15,22 +15,43 @@ import logoIcon from '@img/logo-icon.png';
 import logoLight from '@img/logo-light.png';
 import Breadcrumb from '@components/sidebar/breadcrumb';
 
+const is_mobile_width = () => {return window.innerWidth <= 1200;}
 
 const MainLayout = ({ children }) => {
     const { __ } = useTranslation();
     const { theme, switchTheme } = useTheme();
     
-    const [miniSidebar, setMiniSidebar] = useState(null);
+    const [opened, setOpened] = useState(false);
+    const [miniSidebar, setMiniSidebar] = useState(false);
     
-    
-    const toggleMiniSidebar = () => {
-        setMiniSidebar(prevMode => !prevMode);
-    }
+    useEffect(() => {
+        console.log('IOS', opened, is_mobile_width())
+        if (opened) {
+            document.body.classList.add('overlay-active');
+        } else {
+            document.body.classList.remove('overlay-active');
+        }
+
+        const handleResize = () => {
+            if (opened) {
+                document.body.classList.add('overlay-active');
+            } else {
+                document.body.classList.remove('overlay-active');
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            document.body.classList.remove('overlay-active');
+        };
+    }, [opened]);
 
     return (
         <section>
-            <aside className={ `sidebar ${miniSidebar ? 'active' : ''}` }>
-                <button type="button" className="sidebar-close-btn">
+            {/* sidebar sidebar-open */}
+            <aside className={ `sidebar ${miniSidebar ? 'active' : ''} ${opened ? 'sidebar-open' : ''}` }>
+                <button type="button" className="sidebar-close-btn" onClick={(e) => is_mobile_width() ? setOpened(false) : setMiniSidebar(false)}>
                     <X />
                 </button>
                 <div>
@@ -44,16 +65,16 @@ const MainLayout = ({ children }) => {
                     <Nav />
                 </div>
             </aside>
-            <main className={ `dashboard-main ${miniSidebar && 'active'}` }>
+            <main className={ `dashboard-main xpo_relative ${miniSidebar ? 'active' : null}` }>
                 <div className="navbar-header">
                     <div className="row align-items-center justify-content-between">
                         <div className="col-auto">
                             <div className="d-flex flex-wrap align-items-center gap-4">
-                                <button type="button" className={ `sidebar-toggle ${miniSidebar && 'active'}` } onClick={toggleMiniSidebar}>
+                                <button type="button" className={ `sidebar-toggle ${miniSidebar ? 'active' : null}` } onClick={(e) => setMiniSidebar(prev => !prev)}>
                                     <Menu className="icon text-2xl non-active" />
                                     <ChevronRight className="icon text-2xl active" />
                                 </button>
-                                <button type="button" className="sidebar-mobile-toggle">
+                                <button type="button" className="sidebar-mobile-toggle" onClick={(e) => setOpened(prev => !prev)}>
                                     <Menu className="icon" />
                                 </button>
                                 <form className="navbar-search">
@@ -90,6 +111,8 @@ const MainLayout = ({ children }) => {
                 </div>
 
                 <Footer />
+                
+                {opened ? <div className="xpo_absolute xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full xpo_bg-slate-600 xpo_opacity-50 xpo_cursor-auto" onClick={(e) => setOpened(prev => !prev)}></div> : null}
             </main>
         </section>
     );

@@ -395,7 +395,7 @@ function ViewPayout({ item, setItems }) {
                                     <option value="approved">{__('Approved')}</option>
                                     <option value="declined">{__('Declined')}</option>
                                 </select>
-                            ) : <span className="text-warning-main mb-0 xpo_capitalize"> {__(status)}</span>
+                            ) : <span className={ `mb-0 xpo_capitalize ${status === 'declined' ? 'text-danger-main' : 'text-warning-main'}` }> {__(status)}</span>
                         )}
                     </p>
                     <p className="xpo_text-sm xpo_flex xpo_gap-1 xpo_items-center">

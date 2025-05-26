@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@context/LanguageProvider';
 import { Link } from '@common/link';
-import { home_url, rest_url, notify } from '@functions';
+import { home_url, rest_url, notify, roles } from '@functions';
 import request from '@common/request';
 import { Download, TicketPlus } from 'lucide-react';
 import faqImg from '@img/faq-img.png';
@@ -58,12 +58,16 @@ export default function Supports() {
                                 <Link to={home_url('/support/open-ticket')} className="btn btn-primary mt-4">
                                     {__('Open New Ticket')}
                                 </Link>
-                                <Link to={home_url('/resources/partner-docs')} className="btn btn-outline-primary mt-4 ms-2">
-                                    {__('Documentation')}
-                                </Link>
-                                <Link to={home_url('/resources/service-docs')} className="btn btn-outline-primary mt-4 ms-2">
-                                    {__('FAQ')}
-                                </Link>
+                                {roles.has_ability('partner-docs') ? 
+                                    <Link to={home_url('/resources/partner-docs')} className="btn btn-outline-primary mt-4 ms-2">
+                                        {__('Documentation')}
+                                    </Link>
+                                : null}
+                                {roles.has_ability('service-docs') ? 
+                                    <Link to={home_url('/resources/service-docs')} className="btn btn-outline-primary mt-4 ms-2">
+                                        {__('FAQ')}
+                                    </Link>
+                                : null}
                             </div>
                         </div>
                         <div className="col-xl-5 d-xl-block d-none xpo_relative">

@@ -20,6 +20,7 @@ class Project {
 	 */
 	protected function __construct() {
 		// Load class instances.
+		Cdn::get_instance();
 		Task::get_instance();
 		Error::get_instance();
 		Users::get_instance();

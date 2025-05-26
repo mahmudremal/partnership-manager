@@ -41,7 +41,7 @@ class Contract {
 		register_rest_route('partnership/v1', '/contracts/packages', [
 			'methods' => 'GET',
 			'callback' => [$this, 'get_contracts_packages'],
-            // 'permission_callback' => [Security::get_instance(), 'permission_callback']
+            'permission_callback' => '__return_true'
 		]);
 		register_rest_route('partnership/v1', '/contracts/packages/(?P<package_id>\d+)', [
 			'methods' => 'GET',

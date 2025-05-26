@@ -180,169 +180,151 @@ const Referrals = ({ filters = 'any' }) => {
 
 export default function ReferralsScreen({ filters = 'any' }) {
     return (
-        <div className="row">
-            <div className="col-xxl-8">
+        <div className="xpo_grid xpo_gap-4 xl:xpo_grid-cols-3">
+            <div className="xl:xpo_col-span-2 md:xpo_col-span-5 sm:xpo_col-span-5">
                 <div className="card h-100 radius-8 border-0">
                     <div className="card-body p-24">
                         <Referrals filters={filters} />
                     </div>
                 </div>
             </div>
-
-            <div className="col-xxl-4">
-                <div className="row gy-4">
-                    <div className="col-xxl-12 col-sm-6">
-                        <div className="card h-100 radius-8 border-0">
-                            <div className="card-body p-24">
-                                <div className="d-flex align-items-center flex-wrap gap-2 justify-content-between">
-                                    <h6 className="mb-2 fw-bold text-lg">Campaigns</h6>
-                                </div>
-                                
-                                <div className="mt-3">
-                                    {/* referral link section here */}
-                                    {/* <div className="col-12">
-                                        <label className="form-label">Referral link</label>
-                                        <div className="input-group">
-                                            <input type="text" className="form-control" value={home_url('/')} readOnly="true" />
-                                            <button type="button" className="input-group-text bg-base xpo_flex xpo_gap-3" dataText={home_url('/')}>
-                                                <Copy />
-                                                <span>Copy</span>
-                                            </button>
-                                        </div>
-                                        <p className="text-sm mt-1 mb-0">This is a hint text to help user about referral link to share online. also besides copu button add another button [share] which will open a popup with some common social platform.</p>
-                                    </div> */}
-                                    <ReferralShareBox />
-                                    {/*  */}
-                                </div>
-
-                            </div>
+            <div className="xl:xpo_col-span-1 md:xpo_col-span-5 sm:xpo_col-span-5">
+                <div className="card h-100 radius-8 border-0">
+                    <div className="card-body p-24">
+                        <div className="d-flex align-items-center flex-wrap gap-2 justify-content-between">
+                            <h6 className="mb-2 fw-bold text-lg">Campaigns</h6>
                         </div>
+                        
+                        <div className="mt-3">
+                            <ReferralShareBox />
+                        </div>
+
                     </div>
-                    <div className="col-xxl-12 col-sm-6">
-                        <div className="card h-100 radius-8 border-0">
-                            <div className="card-body p-24">
-                                <div className="d-flex align-items-center flex-wrap gap-2 justify-content-between">
-                                    <h6 className="mb-2 fw-bold text-lg">Campaigns</h6>
-                                    <div className="">
-                                        <select className="form-select form-select-sm w-auto bg-base border text-secondary-light">
-                                            <option>Yearly</option>
-                                            <option>Monthly</option>
-                                            <option>Weekly</option>
-                                            <option>Today</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                
-                                <div className="mt-3">
-                                
-                                    <div className="d-flex align-items-center justify-content-between gap-3 mb-12">
-                                        <div className="d-flex align-items-center">
-                                            <span className="text-xxl line-height-1 d-flex align-content-center flex-shrink-0 text-orange">
-                                                <Mail className="icon" />
-                                            </span>
-                                            <span className="text-primary-light fw-medium text-sm ps-12">Email</span>
-                                        </div>
-                                        <div className="d-flex align-items-center gap-2 w-100">
-                                            <div className="w-100 max-w-66 ms-auto">
-                                                <div className="progress progress-sm rounded-pill" role="progressbar" aria-label="Success example" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
-                                                    <div className="progress-bar bg-orange rounded-pill" style={{width: '80%'}}></div>
-                                                </div>
-                                            </div>
-                                            <span className="text-secondary-light font-xs fw-semibold">80%</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="d-flex align-items-center justify-content-between gap-3 mb-12">
-                                        <div className="d-flex align-items-center">
-                                            <span className="text-xxl line-height-1 d-flex align-content-center flex-shrink-0 text-success-main">
-                                                <Globe className="icon" />
-                                            </span>
-                                            <span className="text-primary-light fw-medium text-sm ps-12">Website</span>
-                                        </div>
-                                        <div className="d-flex align-items-center gap-2 w-100">
-                                            <div className="w-100 max-w-66 ms-auto">
-                                                <div className="progress progress-sm rounded-pill" role="progressbar" aria-label="Success example" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
-                                                    <div className="progress-bar bg-success-main rounded-pill" style={{width: '60%'}}></div>
-                                                </div>
-                                            </div>
-                                            <span className="text-secondary-light font-xs fw-semibold">60%</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="d-flex align-items-center justify-content-between gap-3 mb-12">
-                                        <div className="d-flex align-items-center">
-                                            <span className="text-xxl line-height-1 d-flex align-content-center flex-shrink-0 text-info-main">
-                                                <iconify-icon icon="fa6-brands:square-facebook" className="icon" />
-                                            </span>
-                                            <span className="text-primary-light fw-medium text-sm ps-12">Facebook</span>
-                                        </div>
-                                        <div className="d-flex align-items-center gap-2 w-100">
-                                            <div className="w-100 max-w-66 ms-auto">
-                                                <div className="progress progress-sm rounded-pill" role="progressbar" aria-label="Success example" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
-                                                    <div className="progress-bar bg-info-main rounded-pill" style={{width: '49%'}}></div>
-                                                </div>
-                                            </div>
-                                            <span className="text-secondary-light font-xs fw-semibold">49%</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="d-flex align-items-center justify-content-between gap-3">
-                                        <div className="d-flex align-items-center">
-                                            <span className="text-xxl line-height-1 d-flex align-content-center flex-shrink-0 text-indigo">
-                                                <LocateOffIcon className="icon" />
-                                            </span>
-                                            <span className="text-primary-light fw-medium text-sm ps-12">Email</span>
-                                        </div>
-                                        <div className="d-flex align-items-center gap-2 w-100">
-                                            <div className="w-100 max-w-66 ms-auto">
-                                                <div className="progress progress-sm rounded-pill" role="progressbar" aria-label="Success example" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
-                                                    <div className="progress-bar bg-indigo rounded-pill" style={{width: '70%'}}></div>
-                                                </div>
-                                            </div>
-                                            <span className="text-secondary-light font-xs fw-semibold">70%</span>
-                                        </div>
-                                    </div>
-
-                                </div>
-
+                </div>
+            </div>
+            <div className="md:xpo_col-span-3 sm:xpo_col-span-5">
+                <div className="card h-100 radius-8 border-0">
+                    <div className="card-body p-24">
+                        <div className="d-flex align-items-center flex-wrap gap-2 justify-content-between">
+                            <h6 className="mb-2 fw-bold text-lg">Campaigns</h6>
+                            <div className="">
+                                <select className="form-select form-select-sm w-auto bg-base border text-secondary-light">
+                                    <option>Yearly</option>
+                                    <option>Monthly</option>
+                                    <option>Weekly</option>
+                                    <option>Today</option>
+                                </select>
                             </div>
                         </div>
+                        
+                        <div className="mt-3">
+                        
+                            <div className="d-flex align-items-center justify-content-between gap-3 mb-12">
+                                <div className="d-flex align-items-center">
+                                    <span className="text-xxl line-height-1 d-flex align-content-center flex-shrink-0 text-orange">
+                                        <Mail className="icon" />
+                                    </span>
+                                    <span className="text-primary-light fw-medium text-sm ps-12">Email</span>
+                                </div>
+                                <div className="d-flex align-items-center gap-2 w-100">
+                                    <div className="w-100 max-w-66 ms-auto">
+                                        <div className="progress progress-sm rounded-pill" role="progressbar" aria-label="Success example" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                                            <div className="progress-bar bg-orange rounded-pill" style={{width: '80%'}}></div>
+                                        </div>
+                                    </div>
+                                    <span className="text-secondary-light font-xs fw-semibold">80%</span>
+                                </div>
+                            </div>
+                            
+                            <div className="d-flex align-items-center justify-content-between gap-3 mb-12">
+                                <div className="d-flex align-items-center">
+                                    <span className="text-xxl line-height-1 d-flex align-content-center flex-shrink-0 text-success-main">
+                                        <Globe className="icon" />
+                                    </span>
+                                    <span className="text-primary-light fw-medium text-sm ps-12">Website</span>
+                                </div>
+                                <div className="d-flex align-items-center gap-2 w-100">
+                                    <div className="w-100 max-w-66 ms-auto">
+                                        <div className="progress progress-sm rounded-pill" role="progressbar" aria-label="Success example" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                                            <div className="progress-bar bg-success-main rounded-pill" style={{width: '60%'}}></div>
+                                        </div>
+                                    </div>
+                                    <span className="text-secondary-light font-xs fw-semibold">60%</span>
+                                </div>
+                            </div>
+                            
+                            <div className="d-flex align-items-center justify-content-between gap-3 mb-12">
+                                <div className="d-flex align-items-center">
+                                    <span className="text-xxl line-height-1 d-flex align-content-center flex-shrink-0 text-info-main">
+                                        <iconify-icon icon="fa6-brands:square-facebook" className="icon" />
+                                    </span>
+                                    <span className="text-primary-light fw-medium text-sm ps-12">Facebook</span>
+                                </div>
+                                <div className="d-flex align-items-center gap-2 w-100">
+                                    <div className="w-100 max-w-66 ms-auto">
+                                        <div className="progress progress-sm rounded-pill" role="progressbar" aria-label="Success example" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                                            <div className="progress-bar bg-info-main rounded-pill" style={{width: '49%'}}></div>
+                                        </div>
+                                    </div>
+                                    <span className="text-secondary-light font-xs fw-semibold">49%</span>
+                                </div>
+                            </div>
+                            
+                            <div className="d-flex align-items-center justify-content-between gap-3">
+                                <div className="d-flex align-items-center">
+                                    <span className="text-xxl line-height-1 d-flex align-content-center flex-shrink-0 text-indigo">
+                                        <LocateOffIcon className="icon" />
+                                    </span>
+                                    <span className="text-primary-light fw-medium text-sm ps-12">Email</span>
+                                </div>
+                                <div className="d-flex align-items-center gap-2 w-100">
+                                    <div className="w-100 max-w-66 ms-auto">
+                                        <div className="progress progress-sm rounded-pill" role="progressbar" aria-label="Success example" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                                            <div className="progress-bar bg-indigo rounded-pill" style={{width: '70%'}}></div>
+                                        </div>
+                                    </div>
+                                    <span className="text-secondary-light font-xs fw-semibold">70%</span>
+                                </div>
+                            </div>
+
+                        </div>
+
                     </div>
-                    <div className="col-xxl-12 col-sm-6">
-                        <div className="card h-100 radius-8 border-0 overflow-hidden">
-                            <div className="card-body p-24">
-                                <div className="d-flex align-items-center flex-wrap gap-2 justify-content-between">
-                                    <h6 className="mb-2 fw-bold text-lg">Customer Overview</h6>
-                                    <div className="">
-                                        <select className="form-select form-select-sm w-auto bg-base border text-secondary-light">
-                                            <option>Yearly</option>
-                                            <option>Monthly</option>
-                                            <option>Weekly</option>
-                                            <option>Today</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div className="d-flex flex-wrap align-items-center mt-3"> 
-                                    <ul className="flex-shrink-0">
-                                        <li className="d-flex align-items-center gap-2 mb-28">
-                                            <span className="w-12-px h-12-px rounded-circle bg-success-main"></span>
-                                            <span className="text-secondary-light text-sm fw-medium">Total: 500</span>
-                                        </li>
-                                        <li className="d-flex align-items-center gap-2 mb-28">
-                                            <span className="w-12-px h-12-px rounded-circle bg-warning-main"></span>
-                                            <span className="text-secondary-light text-sm fw-medium">New: 500</span>
-                                        </li>
-                                        <li className="d-flex align-items-center gap-2">
-                                            <span className="w-12-px h-12-px rounded-circle bg-primary-600"></span>
-                                            <span className="text-secondary-light text-sm fw-medium">Active: 1500</span>
-                                        </li>
-                                    </ul>
-                                    <div id="donutChart" className="flex-grow-1 apexcharts-tooltip-z-none title-style circle-none"></div>
-                                </div>
-                                
+                </div>
+            </div>
+            <div className="md:xpo_col-span-2 sm:xpo_col-span-5">
+                <div className="card h-100 radius-8 border-0 overflow-hidden">
+                    <div className="card-body p-24">
+                        <div className="d-flex align-items-center flex-wrap gap-2 justify-content-between">
+                            <h6 className="mb-2 fw-bold text-lg">Customer Overview</h6>
+                            <div className="">
+                                <select className="form-select form-select-sm w-auto bg-base border text-secondary-light">
+                                    <option>Yearly</option>
+                                    <option>Monthly</option>
+                                    <option>Weekly</option>
+                                    <option>Today</option>
+                                </select>
                             </div>
                         </div>
+
+                        <div className="d-flex flex-wrap align-items-center mt-3"> 
+                            <ul className="flex-shrink-0">
+                                <li className="d-flex align-items-center gap-2 mb-28">
+                                    <span className="w-12-px h-12-px rounded-circle bg-success-main"></span>
+                                    <span className="text-secondary-light text-sm fw-medium">Total: 500</span>
+                                </li>
+                                <li className="d-flex align-items-center gap-2 mb-28">
+                                    <span className="w-12-px h-12-px rounded-circle bg-warning-main"></span>
+                                    <span className="text-secondary-light text-sm fw-medium">New: 500</span>
+                                </li>
+                                <li className="d-flex align-items-center gap-2">
+                                    <span className="w-12-px h-12-px rounded-circle bg-primary-600"></span>
+                                    <span className="text-secondary-light text-sm fw-medium">Active: 1500</span>
+                                </li>
+                            </ul>
+                            <div id="donutChart" className="flex-grow-1 apexcharts-tooltip-z-none title-style circle-none"></div>
+                        </div>
+                        
                     </div>
                 </div>
             </div>

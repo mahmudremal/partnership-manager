@@ -66,12 +66,12 @@ class Invoice {
 		register_rest_route('partnership/v1', '/invoice/(?P<invoice_id>[^/]+)', [
 			'methods' => 'GET',
 			'callback' => [$this, 'api_get_invoice'],
-			// 'permission_callback' => [Security::get_instance(), 'permission_callback']
+			'permission_callback' => '__return_true'
 		]);
 		register_rest_route('partnership/v1', '/invoice/(?P<invoice_id>[^/]+)/pay', [
 			'methods' => 'POST',
 			'callback' => [$this, 'api_pay_invoice'],
-			// 'permission_callback' => [Security::get_instance(), 'permission_callback']
+			'permission_callback' => '__return_true'
 		]);
 		register_rest_route('partnership/v1', '/invoice/(?P<invoice_id>[^/]+)/share', [
 			'methods' => 'POST',
@@ -290,6 +290,7 @@ class Invoice {
             'email' => $customer['client_email'] ?? $customer['email'] ?? '',
             'first_name' => $customer['first_name'] ?? '',
             'last_name' => $customer['last_name'] ?? '',
+            'role' => 'partnership_client',
             ...$payload['customer'],
             'meta_data' => [
                 'converted' => true,
@@ -342,7 +343,7 @@ class Invoice {
             ], ['invoice_id' => $invoice_id]);
     
             if ($wpdb->last_error) {
-                return new WP_Error('db_update_error', __('Failed to update invoice.', 'domain'), ['status' => 500]);
+                return new WP_Error('db_update_error', __('Failed to update invoice.', 'partnership-manager'), ['status' => 500]);
             }
     
             $wpdb->delete($this->item_table, ['invoice_id' => $invoice_db_id], ['%d']);
@@ -356,7 +357,7 @@ class Invoice {
             ]);
     
             if ($wpdb->last_error) {
-                return new WP_Error('db_insert_error', __('Failed to create invoice.', 'domain'), ['status' => 500]);
+                return new WP_Error('db_insert_error', __('Failed to create invoice.', 'partnership-manager'), ['status' => 500]);
             }
     
             $invoice_db_id = $wpdb->insert_id;

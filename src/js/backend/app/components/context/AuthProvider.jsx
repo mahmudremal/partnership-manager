@@ -1,6 +1,6 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, use } from 'react';
 import { home_route, home_url, rest_url, app_url } from '@functions';
-import { Eye, EyeOff, LockKeyhole, Mail, UserRound } from 'lucide-react';
+import { Eye, EyeOff, HardHat, LockKeyhole, Mail, UserRound } from 'lucide-react';
 import { Link } from '@common/link';
 import { useSettings } from '@context/SettingsProvider';
 import { useTranslation } from "@context/LanguageProvider";
@@ -25,13 +25,11 @@ export const AuthProvider = ({ children }) => {
     const { setPopup } = usePopup();
     const navigate = useNavigate();
 
+    const [form, setForm] = useState({
+        isSignUp: settings?.isSignUp
+    });
+    const [roles, setRoles] = useState([]);
     const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [password2, setPassword2] = useState('');
-    const [username, setUsername] = useState('');
-    const [isSignUp, setSignUp] = useState(
-        settings?.isSignUp
-    );
     const [isReset, setIsReset] = useState(null);
     const [showPass, setShowPass] = useState(false);
     const [auth, setAuth] = useState(!(
@@ -40,10 +38,6 @@ export const AuthProvider = ({ children }) => {
     ));
     // const [auth, setAuth] = useState(settings?.loggedin === true);
     const [error, setError] = useState(null);
-
-    
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
 
     const login = async (args) => {
         try {
@@ -68,9 +62,10 @@ export const AuthProvider = ({ children }) => {
         setLoading(true);
         try {
             await login({
-                username: isSignUp ? '' : username,
-                email, password, isSignUp,
-                firstName, lastName, password2
+                ...form,
+                username: form?.isSignUp ? '' : form?.username,
+                // email, password, isSignUp,
+                // firstName, lastName, password2
             });
         } catch (err) {
             console.error('Login failed', err);
@@ -113,9 +108,27 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         if (auth) {
-            navigate(isSignUp ? '/signup' : '/signin');
+            navigate(form?.isSignUp ? '/signup' : '/signin');
         }
-    }, [isSignUp, navigate]);
+    }, [form?.isSignUp, navigate]);
+
+    useEffect(() => {
+        if (!auth) {return;}
+        if (!form?.isSignUp) {return;}
+        if (roles?.length) {return;}
+        request(rest_url('/partnership/v1/roles'))
+        .then(res => {
+            console.log(res);
+            setRoles(
+                Object.keys(res).filter(k => !['partnership_project_manager'].includes(k)).reduce((acc, roleKey) => {
+                    acc[roleKey] = res[roleKey].label;
+                    return acc;
+                }, {})
+            );
+        })
+        .catch(err => console.error(err))
+        .finally(() => {});
+    }, [form?.isSignUp, auth])
 
     return (
         <AuthContext.Provider value={{ auth, setAuth, logout }}>
@@ -128,13 +141,13 @@ export const AuthProvider = ({ children }) => {
                         </div>
                     </div>
                     <div className="auth-right py-32 px-24 d-flex flex-column justify-content-center">
-                        <div className={ `${isSignUp ? 'max-w-464-px' : 'xpo_max-w-xl'} mx-auto w-100` }>
+                        <div className={ `${form?.isSignUp ? 'max-w-464-px' : 'xpo_max-w-xl'} mx-auto w-100` }>
                             <div>
                                 <Link to={ home_url('/') } className="mb-40 max-w-290-px">
                                     <img src={logo} alt={__('Logo')} />
                                 </Link>
-                                <h4 className="mb-12">{isReset ? __('Reset Password') : (isSignUp ? __('Sign Up to your Account') : __('Sign In to your Account'))}</h4>
-                                <p className="mb-32 text-secondary-light text-lg">{isReset ? __('Enter the email address associated with your account and we will send you a link to reset your password.') : (isSignUp ? __('Welcome! please enter your detail') : __('Welcome back! please enter your detail'))}</p>
+                                <h4 className="mb-12">{isReset ? __('Reset Password') : (form?.isSignUp ? __('Sign Up to your Account') : __('Sign In to your Account'))}</h4>
+                                <p className="mb-32 text-secondary-light text-lg">{isReset ? __('Enter the email address associated with your account and we will send you a link to reset your password.') : (form?.isSignUp ? __('Welcome! please enter your detail') : __('Welcome back! please enter your detail'))}</p>
                                 {error && (
                                     <div className="mb-16">
                                         <div className="alert alert-danger bg-transparent text-danger-600 border-danger-600 px-24 py-11 mb-0 fw-semibold text-lg radius-8 d-flex align-items-center justify-content-between" role="alert">
@@ -150,7 +163,13 @@ export const AuthProvider = ({ children }) => {
                                             <span className="icon top-50 translate-middle-y">
                                                 <Mail />
                                             </span>
-                                            <input type="email" className="form-control h-56-px bg-neutral-50 radius-12" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={__('Enter Email')} />
+                                            <input
+                                                type="email"
+                                                value={form?.email}
+                                                placeholder={__('Enter Email')}
+                                                onChange={(e) => setForm(prev => ({...prev, email: e.target.value}))}
+                                                className="form-control h-56-px bg-neutral-50 radius-12"
+                                            />
                                         </div>
                                         <button
                                             type="button"
@@ -158,7 +177,7 @@ export const AuthProvider = ({ children }) => {
                                                 e.preventDefault();
                                                 setLoading(true);
                                                 const formData = new FormData();
-                                                formData.append('email', email);
+                                                formData.append('email', form?.email);
                                                 request(rest_url('/partnership/v1/reset-password'), {
                                                     method: 'POST', headers: {'Cache-Control': 'no-cache'}, body: formData
                                                 })
@@ -206,21 +225,38 @@ export const AuthProvider = ({ children }) => {
                                     </>
                                 ) : (
                                     <>
-                                        {!isSignUp && (
+                                        {form?.isSignUp && (
+                                            <div className="icon-field mb-16">
+                                                <span className="icon top-50 translate-middle-y">
+                                                    <HardHat />
+                                                </span>
+                                                <select
+                                                    type="text"
+                                                    value={form?.role}
+                                                    placeholder={__('Role')}
+                                                    className="form-control bg-neutral-50 radius-12"
+                                                    onChange={(e) => setForm(prev => ({...prev, role: e.target.value}))}
+                                                >
+                                                    {Object.keys(roles).map((roleKey, i) => <option key={i} value={roleKey}>{roles[roleKey]}</option>)}
+                                                    
+                                                </select>
+                                            </div>
+                                        )}
+                                        {!form?.isSignUp && (
                                             <div className="icon-field mb-16">
                                                 <span className="icon top-50 translate-middle-y">
                                                     <UserRound />
                                                 </span>
                                                 <input
                                                     type="text"
-                                                    value={username}
+                                                    value={form?.username}
                                                     placeholder={__('Username')}
                                                     className="form-control h-56-px bg-neutral-50 radius-12"
-                                                    onChange={(e) => setUsername(e.target.value)}
+                                                    onChange={(e) => setForm(prev => ({...prev, username: e.target.value}))}
                                                 />
                                             </div>
                                         )}
-                                        {isSignUp && (
+                                        {form?.isSignUp && (
                                             <div className="icon-field mb-16">
                                                 <span className="icon top-50 translate-middle-y">
                                                     <Mail />
@@ -228,32 +264,32 @@ export const AuthProvider = ({ children }) => {
                                                 <input
                                                     type="email"
                                                     name="email"
-                                                    value={email}
+                                                    value={form?.email}
                                                     placeholder={__('Email')}
-                                                    onChange={(e) => setEmail(e.target.value)}
+                                                    onChange={(e) => setForm(prev => ({...prev, email: e.target.value}))}
                                                     className="form-control h-56-px bg-neutral-50 radius-12"
                                                 />
                                             </div>
                                         )}
-                                        {isSignUp && (
+                                        {form?.isSignUp && (
                                             <div className="xpo_flex xpo_gap-2 mb-16">
-                                                <div>
+                                                <div className="col">
                                                     <input
                                                         type="text"
                                                         name="firstName"
-                                                        value={firstName}
+                                                        value={form?.firstName}
                                                         placeholder={__('First Name')}
-                                                        onChange={(e) => setFirstName(e.target.value)}
+                                                        onChange={(e) => setForm(prev => ({...prev, firstName: e.target.value}))}
                                                         className="form-control h-56-px bg-neutral-50 radius-12"
                                                     />
                                                 </div>
-                                                <div>
+                                                <div className="col">
                                                     <input
                                                         type="text"
                                                         name="lastName"
-                                                        value={lastName}
+                                                        value={form?.lastName}
                                                         placeholder={__('Last Name')}
-                                                        onChange={(e) => setLastName(e.target.value)}
+                                                        onChange={(e) => setForm(prev => ({...prev, lastName: e.target.value}))}
                                                         className="form-control h-56-px bg-neutral-50 radius-12"
                                                     />
                                                 </div>
@@ -266,46 +302,44 @@ export const AuthProvider = ({ children }) => {
                                                 </span> 
                                                 <input
                                                     name="password"
-                                                    value={password}
+                                                    value={form?.password}
                                                     id="your-password"
                                                     placeholder={__('Password')}
                                                     type={showPass ? 'text' : 'password'}
-                                                    onChange={(e) => setPassword(e.target.value)}
+                                                    onChange={(e) => setForm(prev => ({...prev, password: e.target.value}))}
                                                     className="form-control h-56-px bg-neutral-50 radius-12"
                                                 />
                                             </div>
                                             <span className="toggle-password cursor-pointer position-absolute end-0 top-50 translate-middle-y me-16 text-secondary-light" data-toggle="#your-password" onClick={() => setShowPass(prev => !prev)}>
                                                 {showPass ? <EyeOff /> : <Eye />}
                                             </span>
-                                            {isSignUp && <span className="mt-12 text-sm text-secondary-light">{__('Your password must have at least 8 characters')}</span>}
+                                            {form?.isSignUp && <span className="mt-12 text-sm text-secondary-light">{__('Your password must have at least 8 characters')}</span>}
                                         </div>
-                                        {isSignUp && (
+                                        {form?.isSignUp && (
                                             <div className="position-relative mb-20">
                                                 <div className="icon-field">
                                                     <span className="icon top-50 translate-middle-y">
                                                         <LockKeyhole />
                                                     </span> 
                                                     <input
-                                                        name="password2"
-                                                        value={password2}
-                                                        id="your-password2"
+                                                        value={form?.password2}
                                                         placeholder={__('Confirm Password')}
                                                         type={showPass ? 'text' : 'password'}
-                                                        onChange={(e) => setPassword2(e.target.value)}
+                                                        onChange={(e) => setForm(prev => ({...prev, password2: e.target.value}))}
                                                         className="form-control h-56-px bg-neutral-50 radius-12"
                                                     />
                                                 </div>
                                             </div>
                                         )}
-                                        {isSignUp ? (
+                                        {form?.isSignUp ? (
                                             <div className="">
                                                 <div className="d-flex justify-content-between gap-2">
                                                     <div className="form-check style-check d-flex align-items-start">
                                                         <input className="form-check-input border border-neutral-300 mt-4" type="checkbox" value="" id="condition" />
                                                         <label className="form-check-label text-sm" htmlFor="condition" dangerouslySetInnerHTML={{__html: sprintf(
                                                             __('By creating an account means you agree to the %1$sTerms & Conditions%3$s and our %2$sPrivacy Policy%3$s.'),
-                                                            '<a href="'+ (settings?.pages?.terms??"#") +'" className="text-primary-600 fw-semibold" target="_blank">',
-                                                            '<a href="'+ (settings?.pages?.privacy??"#") +'" className="text-primary-600 fw-semibold" target="_blank">',
+                                                            '<a href="'+ (settings?.pages?.terms??"#") +'" className="xpo_text-primary fw-semibold" target="_blank" style="color: #E03C33;">',
+                                                            '<a href="'+ (settings?.pages?.privacy??"#") +'" className="xpo_text-primary fw-semibold" target="_blank" style="color: #E03C33;">',
                                                             '</a>'
                                                         )}}>
                                                         </label>
@@ -324,9 +358,9 @@ export const AuthProvider = ({ children }) => {
                                             </div>
                                         )}
 
-                                        <button type="submit" className="btn btn-primary text-sm btn-sm px-12 py-16 w-100 radius-12 mt-32"> {isSignUp ? __('Sign Up') : __('Sign In')}</button>
+                                        <button type="submit" className="btn btn-primary text-sm btn-sm px-12 py-16 w-100 radius-12 mt-32">{form?.isSignUp ? __('Sign Up') : __('Sign In')}</button>
 
-                                        <div className="mt-32 center-border-horizontal text-center">
+                                        {/* <div className="mt-32 center-border-horizontal text-center">
                                             <span className="bg-base z-1 px-4">{__('Or sign in with')}</span>
                                         </div>
                                         <div className="mt-32 d-flex align-items-center gap-3">
@@ -338,12 +372,12 @@ export const AuthProvider = ({ children }) => {
                                                 <svg className="xpo_h-6 xpo_w-6 text-primary-600 text-xl line-height-1" viewBox="-0.5 0 48 48" version="1.1" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"><title>Google-color</title><desc>Created with Sketch.</desc><defs></defs><g id="Icons" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd"><g id="Color-" transform="translate(-401.000000, -860.000000)"><g id="Google" transform="translate(401.000000, 860.000000)"><path d="M9.82727273,24 C9.82727273,22.4757333 10.0804318,21.0144 10.5322727,19.6437333 L2.62345455,13.6042667 C1.08206818,16.7338667 0.213636364,20.2602667 0.213636364,24 C0.213636364,27.7365333 1.081,31.2608 2.62025,34.3882667 L10.5247955,28.3370667 C10.0772273,26.9728 9.82727273,25.5168 9.82727273,24" id="Fill-1" fill="#FBBC05"></path><path d="M23.7136364,10.1333333 C27.025,10.1333333 30.0159091,11.3066667 32.3659091,13.2266667 L39.2022727,6.4 C35.0363636,2.77333333 29.6954545,0.533333333 23.7136364,0.533333333 C14.4268636,0.533333333 6.44540909,5.84426667 2.62345455,13.6042667 L10.5322727,19.6437333 C12.3545909,14.112 17.5491591,10.1333333 23.7136364,10.1333333" id="Fill-2" fill="#EB4335"></path><path d="M23.7136364,37.8666667 C17.5491591,37.8666667 12.3545909,33.888 10.5322727,28.3562667 L2.62345455,34.3946667 C6.44540909,42.1557333 14.4268636,47.4666667 23.7136364,47.4666667 C29.4455,47.4666667 34.9177955,45.4314667 39.0249545,41.6181333 L31.5177727,35.8144 C29.3995682,37.1488 26.7323182,37.8666667 23.7136364,37.8666667" id="Fill-3" fill="#34A853"></path><path d="M46.1454545,24 C46.1454545,22.6133333 45.9318182,21.12 45.6113636,19.7333333 L23.7136364,19.7333333 L23.7136364,28.8 L36.3181818,28.8 C35.6879545,31.8912 33.9724545,34.2677333 31.5177727,35.8144 L39.0249545,41.6181333 C43.3393409,37.6138667 46.1454545,31.6490667 46.1454545,24" id="Fill-4" fill="#4285F4"></path></g></g></g></g></svg>
                                                 {__('Google')}
                                             </button>
-                                        </div>
+                                        </div> */}
                                         <div className="mt-32 text-center text-sm">
-                                            {isSignUp ? (
-                                                <p className="mb-0">{__("Already have an account")} <Link to="#" className="text-primary-600 fw-semibold" onClick={() => setSignUp(false)}>{__('Sign In')}</Link></p>
+                                            {form?.isSignUp ? (
+                                                <p className="mb-0">{__("Already have an account")} <Link to="#" className="text-primary-600 fw-semibold" onClick={() => setForm(prev => ({...prev, isSignUp: false}))}>{__('Sign In')}</Link></p>
                                             ) : (
-                                                <p className="mb-0">{__("Don't have an account?")} <Link to="#" className="text-primary-600 fw-semibold" onClick={() => setSignUp(true)}>{__('Sign Up')}</Link></p>
+                                                <p className="mb-0">{__("Don't have an account?")} <Link to="#" className="text-primary-600 fw-semibold" onClick={() => setForm(prev => ({...prev, isSignUp: true}))}>{__('Sign Up')}</Link></p>
                                             )}
                                         </div>
                                     </>
