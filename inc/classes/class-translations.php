@@ -21,6 +21,7 @@ class Translations {
 	}
 	protected function setup_hooks() {
 		add_action('rest_api_init', [$this, 'rest_api_init']);
+        add_filter('partnership/security/api/abilities', [$this, 'api_abilities'], 10, 3);
 	}
     public function rest_api_init() {
         register_rest_route('partnership/v1', '/languages', [
@@ -68,6 +69,15 @@ class Translations {
             ]
 		]);
     }
+
+    public function api_abilities($abilities, $_route, $user_id) {
+        if (str_starts_with($_route, 'translations/')) {
+            $abilities[] = 'translations';
+        }
+        return $abilities;
+    }
+    
+    
     public function language_path($language) {
         return $this->directory . '/' . $language . '.json';
     }

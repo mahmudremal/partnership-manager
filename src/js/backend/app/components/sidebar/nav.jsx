@@ -23,7 +23,7 @@ export const Nav = () => {
       {
         label: __('Dashboard'),
         icon: LayoutDashboard,
-        route: '/',
+        route: '/analytics',
         order: 0,
         caps: ['project_manager', 'read'],
         // childrens: [

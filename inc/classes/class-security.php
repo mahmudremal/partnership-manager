@@ -1,13 +1,14 @@
 <?php
 namespace PARTNERSHIP_MANAGER\inc;
 use PARTNERSHIP_MANAGER\inc\Traits\Singleton;
-use WP_REST_Request;
 use WP_REST_Response;
+use WP_REST_Request;
+use WP_Error;
 
 class Security {
 	use Singleton;
 
-	private $_token_period = 3600 * 6; // 1 hour
+	private $_token_period = 3600 * 1 * 6; // 1 * 6 hour
 	private $secret = 'your-secret-key';
 	public $user_id = null;
 
@@ -57,6 +58,18 @@ class Security {
 			'callback' => [$this, 'reset_password'],
 			'permission_callback' => '__return_true'
 		]);
+
+		register_rest_route('partnership/v1', '/otp/verify', [
+			'methods' => 'POST',
+			'callback' => [$this, 'otp_verify'],
+			'permission_callback' => '__return_true'
+		]);
+
+		register_rest_route('partnership/v1', '/otp/send', [
+			'methods' => 'POST',
+			'callback' => [$this, 'otp_send'],
+			'permission_callback' => '__return_true'
+		]);
 	}
 
 	public function issue_token(WP_REST_Request $request) {
@@ -69,6 +82,7 @@ class Security {
 		$lastName = $request->get_param('lastName');
 		$password2 = $request->get_param('password2');
 		$role = $request->get_param('role');
+		$opt_sent = false;
 
 		if ($isSignUp && !empty($isSignUp)) {
 			if (!empty($password) && $password == $password2) {
@@ -90,6 +104,7 @@ class Security {
 					'user_login' => $username,
 					'first_name' => $firstName,
 					'last_name' => $lastName,
+					'user_email' => $email,
 					'role' => $role,
 					'meta_input' => [
 						// key => value
@@ -101,6 +116,8 @@ class Security {
 				$user_id = $created;
 				update_user_meta($user_id, 'first_name', $firstName);
 				update_user_meta($user_id, 'last_name', $lastName);
+				update_user_meta($user_id, '_verified', false);
+				$opt_sent = $this->send_verification_email($user_id);
 			}
 		}
 
@@ -109,19 +126,17 @@ class Security {
 			return new WP_REST_Response(['message' => 'Invalid credentials. ' . $user->get_error_message()], 403);
 		}
 
-		$payload = [
-			'user_id' => $user->ID,
-			'iat' => time(),
-			'exp' => time() + $this->_token_period
-		];
-		
 		$full_name = trim($first_name . ' ' . $last_name);
 
-		$token = $this->encode_token($payload);
 		return [
-			'token' => $token,
+			'token' => $isSignUp ? false : $this->encode_token(['user_id' => $user->ID, 'iat' => time(), 'exp' => time() + $this->_token_period]),
 			'bearer' => $user->ID,
-			'user' => Users::prepare_user_data_for_response($user),
+			'user' => $isSignUp ? false : Users::prepare_user_data_for_response($user),
+			'isSignUp' => (bool) $isSignUp,
+			'email' => $email,
+			'verify' => (bool) $isSignUp === true,
+			'opt_sent' => $opt_sent,
+			'message' => $isSignUp ? __('Account created successfully. Please verify your email.', 'wp-partnershipm') : __('Login successful.', 'wp-partnershipm'),
 			// 'role' => Roles::get_role($user->ID)
 		];
 	}
@@ -136,10 +151,14 @@ class Security {
 		return ['valid' => true, 'user_id' => $data['user_id']];
 	}
 
-	public function permission_callback($return = false) {
+	public function permission_callback(WP_REST_Request $request) {
 		$data = $this->decode_token($this->get_token_from_header());
-		if ($return) {return $data;}
-		return $data !== false;
+		if (is_wp_error($data)) {
+			return $data;
+		}
+		// print_r($data);wp_die();
+		$result = apply_filters('partnership/security/permission/approval', $data !== false, $request);
+		return $result;
 	}
 
 	private function encode_token(array $payload): string {
@@ -151,17 +170,29 @@ class Security {
 	}
 
 	private function decode_token($token) {
-		if (! is_string($token)) {return false;}
+		if (! is_string($token)) {
+			return new WP_Error('invalid_token', __('Invalid token format.', 'wp-partnershipm'));
+			return false;
+		}
 		$parts = explode('.', $token);
-		if (count($parts) !== 3) {return false;}
+		if (count($parts) !== 3) {
+			return new WP_Error('invalid_token', __('Invalid token format.', 'wp-partnershipm'));
+			return false;
+		}
 
 		[$header_b64, $body_b64, $sig_b64] = $parts;
 
 		$expected_sig = base64_encode(hash_hmac('sha256', "$header_b64.$body_b64", $this->secret, true));
-		if (!hash_equals($expected_sig, $sig_b64)) {return false;}
+		if (!hash_equals($expected_sig, $sig_b64)) {
+			return new WP_Error('invalid_signature', __('Invalid token signature.', 'wp-partnershipm'));
+			return false;
+		}
 
 		$payload = json_decode(base64_decode($body_b64), true);
-		if (!$payload || time() > $payload['exp']) {return false;}
+		if (!$payload || time() > $payload['exp']) {
+			return new WP_Error('expired_token', __('Token has expired.', 'wp-partnershipm'));
+			return false;
+		}
 
 		if (isset($payload['user_id']) && !empty($payload['user_id'])) {
 			$this->user_id = $payload['user_id'];
@@ -202,4 +233,110 @@ class Security {
 			return new WP_REST_Response(['message' => __('User not found.', 'wp-partnershipm')], 403);
 		}
 	}
+
+	public function otp_send(WP_REST_Request $request) {
+		$email = $request->get_param('email');
+
+		if (empty($email)) {
+			return new WP_REST_Response(['message' => __('Email required.', 'wp-partnershipm')], 403);
+		}
+
+		if (!is_email($email)) {
+			return new WP_REST_Response(['message' => __('Invalid email address.', 'wp-partnershipm')], 403);
+		}
+
+		if (!email_exists($email)) {
+			return new WP_REST_Response(['message' => __('Email does not exist.', 'wp-partnershipm')], 403);
+		}
+
+		$user = get_user_by('email', $email);
+		if ($user) {
+			$result = $this->send_verification_email($user->ID);
+			if (is_wp_error($result)) {
+				return new WP_REST_Response(['message' => $result->get_error_message()], 403);
+			}
+			return new WP_REST_Response(['message' => __('Verification email sent successfully.', 'wp-partnershipm')], 200);
+		} else {
+			return new WP_REST_Response(['message' => __('User not found.', 'wp-partnershipm')], 403);
+		}
+	}
+	
+	private function send_verification_email($user_id) {
+		if (get_user_meta($user_id, '_verified', true) === true) {
+			return new WP_Error('already_verified', __('User is already verified.', 'wp-partnershipm'));
+		}
+		$user = get_user_by('id', $user_id);
+		if (!$user) return false;
+		$token = random_int(100000, 999999);
+		// 
+		update_user_meta($user_id, '__verify_attempt', 0);
+		update_user_meta($user_id, '__verify_token', $token);
+		update_user_meta($user_id, '__verify_expires', time() + $this->_token_period);
+
+		$subject = __('Email Verification', 'wp-partnershipm');
+		$message = sprintf(__('Your email verification code is: %d', 'wp-partnershipm'), $token);
+
+		return wp_mail($user->user_email, $subject, $message);
+	}
+
+	private function verify_otp_code($user_id, $code) {
+		$attempts = (int) get_user_meta($user_id, '__verify_attempt', true);
+		if (empty($attempts)) {$attempts = 0;}
+		if ($attempts > 5) {
+			return new WP_Error('too_many_attempts', __('Too many verification attempts. Please try again later.', 'wp-partnershipm'));
+		}
+		update_user_meta($user_id, '__verify_attempt', $attempts + 1);
+		
+		$stored_code = get_user_meta($user_id, '__verify_token', true);
+		$expires = get_user_meta($user_id, '__verify_expires', true);
+
+		if (empty($stored_code) || empty($expires)) {
+			return new WP_Error('invalid_code', __('Invalid verification code.', 'wp-partnershipm'));
+		}
+
+		if (time() > $expires) {
+			return new WP_Error('expired_code', __('Verification code has expired.', 'wp-partnershipm'));
+		}
+
+		if ($stored_code == $code) {
+			delete_user_meta($user_id, '__verify_token');
+			delete_user_meta($user_id, '__verify_attempt');
+			delete_user_meta($user_id, '__verify_expires');
+			update_user_meta($user_id, '_verified', true);
+			return true;
+		}
+
+		return new WP_Error('invalid_code', __('Invalid verification code.', 'wp-partnershipm'));
+	}
+
+	public function otp_verify(WP_REST_Request $request) {
+		$code = $request->get_param('code');
+		$email = $request->get_param('email');
+
+		if (empty($code) || empty($email)) {
+			return new WP_REST_Response(['message' => __('Code and User ID are required.', 'wp-partnershipm')], 403);
+		}
+
+		if (!is_numeric($code) || strlen($code) !== 6) {
+			return new WP_REST_Response(['message' => __('Invalid code format.', 'wp-partnershipm')], 403);
+		}
+
+		$user = get_user_by('email', $email);
+		if (!$user) {
+			return new WP_REST_Response(['message' => __('User not found.', 'wp-partnershipm')], 403);
+		}
+
+		$result = $this->verify_otp_code($user->ID, $code);
+		if (is_wp_error($result)) {
+			return new WP_REST_Response(['message' => $result->get_error_message()], 403);
+		}
+
+		return new WP_REST_Response([
+			'message' => __('Email verified successfully.', 'wp-partnershipm'),
+			'token' => $this->encode_token(['user_id' => $user->ID, 'iat' => time(), 'exp' => time() + $this->_token_period]),
+			'bearer' => $user->ID,
+			'user' => Users::prepare_user_data_for_response($user),
+		], 200);
+	}
+	
 }

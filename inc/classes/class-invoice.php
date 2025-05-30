@@ -27,6 +27,7 @@ class Invoice {
         add_action('init', [$this, 'add_custom_rewrite']);
         add_action('template_redirect', [$this, 'handle_invoice_payment_template']);
 		add_action('rest_api_init', [$this, 'register_routes']);
+        add_filter('partnership/security/api/abilities', [$this, 'api_abilities'], 10, 3);
     }
 	public function register_routes() {
 		register_rest_route('partnership/v1', '/invoice/create', [
@@ -80,6 +81,13 @@ class Invoice {
 		]);
 	}
 
+    public function api_abilities($abilities, $_route, $user_id) {
+        if (str_starts_with($_route, 'invoice/')) {
+            $abilities[] = 'invoices';
+        }
+        return $abilities;
+    }
+    
     public function register_activation_hook() {
         global $wpdb;
         $charset_collate = $wpdb->get_charset_collate();

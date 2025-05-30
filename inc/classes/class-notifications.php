@@ -19,6 +19,7 @@ class Notifications {
 		register_activation_hook(WP_PARTNERSHIPM__FILE__, [$this, 'register_activation_hook']);
 		register_deactivation_hook(WP_PARTNERSHIPM__FILE__, [$this, 'register_deactivation_hook']);
 		add_action('rest_api_init', [$this, 'register_routes']);
+        add_filter('partnership/security/api/abilities', [$this, 'api_abilities'], 10, 3);
 	}
 	
 	public function setup_eventlisters() {
@@ -83,6 +84,13 @@ class Notifications {
 		
 	}
 
+    public function api_abilities($abilities, $_route, $user_id) {
+        if (str_starts_with($_route, 'notifications/')) {
+            $abilities[] = 'notifications';
+        }
+        return $abilities;
+    }
+    
 	public function register_activation_hook() {
 		global $wpdb;
 		$charset_collate = $wpdb->get_charset_collate();

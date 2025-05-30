@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Link } from '@common/link';
 import request from "@common/request";
-import { home_url, home_route, rest_url, notify } from "@functions";
+import { home_url, home_route, rest_url, notify, sleep } from "@functions";
 import { usePopup } from '@context/PopupProvider';
 import { useLoading } from '@context/LoadingProvider';
 import { useTranslation } from '@context/LanguageProvider';
 import { Check } from "lucide-react";
 import { useCurrency } from "@context/CurrencyProvider";
 import priceIcon from "@img/price-icon.png";
+import receiptBanner from "@icons/receipt.svg";
 import { useNavigate } from "react-router-dom";
 
 export default function Packages({ viewType = 'list' }) {
@@ -113,9 +114,12 @@ export default function Packages({ viewType = 'list' }) {
 
 const InvoiceGenerator = ({ pack, plan, stores, __ }) => {
     const [paymentLink, setPaymentLink] = useState(null);
+    const [loading, setLoading] = useState(null);
     
-    const handle_package_submit = (e, pack, plan) => {
+    const handle_package_submit = async (e, pack, plan) => {
         e.preventDefault();
+        setLoading(true);
+        await sleep(1500); // Simulate loading delay
         const fdata = new FormData(e.target);
         const staticdata = {
             invoice_id: null,
@@ -139,16 +143,21 @@ const InvoiceGenerator = ({ pack, plan, stores, __ }) => {
                 notify.success(__('Invoice created successfully!'));
             }
         })
-        .catch(err => notify.error(err?.response?.message??err?.message??__('Something went wrong!')));
+        .catch(err => notify.error(err?.response?.message??err?.message??__('Something went wrong!')))
+        .finally(() => setLoading(false));
     }
     
     return (
         <div>
             {paymentLink ? (
-                <div>
+                <div className="xpo_flex xpo_flex-col xpo_gap-4">
+                    <div className="xpo_relative">
+                        <img src={receiptBanner} alt={__('Receipt generated')} className="xpo_max-h-48" />
+                        <div className="xpo_absolute xpo_w-full xpo_h-full xpo_top-0 xpo_left-0"></div>
+                    </div>
                     <h6 className="text-center">{__('Payment link')}</h6>
                     <p className="text-center">{__('Click the button below to proceed to payment.')}</p>
-                    <a href={paymentLink} target="_blank" rel="noopener noreferrer" className="btn btn-primary mt-3">{__('Proceed to payment')}</a>
+                    <a href={paymentLink} target="_blank" rel="noopener noreferrer" className="btn btn-primary xpo_mt-2 xpo_animate-bounce xpo_w-full">{__('Proceed to payment')}</a>
                 </div>
             ) : (
                 <form onSubmit={(e) => handle_package_submit(e, pack, plan)}>
@@ -157,7 +166,7 @@ const InvoiceGenerator = ({ pack, plan, stores, __ }) => {
                         <div className="xpo_block xpo_mt-6">
                             <ul className="list-group radius-8">
                                 {stores.map((store, index) => (
-                                    <li key={index} className={ `list-group-item border text-secondary-light p-16 text-white ${stores.length == (index + 1) ? null : 'border-bottom-0'}` }>
+                                    <li key={index} className={ `list-group-item border text-secondary-light p-16 text-white card ${stores.length == (index + 1) ? '' : 'border-bottom-0'}` }>
                                         <div className="form-check checked-warning d-flex align-items-center gap-2">
                                             <input className="form-check-input" type="radio" name="store" id={ `store_${index}` } value={store.id} />
                                             <label className="form-check-label line-height-1 fw-medium text-secondary-light" htmlFor={ `store_${index}` }>{store.store_title}</label>
@@ -167,7 +176,7 @@ const InvoiceGenerator = ({ pack, plan, stores, __ }) => {
                             </ul>
                         </div>
                         <div className="d-flex align-items-start flex-column flex-wrap gap-3 xpo_mt-8">
-                            <button className="btn rounded-pill btn-success-100 text-success-600 radius-8 px-20 py-11">{__('Create invoice')}</button>
+                            <button className={`btn rounded-pill btn-success-100 text-success-600 radius-8 px-20 py-11 ${loading ? 'disabled:xpo_cursor-progress' : ''}`}>{loading ? __('Generating invoice...') : __('Create invoice')}</button>
                         </div>
                     </div>
                 </form>

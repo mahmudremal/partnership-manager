@@ -4,7 +4,7 @@
 import '@js/tasks';
 
 // Styles
-// import '@sass/admin.scss';
+import '@sass/tasks.scss';
 
 // Images.
 // import '@img/signature.png';

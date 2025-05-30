@@ -128,11 +128,11 @@ class ToastNotification {
         this.promise = toast.promise;
         this.dismiss = toast.dismiss;
     }
-    success(msg) {
-        return toast.success(msg)
+    success(msg, opt = {}) {
+        return toast.success(msg, opt)
     }
-    error(msg) {
-        return toast.error(msg)
+    error(msg, opt = {}) {
+        return toast.error(msg, opt)
     }
 }
 

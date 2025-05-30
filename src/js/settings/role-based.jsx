@@ -30,6 +30,7 @@ const RoleBased = ({ config }) => {
   const [abilities, setAbilities] = useState({
     'read'           : __('Read', 'partnership-manager'),
     'users'          : __('Users', 'partnership-manager'),
+    'finance'        : __('Finance', 'partnership-manager'),
     'payouts'        : __('Payouts', 'partnership-manager'),
     'referral'       : __('Referral', 'partnership-manager'),
     'invoices'       : __('Invoices', 'partnership-manager'),
@@ -39,7 +40,10 @@ const RoleBased = ({ config }) => {
     'support-ticket' : __('Support Ticket', 'partnership-manager'),
     'team'           : __('Team', 'partnership-manager'),
     'stores'         : __('Stores', 'partnership-manager'),
-    'service-docs'   : __('Service Docs', 'partnership-manager')
+    'service-docs'   : __('Service Docs', 'partnership-manager'),
+    'translations'   : __('Translations', 'partnership-manager'),
+    'tasks'          : __('Task management', 'partnership-manager'),
+    'notifications'  : __('Notifications', 'partnership-manager'),
   });
 
   useEffect(() => {

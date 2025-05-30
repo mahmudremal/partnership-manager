@@ -166,14 +166,14 @@ export default function Users({ viewType = 'list' }) {
                                             <td className="text-center">
                                                 <div className="d-flex align-items-center gap-10 justify-content-center">
                                                     <Link to={ home_url(`/users/${user.id}/view`) } className="bg-info-focus text-info-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center" ><Eye className="icon text-xl" /></Link>
-                                                    <button
+                                                    {/* <button
                                                         className="bg-success-focus text-success-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center"
                                                         onClick={() => setPopup(<div>Hello from popup!</div>)}
                                                     ><SquarePen className="icon" /></button>
                                                     <button
                                                         className="bg-danger-focus text-danger-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center"
                                                         onClick={() => setPopup(<div>Hello from popup!</div>)}
-                                                    ><Trash2 className="icon" /></button>
+                                                    ><Trash2 className="icon" /></button> */}
                                                 </div>
                                             </td>
                                         </tr>

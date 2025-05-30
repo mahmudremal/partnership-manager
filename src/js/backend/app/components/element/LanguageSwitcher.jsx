@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from "@context/LanguageProvider";
 import { createPopper } from '@popperjs/core';
-import request from '../common/request';
-import { rest_url } from '../common/functions';
+import request from '@common/request';
+import { rest_url, roles } from '@functions';
 
 const LanguageCodes = [
     {
@@ -80,6 +80,7 @@ export default function LanguageSwitcher() {
   };
 
   const sendLanguages = () => {
+    if (!roles.has_ability('translations')) {return;}
     setSending(true);
     request(rest_url('/partnership/v1/translations'), {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({language, list: window.i18ns[language]})}).then(data => console.log(data)).catch(console.error).finally(() => setSending(false));
   }
@@ -128,7 +129,7 @@ export default function LanguageSwitcher() {
           <h6 className="text-lg text-primary-light fw-semibold mb-0">
             {__('Choose Your Language')}
           </h6>
-          {(window.i18ns[language] && Object.keys(window.i18ns[language]).length) ? (
+          {roles.has_ability('translations') && (window.i18ns[language] && Object.keys(window.i18ns[language]).length) ? (
             <button type="button" className="btn rounded-pill btn-success-100 text-success-600 radius-8 px-20 py-11" onClick={sendLanguages}>{sending ? __('Sending') : __('Send')}</button>
           ) : null}
         </div>

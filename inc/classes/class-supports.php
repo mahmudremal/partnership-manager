@@ -19,6 +19,14 @@ class Supports {
     protected function setup_hooks() {
 		add_action('rest_api_init', [$this, 'register_routes']);
         add_filter('init', [$this, 'register_support_cpt_and_taxonomies'], 1, 0);
+        add_filter('partnership/security/api/abilities', [$this, 'api_abilities'], 10, 3);
+    }
+    
+    public function api_abilities($abilities, $_route, $user_id) {
+        if (str_starts_with($_route, 'supports/')) {
+            $abilities[] = 'support-ticket';
+        }
+        return $abilities;
     }
 
     public function register_support_cpt_and_taxonomies() {

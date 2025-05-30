@@ -21,9 +21,9 @@ class Partner_Docs {
     protected function setup_hooks() {
 		add_action('rest_api_init', [$this, 'register_routes']);
         add_filter('init', [$this, 'register_partner_docs_cpt_and_taxonomies'], 1, 0);
+        add_filter('partnership/security/api/abilities', [$this, 'api_abilities'], 10, 3);
     }
 
-    
 	public function register_routes() {
 		register_rest_route('partnership/v1', '/docs/(?P<post_type>(service_doc|partner_doc))/list', [
 			'methods' => 'GET',
@@ -93,6 +93,14 @@ class Partner_Docs {
             ],
 			'permission_callback' => '__return_true'
 		]);
+    }
+    
+    public function api_abilities($abilities, $_route, $user_id) {
+        if (str_starts_with($_route, 'docs/')) {
+            $abilities[] = 'service-docs';
+            $abilities[] = 'partner-docs';
+        }
+        return $abilities;
     }
     
     public function register_partner_docs_cpt_and_taxonomies() {

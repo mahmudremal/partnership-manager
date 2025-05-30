@@ -15,9 +15,10 @@ class Payout {
 		$this->setup_hooks();
 	}
 	protected function setup_hooks() {
+		add_action('rest_api_init', [$this, 'register_routes']);
+        add_filter('partnership/security/api/abilities', [$this, 'api_abilities'], 10, 3);
         register_activation_hook(WP_PARTNERSHIPM__FILE__, [$this, 'register_activation_hook']);
         register_deactivation_hook(WP_PARTNERSHIPM__FILE__, [$this, 'register_deactivation_hook']);
-		add_action('rest_api_init', [$this, 'register_routes']);
 	}
     public function register_routes() {
 		register_rest_route('partnership/v1', '/payouts', [
@@ -36,6 +37,13 @@ class Payout {
 			'permission_callback' => [Security::get_instance(), 'permission_callback']
 		]);
 	}
+    
+    public function api_abilities($abilities, $_route, $user_id) {
+        if (str_starts_with($_route, 'payouts/')) {
+            $abilities[] = 'payouts';
+        }
+        return $abilities;
+    }
     
     public function register_activation_hook() {
         global $wpdb;

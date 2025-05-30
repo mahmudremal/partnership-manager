@@ -26,33 +26,22 @@ class Task {
         add_action('rest_api_init', [$this, 'rest_api_init']);
         add_action('admin_menu', [$this, 'add_plugin_page']);
         // 
+        add_filter('partnership/security/api/abilities', [$this, 'api_abilities'], 10, 3);
         // add_action('load-' . get_plugin_page_hookname('automated-jobs', ''), array($this, 'screen_option'));
     }
 
-    public function register_activation_hook() {
-        global $wpdb;
-        $charset_collate = $wpdb->get_charset_collate();
-        $sql = "CREATE TABLE IF NOT EXISTS {$this->table} (
-            id INT NOT NULL AUTO_INCREMENT,
-            task_type VARCHAR(255) NOT NULL,
-            status VARCHAR(50) DEFAULT 'pending',
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            task_object LONGTEXT NOT NULL,
-            task_submission LONGTEXT NOT NULL,
-            task_desc TEXT,
-            PRIMARY KEY (id)
-        ) $charset_collate;";
-        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-        dbDelta($sql);
-    }
-
-    public function register_deactivation_hook() {
-        global $wpdb;
-        $wpdb->query("DROP TABLE IF EXISTS {$this->table}");
+    public function api_abilities($abilities, $_route, $user_id) {
+        if (str_starts_with($_route, 'tasks/')) {
+            $abilities[] = 'tasks';
+        }
+        return $abilities;
     }
 
     public function rest_api_init() {
+        register_rest_route('partnership/v1', '/tasks', [
+            'methods' => 'GET', 'callback' => [$this, 'tasks_list'],
+            'permission_callback' => '__return_true'
+        ]);
         register_rest_route('partnership/v1', '/tasks/search', [
             'methods' => 'GET', 'callback' => [$this, 'tasks_search'],
             'permission_callback' => '__return_true'
@@ -63,6 +52,10 @@ class Task {
         ]);
         register_rest_route('partnership/v1', '/tasks/(?P<task_id>\d+)', [
             'methods' => 'POST', 'callback' => [$this, 'task_update'],
+            'permission_callback' => '__return_true'
+        ]);
+        register_rest_route('partnership/v1', '/tasks/(?P<task_id>\d+)', [
+            'methods' => 'DELETE', 'callback' => [$this, 'task_delete'],
             'permission_callback' => '__return_true'
         ]);
         register_rest_route('partnership/v1', '/tasks/(?P<task_id>\d+)/submit', [
@@ -105,6 +98,68 @@ class Task {
         ]);
     }
 
+    public function register_activation_hook() {
+        global $wpdb;
+        $charset_collate = $wpdb->get_charset_collate();
+        $sql = "CREATE TABLE IF NOT EXISTS {$this->table} (
+            id INT NOT NULL AUTO_INCREMENT,
+            task_type VARCHAR(255) NOT NULL,
+            status VARCHAR(50) DEFAULT 'pending',
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            task_object LONGTEXT NOT NULL,
+            task_submission LONGTEXT NOT NULL,
+            task_desc TEXT,
+            PRIMARY KEY (id)
+        ) $charset_collate;";
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+        dbDelta($sql);
+    }
+
+    public function register_deactivation_hook() {
+        global $wpdb;
+        $wpdb->query("DROP TABLE IF EXISTS {$this->table}");
+    }
+    public function tasks_list(WP_REST_Request $request) {
+        global $wpdb;
+        $current_page = (int) $request->get_param('page')??1;
+        $per_page = (int) $request->get_param('per_page')??20;
+        $search = (string) $request->get_param('search')??''; // also implement this seach if not empty use this keyword to search.
+        $status = (string) $request->get_param('status')??'pending';
+        $task_type = (string) $request->get_param('task_type')??'all';
+        $orderby = (string) $request->get_param('orderby')??'id';
+        $order = (string) $request->get_param('order')??'desc';
+        $offset = ($current_page - 1) * $per_page;
+
+        $where = 'WHERE 1=1';
+        $order_by = 'ORDER BY created_at DESC';
+
+        if ($status !== 'all') {
+            $status = sanitize_text_field($status);
+            $where .= $wpdb->prepare(' AND status = %s', $status);
+        }
+
+        if (isset($task_type) && $task_type !== 'all') {
+            $task_type = sanitize_text_field($task_type);
+            $where .= $wpdb->prepare(' AND task_type = %s', $task_type);
+        }
+
+        if (isset($orderby) && in_array($orderby, ['id', 'task_type', 'status', 'created_at', 'updated_at'])) {
+            $order_by_field = sanitize_text_field($orderby);
+            $order = isset($order) && in_array(strtoupper($order), ['ASC', 'DESC']) ? strtoupper($order) : 'DESC';
+            $order_by = "ORDER BY {$order_by_field} {$order}";
+        }
+
+        $total_items = $wpdb->get_var("SELECT COUNT(id) FROM {$this->table} {$where}");
+        $total_pages = ceil($total_items / $per_page);
+
+        $response_data = $wpdb->get_results("SELECT * FROM {$this->table} {$where} {$order_by} LIMIT {$per_page} OFFSET {$offset}", ARRAY_A);
+
+        $response = rest_ensure_response($response_data);
+        $response->header('X-WP-Total', (int) $total_items);
+        $response->header('X-WP-TotalPages', (int) $total_pages);
+        return $response;
+    }
     public function tasks_search(WP_REST_Request $request) {
         global $wpdb;
 
@@ -179,6 +234,16 @@ class Task {
         }
     
         return new WP_Error( 'rest_post_processing_failed', 'Failed to update query', [ 'status' => 500 ] );
+    }
+    public function task_delete( WP_REST_Request $request ) {
+        global $wpdb;
+        $task_id = $request->get_param( 'task_id' );
+        $deleted = $wpdb->delete(
+            $this->table,
+            ['id' => (int) $task_id],
+            ['%d']
+        );
+        return rest_ensure_response(['success' => $deleted, 'message' => $deleted ? __('Task deleted successfully!', 'domain') : __('Failed to delete task', 'domain')]);
     }
     public function task_submit( WP_REST_Request $request ) {
         global $wpdb;$params = $request->get_params();
@@ -364,212 +429,22 @@ class Task {
     public static function set_screen($status, $option, $value) {
         return ($option === 'jobs_per_page') ? $value : $status;
     }
-
+    
     public function job_listing_admin_menu_page() {
         global $wpdb;
-
-        $current_page = isset($_GET['paged']) ? (int) $_GET['paged'] : 1;
-        $per_page = isset($_GET['per_page']) ? (int) $_GET['per_page'] : 20;
-        $status = isset($_GET['status']) ? (string) $_GET['status'] : 'pending';
-        $task_type = isset($_GET['task_type']) ? (string) $_GET['task_type'] : 'all';
-        $orderby = isset($_GET['orderby']) ? (string) $_GET['orderby'] : 'id';
-        $order = isset($_GET['order']) ? (string) $_GET['order'] : 'desc';
-        $offset = ($current_page - 1) * $per_page;
-
-        $where = 'WHERE 1=1';
-        $order_by = 'ORDER BY created_at DESC';
-
-        if ($status !== 'all') {
-            $status = sanitize_text_field($status);
-            $where .= $wpdb->prepare(' AND status = %s', $status);
-        }
-
-        if (isset($task_type) && $task_type !== 'all') {
-            $task_type = sanitize_text_field($task_type);
-            $where .= $wpdb->prepare(' AND task_type = %s', $task_type);
-        }
-
-        if (isset($orderby) && in_array($orderby, ['id', 'task_type', 'status', 'created_at', 'updated_at'])) {
-            $order_by_field = sanitize_text_field($orderby);
-            $order = isset($order) && in_array(strtoupper($order), ['ASC', 'DESC']) ? strtoupper($order) : 'DESC';
-            $order_by = "ORDER BY {$order_by_field} {$order}";
-        }
-
-        $total_items = $wpdb->get_var("SELECT COUNT(id) FROM {$this->table} {$where}");
-        $total_pages = ceil($total_items / $per_page);
-
-        $jobs = $wpdb->get_results("SELECT * FROM {$this->table} {$where} {$order_by} LIMIT {$per_page} OFFSET {$offset}", ARRAY_A);
-
         $statuses = $wpdb->get_col("SELECT DISTINCT status FROM {$this->table}");
         $task_types = $wpdb->get_col("SELECT DISTINCT task_type FROM {$this->table}");
-
-        $current_status = $status ?? 'all';
-        $current_task_type = $task_type ?? 'all';
-        $current_orderby = $orderby ?? 'created_at';
-        $current_order = strtolower($order ?? 'desc');
+        $config = json_encode([
+            'statuses' => $statuses,
+            'task_types' => $task_types,
+            // 'errors' => $this->list_wp_error_transients()
+        ]);
         ?>
-        <div class="wrap">
+        <div class="wrap" id="automated_task_table" data-config="<?php echo esc_attr($config); ?>">
             <h2><?php _e('Jobs', 'wp-partnershipm'); ?></h2>
-
-            <form method="get">
-                <input type="hidden" name="page" value="<?php echo $_GET['page']; ?>">
-                <div class="tablenav top">
-                    <div class="alignleft actions">
-                        <select name="status">
-                            <option value="all"><?php _e('All Statuses', 'wp-partnershipm'); ?></option>
-                            <?php foreach ($statuses as $status_value) : ?>
-                                <option value="<?php echo esc_attr($status_value); ?>" <?php selected($current_status, $status_value); ?>><?php echo esc_html(ucfirst($status_value)); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <select name="task_type">
-                            <option value="all"><?php _e('All Task Types', 'wp-partnershipm'); ?></option>
-                            <?php foreach ($task_types as $task_type_value) : ?>
-                                <option value="<?php echo esc_attr($task_type_value); ?>" <?php selected($current_task_type, $task_type_value); ?>><?php echo esc_html(ucfirst($task_type_value)); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <?php submit_button(__('Filter'), 'button', false, false); ?>
-                    </div>
-                    <div class="tablenav-pages <?php echo $total_pages <= 1 ? 'one-page' : ''; ?>">
-                        <span class="displaying-num"><?php printf(__('%s items', 'wp-partnershipm'), $total_items); ?></span>
-                        <?php if ($total_pages > 1) : ?>
-                            <span class="pagination-links">
-                                <?php
-                                $current = $current_page;
-                                $total = $total_pages;
-                                $base_url = admin_url('admin.php?page=' . $_GET['page'] . '&status=' . $current_status . '&task_type=' . $current_task_type . '&orderby=' . $current_orderby . '&order=' . $current_order . '%_%');
-                                $format = '&paged=%#%';
-
-                                echo paginate_links([
-                                    'base' => $base_url,
-                                    'format' => $format,
-                                    'current' => $current,
-                                    'total' => $total,
-                                    'mid_size' => 1,
-                                    'prev_text' => __('&laquo; Previous', 'wp-partnershipm'),
-                                    'next_text' => __('Next &raquo;', 'wp-partnershipm'),
-                                ]);
-                                ?>
-                            </span>
-                        <?php endif; ?>
-                    </div>
-                    <br class="clear">
-                </div>
-            </form>
-
-            <table class="wp-list-table widefat fixed striped">
-                <thead>
-                    <tr>
-                        <th scope="col" class="manage-column column-id sortable <?php echo $current_orderby === 'id' ? strtolower($current_order) : 'desc'; ?>">
-                            <a href="<?php echo esc_url(add_query_arg(['orderby' => 'id', 'order' => ($current_orderby === 'id' && $current_order === 'desc') ? 'asc' : 'desc'])); ?>">
-                                <span><?php _e('ID', 'wp-partnershipm'); ?></span><span class="sorting-indicator"></span>
-                            </a>
-                        </th>
-                        <th scope="col" class="manage-column column-task_type sortable <?php echo $current_orderby === 'task_type' ? strtolower($current_order) : 'desc'; ?>">
-                            <a href="<?php echo esc_url(add_query_arg(['orderby' => 'task_type', 'order' => ($current_orderby === 'task_type' && $current_order === 'desc') ? 'asc' : 'desc'])); ?>">
-                                <span><?php _e('Task Type', 'wp-partnershipm'); ?></span><span class="sorting-indicator"></span>
-                            </a>
-                        </th>
-                        <th scope="col" class="manage-column column-status sortable <?php echo $current_orderby === 'status' ? strtolower($current_order) : 'desc'; ?>">
-                            <a href="<?php echo esc_url(add_query_arg(['orderby' => 'status', 'order' => ($current_orderby === 'status' && $current_order === 'desc') ? 'asc' : 'desc'])); ?>">
-                                <span><?php _e('Status', 'wp-partnershipm'); ?></span><span class="sorting-indicator"></span>
-                            </a>
-                        </th>
-                        <th scope="col" class="manage-column column-created_at sortable <?php echo $current_orderby === 'created_at' ? strtolower($current_order) : 'desc'; ?>">
-                            <a href="<?php echo esc_url(add_query_arg(['orderby' => 'created_at', 'order' => ($current_orderby === 'created_at' && $current_order === 'desc') ? 'asc' : 'desc'])); ?>">
-                                <span><?php _e('Created At', 'wp-partnershipm'); ?></span><span class="sorting-indicator"></span>
-                            </a>
-                        </th>
-                        <th scope="col" class="manage-column column-updated_at sortable <?php echo $current_orderby === 'updated_at' ? strtolower($current_order) : 'desc'; ?>">
-                            <a href="<?php echo esc_url(add_query_arg(['orderby' => 'updated_at', 'order' => ($current_orderby === 'updated_at' && $current_order === 'desc') ? 'asc' : 'desc'])); ?>">
-                                <span><?php _e('Updated At', 'wp-partnershipm'); ?></span><span class="sorting-indicator"></span>
-                            </a>
-                        </th>
-                        <th scope="col" class="manage-column column-task_desc"><?php _e('Description', 'wp-partnershipm'); ?></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($jobs)) : ?>
-                        <tr><td colspan="6"><?php _e('No jobs found.', 'wp-partnershipm'); ?></td></tr>
-                    <?php else : ?>
-                        <?php foreach ($jobs as $job) : ?>
-                            <tr data-job-id="<?php echo esc_attr($job['id']); ?>">
-                                <td data-key="id"><?php echo esc_html($job['id']); ?></td>
-                                <td data-key="task_type"><?php echo esc_html($job['task_type']); ?></td>
-                                <td data-key="status">
-                                    <select name="job-status">
-                                        <?php foreach (['pending' => __('Pending', 'wp-partnershipm'), 'completed' => __('Completed', 'wp-partnershipm')] as $key => $value) { ?>
-                                            <option value="<?php echo esc_attr($key); ?>" <?php echo esc_attr($job['status'] == $key ? 'selected' : ''); ?>><?php echo esc_html($value); ?></option>
-                                        <?php } ?>
-                                    </select>
-                                </td>
-                                <td data-key="created_at"><?php echo date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($job['created_at'])); ?></td>
-                                <td data-key="updated_at"><?php echo date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($job['updated_at'])); ?></td>
-                                <td data-key="task_desc"><?php echo esc_html($job['task_desc']); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <th scope="col" class="manage-column column-id sortable <?php echo $current_orderby === 'id' ? strtolower($current_order) : 'desc'; ?>">
-                            <a href="<?php echo esc_url(add_query_arg(['orderby' => 'id', 'order' => ($current_orderby === 'id' && $current_order === 'desc') ? 'asc' : 'desc'])); ?>">
-                                <span><?php _e('ID', 'wp-partnershipm'); ?></span><span class="sorting-indicator"></span>
-                            </a>
-                        </th>
-                        <th scope="col" class="manage-column column-task_type sortable <?php echo $current_orderby === 'task_type' ? strtolower($current_order) : 'desc'; ?>">
-                            <a href="<?php echo esc_url(add_query_arg(['orderby' => 'task_type', 'order' => ($current_orderby === 'task_type' && $current_order === 'desc') ? 'asc' : 'desc'])); ?>">
-                                <span><?php _e('Task Type', 'wp-partnershipm'); ?></span><span class="sorting-indicator"></span>
-                            </a>
-                        </th>
-                        <th scope="col" class="manage-column column-status sortable <?php echo $current_orderby === 'status' ? strtolower($current_order) : 'desc'; ?>">
-                            <a href="<?php echo esc_url(add_query_arg(['orderby' => 'status', 'order' => ($current_orderby === 'status' && $current_order === 'desc') ? 'asc' : 'desc'])); ?>">
-                                <span><?php _e('Status', 'wp-partnershipm'); ?></span><span class="sorting-indicator"></span>
-                            </a>
-                        </th>
-                        <th scope="col" class="manage-column column-created_at sortable <?php echo $current_orderby === 'created_at' ? strtolower($current_order) : 'desc'; ?>">
-                            <a href="<?php echo esc_url(add_query_arg(['orderby' => 'created_at', 'order' => ($current_orderby === 'created_at' && $current_order === 'desc') ? 'asc' : 'desc'])); ?>">
-                                <span><?php _e('Created At', 'wp-partnershipm'); ?></span><span class="sorting-indicator"></span>
-                            </a>
-                        </th>
-                        <th scope="col" class="manage-column column-updated_at sortable <?php echo $current_orderby === 'updated_at' ? strtolower($current_order) : 'desc'; ?>">
-                            <a href="<?php echo esc_url(add_query_arg(['orderby' => 'updated_at', 'order' => ($current_orderby === 'updated_at' && $current_order === 'desc') ? 'asc' : 'desc'])); ?>">
-                                <span><?php _e('Updated At', 'wp-partnershipm'); ?></span><span class="sorting-indicator"></span>
-                            </a>
-                        </th>
-                        <th scope="col" class="manage-column column-task_desc"><?php _e('Description', 'wp-partnershipm'); ?></th>
-                    </tr>
-                </tfoot>
-            </table>
-
-            <div class="tablenav bottom">
-                <div class="tablenav-pages <?php echo $total_pages <= 1 ? 'one-page' : ''; ?>">
-                    <span class="displaying-num"><?php printf(__('%s items', 'wp-partnershipm'), $total_items); ?></span>
-                    <?php if ($total_pages > 1) : ?>
-                        <span class="pagination-links">
-                            <?php
-                            echo paginate_links([
-                                'base' => $base_url,
-                                'format' => $format,
-                                'current' => $current,
-                                'total' => $total,
-                                'mid_size' => 1,
-                                'prev_text' => __('&laquo; Previous', 'wp-partnershipm'),
-                                'next_text' => __('Next &raquo;', 'wp-partnershipm'),
-                            ]);
-                            ?>
-                        </span>
-                    <?php endif; ?>
-                </div>
-                <br class="clear">
-            </div>
-
-            <div>
-                <?php echo $this->list_wp_error_transients(); ?>
-            </div>
         </div>
         <?php
-        wp_enqueue_script('wp-partnershipm-runtime');
-        wp_enqueue_script('task-onboarding', WP_PARTNERSHIPM_BUILD_JS_URI . '/task.js', ['wp-partnershipm-runtime'], Assets::filemtime(WP_PARTNERSHIPM_BUILD_JS_DIR_PATH . '/task.js'), true);
+        wp_enqueue_script('task-onboarding', WP_PARTNERSHIPM_BUILD_JS_URI . '/task.js', [], Assets::filemtime(WP_PARTNERSHIPM_BUILD_JS_DIR_PATH . '/task.js'), true);
     }
 
     public function screen_option() {

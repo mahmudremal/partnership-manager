@@ -27,6 +27,7 @@ class Roles {
         add_filter('pm_project/settings/fields', [$this, 'settings'], 4, 1);
         add_filter('admin_init', [$this, 'restrict_partnership_roles_admin_access']);
         add_action('after_setup_theme', [$this, 'disable_toolbar_for_partnership_roles']);
+        add_filter('partnership/security/permission/approval', [$this, 'api_permission_approval'], 10, 2);
     }
 
     public function register_routes() {
@@ -196,6 +197,57 @@ class Roles {
 			]
 		];
         return $args;
+    }
+
+
+    public function has_ability($capabilities, $user_id = false) {
+        if (!$user_id) {
+            $user_id = Security::get_instance()->user_id;
+        }
+        $capabilities = (array) $capabilities;
+        // 
+        $user = is_integer($user_id) ? get_user_by('id', $user_id) : $user_id;
+        if (!$user) {return false;}
+        $user_roles = (array) $user->roles;
+        $roles = $this->get_roles();
+        foreach ($user_roles as $role) {
+            if (empty($roles[$role]['capabilities'])) {
+                continue;
+            }
+
+            $role_capabilities = $roles[$role]['capabilities'];
+
+            if (!empty($role_capabilities['all_access'])) {
+                return true;
+            }
+
+            foreach ($capabilities as $capability) {
+                if (!empty($role_capabilities[$capability])) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+    
+
+    public function api_permission_approval($permission, WP_REST_Request $request) {
+        // if ( ! is_user_logged_in() ) {return false;}
+        $user_id = Security::get_instance()->user_id;
+        if ( ! $user_id ) {return false;}
+
+        
+        $_route = $request->get_route();
+        if (! str_starts_with($_route, '/partnership/v1/')) {
+            return $permission;
+        }
+        $_route = str_replace('/partnership/v1/', '', $_route);
+        // 
+        $_abilities = apply_filters('partnership/security/api/abilities', [], $_route, $user_id);
+        if (empty($_abilities)) {return $permission;}
+        // 
+        return $this->has_ability($_abilities, $user_id);
     }
     
 }

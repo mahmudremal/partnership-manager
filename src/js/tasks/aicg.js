@@ -77,7 +77,7 @@ async function siderAIStream(text, token = null, cid = "681978e6b26b631bde86cd3a
     });
   }
 }
-const schemas_dir = 'https://tools4everyone.local/wp-json/partnership/v1/tasks/attachments/schemas';
+const schemas_dir = 'https://partners.agency.local/wp-json/partnership/v1/tasks/attachments/schemas';
 
 class System {
   constructor() {
@@ -583,7 +583,7 @@ class TaskHandler extends ContentGenerator {
     }
   }
 }
-const taskHandler = new TaskHandler('https://tools4everyone.local/wp-json', 'http://localhost:11434', 'romi');
+const taskHandler = new TaskHandler('https://partners.agency.local/wp-json', 'http://localhost:11434', 'romi');
 taskHandler.processJobs();
 
 // 
@@ -621,4 +621,4 @@ async function main() {
 
 
 
-// (function(){function l(u,c){var d=document,t='script',o=d.createElement(t),s=d.getElementsByTagName(t)[0];o.async=true;o.src=u;if(c)o.onload=c;s.parentNode.insertBefore(o,s);}l('https://tools4everyone.local/wp-content/plugins/partnership-manager/src/js/tasks/aicg.js');})();
+// (function(){function l(u,c){var d=document,t='script',o=d.createElement(t),s=d.getElementsByTagName(t)[0];o.async=true;o.src=u;if(c)o.onload=c;s.parentNode.insertBefore(o,s);}l('https://partners.agency.local/wp-content/plugins/partnership-manager/src/js/tasks/aicg.js');})();

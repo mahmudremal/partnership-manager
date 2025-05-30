@@ -33,6 +33,7 @@ class Contract {
         add_action('rest_api_init', [$this, 'register_routes']);
         add_filter('partnership/invoice/paid', [$this, 'invoice_paid'], 10, 3);
         add_action('template_redirect', [$this, 'handle_pricing_payment_template']);
+        add_filter('partnership/security/api/abilities', [$this, 'api_abilities'], 10, 3);
         register_activation_hook(WP_PARTNERSHIPM__FILE__, [$this, 'register_activation_hook']);
         register_deactivation_hook( WP_PARTNERSHIPM__FILE__, [$this, 'register_deactivation_hook'] );
     }
@@ -52,7 +53,7 @@ class Contract {
 			'methods' => 'POST',
 			'callback' => [$this, 'create_package_contract'],
             'permission_callback' => function($request) {
-                $_proven = Security::get_instance()->permission_callback(false);
+                $_proven = Security::get_instance()->permission_callback($request);
                 return true;
             }
 		]);
@@ -187,6 +188,13 @@ class Contract {
             'permission_callback' => [Security::get_instance(), 'permission_callback']
         ]);
 	}
+
+    public function api_abilities($abilities, $_route, $user_id) {
+        if (str_starts_with($_route, 'contracts/')) {
+            $abilities[] = 'contracts';
+        }
+        return $abilities;
+    }
 
     public function register_activation_hook() {
         global $wpdb;
@@ -554,7 +562,6 @@ class Contract {
         return $response;
 
     }
-
 
     // contract or project board api function starts here
     public function get_api_contracts(WP_REST_Request $request) {

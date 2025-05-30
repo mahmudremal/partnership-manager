@@ -17,32 +17,11 @@ class Finance {
 	}
 
 	protected function setup_hooks() {
+		add_action('rest_api_init', [$this, 'register_routes']);
+        add_filter('partnership/security/api/abilities', [$this, 'api_abilities'], 10, 3);
 		register_activation_hook(WP_PARTNERSHIPM__FILE__, [$this, 'register_activation_hook']);
 		register_deactivation_hook(WP_PARTNERSHIPM__FILE__, [$this, 'register_deactivation_hook']);
-		add_action('rest_api_init', [$this, 'register_routes']);
 	}
-
-	public function register_activation_hook() {
-		global $wpdb;
-		$charset_collate = $wpdb->get_charset_collate();
-		$sql = "CREATE TABLE IF NOT EXISTS {$this->table} (
-			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-			user_id BIGINT(20) UNSIGNED NOT NULL,
-			amount DECIMAL(10,2) NOT NULL,
-			type ENUM('credit', 'debit') NOT NULL,
-			reference VARCHAR(255),
-			description TEXT,
-			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
-		) $charset_collate;";
-		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		dbDelta($sql);
-	}
-
-	public function register_deactivation_hook() {
-        global $wpdb;
-        $wpdb->query("DROP TABLE IF EXISTS {$this->table}");
-    }
 
 	public function register_routes() {
 		register_rest_route('partnership/v1', '/finance/transactions', [
@@ -66,6 +45,36 @@ class Finance {
 			'permission_callback' => [Security::get_instance(), 'permission_callback']
 		]);
 	}
+
+    public function api_abilities($abilities, $_route, $user_id) {
+        if (str_starts_with($_route, 'finance/')) {
+            $abilities[] = 'finance';
+        }
+        return $abilities;
+    }
+    
+	public function register_activation_hook() {
+		global $wpdb;
+		$charset_collate = $wpdb->get_charset_collate();
+		$sql = "CREATE TABLE IF NOT EXISTS {$this->table} (
+			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+			user_id BIGINT(20) UNSIGNED NOT NULL,
+			amount DECIMAL(10,2) NOT NULL,
+			type ENUM('credit', 'debit') NOT NULL,
+			reference VARCHAR(255),
+			description TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (id)
+		) $charset_collate;";
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		dbDelta($sql);
+	}
+
+	public function register_deactivation_hook() {
+        global $wpdb;
+        $wpdb->query("DROP TABLE IF EXISTS {$this->table}");
+    }
+
 	public function add_transaction_api(WP_REST_Request $request) {
 		$user_id = absint($request->get_param('user_id'));
 		$amount = floatval($request->get_param('amount'));

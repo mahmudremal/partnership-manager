@@ -1,6 +1,6 @@
-import React, { createContext, useState, useContext, useEffect, use } from 'react';
-import { home_route, home_url, rest_url, app_url } from '@functions';
-import { Eye, EyeOff, HardHat, LockKeyhole, Mail, UserRound } from 'lucide-react';
+import React, { createContext, useState, useContext, useEffect, use, useRef } from 'react';
+import { home_route, home_url, rest_url, app_url, notify, sleep } from '@functions';
+import { Eye, EyeOff, HardHat, LockKeyhole, Mail, UserRound, X } from 'lucide-react';
 import { Link } from '@common/link';
 import { useSettings } from '@context/SettingsProvider';
 import { useTranslation } from "@context/LanguageProvider";
@@ -39,42 +39,195 @@ export const AuthProvider = ({ children }) => {
     // const [auth, setAuth] = useState(settings?.loggedin === true);
     const [error, setError] = useState(null);
 
-    const login = async (args) => {
-        try {
-            const { data } = await axios.post(rest_url('partnership/v1/token'), args);
-            setAuth(false);
-            setSession(prev => ({
-                ...prev,
-                authToken: data.token,
-                user_id: data.bearer,
-                user: data?.user
-            }));
-            navigate(home_route('/'));
-            return data.token;
-        } catch (err) {
-            setAuth(true);
-            throw err;
-        }
-    };
-
     const submit_auth_function = async (e) => {
         e.preventDefault();
         setLoading(true);
-        try {
-            await login({
-                ...form,
-                username: form?.isSignUp ? '' : form?.username,
-                // email, password, isSignUp,
-                // firstName, lastName, password2
-            });
-        } catch (err) {
+        await sleep(1000);
+        axios.post(rest_url('partnership/v1/token'), {...form, username: form?.isSignUp ? '' : form?.username})
+        .then(res => res?.data??res)
+        .then(data => {
+            if (data?.isSignUp && !data?.token && data?.verify) {
+                // 
+                const formData = new FormData();
+                formData.append('email', data?.email);
+                // 
+                const VerifyOTP = () => {
+                    const inputRefs = useRef([]);
+                    const [loading, setLoading] = useState(null);
+                    const [error, setError] = useState(null);
+
+                    useEffect(() => {
+                        const handleKeyDown = (e, index) => {
+                            if (
+                                !/^[0-9]{1}$/.test(e.key) &&
+                                e.key !== 'Backspace' &&
+                                e.key !== 'Delete' &&
+                                e.key !== 'Tab' &&
+                                !e.metaKey
+                            ) {
+                                e.preventDefault();
+                            }
+
+                            if (e.key === 'Backspace' || e.key === 'Delete') {
+                                if (index > 0 && !inputRefs.current[index].value) {
+                                    inputRefs.current[index - 1].focus();
+                                }
+                            }
+                        };
+
+                        const handleInput = (e, index) => {
+                            const value = e.target.value;
+                            if (value && index < inputRefs.current.length - 1) {
+                                inputRefs.current[index + 1].focus();
+                            }
+                        };
+
+                        const handlePaste = (e) => {
+                            e.preventDefault();
+                            const text = e.clipboardData.getData('text');
+                            if (!new RegExp(`^[0-9]{${inputRefs.current.length}}$`).test(text)) return;
+                            text.split('').forEach((char, i) => {
+                                if (inputRefs.current[i]) {
+                                    inputRefs.current[i].value = char;
+                                }
+                            });
+                            inputRefs.current[inputRefs.current.length - 1].focus();
+                        };
+
+                        inputRefs.current.forEach((input, index) => {
+                            input.addEventListener('paste', handlePaste);
+                            input.onkeydown = (e) => handleKeyDown(e, index);
+                            input.oninput = (e) => handleInput(e, index);
+                            input.onfocus = (e) => e.target.select();
+                        });
+
+                        return () => {
+                            inputRefs.current.forEach((input) => {
+                                if (!input) {return;}
+                                input.removeEventListener('paste', handlePaste);
+                            });
+                        };
+                    }, []);
+
+                    return (
+                        <div className="xpo_max-w-md xpo_mx-auto xpo_text-center">
+                            <header className={ `${error ? 'xpo_mb-4' : 'xpo_mb-8'}` }>
+                                <h6 className="xpo_text-xl xpo_font-bold xpo_mb-1">{__('Email Verification')}</h6>
+                                <p className="xpo_text-[15px] xpo_text-slate-500">{__('Enter the 4-digit verification code that was sent to your email.')}</p>
+                                {error ? (
+                                    <div className="alert alert-danger bg-danger-100 text-danger-600 border-danger-100 px-24 py-11 mb-0 fw-semibold text-lg radius-8 d-flex align-items-center justify-content-between xpo_mt-4" role="alert">
+                                        <div className="d-flex align-items-center gap-2">
+                                            <span dangerouslySetInnerHTML={{__html: error}}></span>
+                                        </div>
+                                        <button className="remove-button text-danger-600 text-xxl line-height-1" onClick={(e) => setError(null)}> <X className="icon" /></button>
+                                    </div>
+                                ) : null}
+                            </header>
+                            <div>
+                                <div className="xpo_flex xpo_items-center xpo_justify-center xpo_gap-3">
+                                    {[0, 1, 2, 3, 4, 5].map((_, i) => (
+                                        <input
+                                            key={i}
+                                            type="text"
+                                            maxLength="1"
+                                            ref={(el) => (inputRefs.current[i] = el)}
+                                            className="xpo_w-14 xpo_h-14 xpo_text-center xpo_text-2xl xpo_font-extrabold xpo_text-slate-900 xpo_bg-slate-100 xpo_border xpo_border-transparent hover:xpo_border-slate-200 xpo_appearance-none xpo_rounded xpo_p-4 xpo_outline-none focus:xpo_bg-white focus:xpo_border-primary-400 focus:xpo_ring-2 focus:xpo_ring-primary-100"
+                                        />
+                                    ))}
+                                </div>
+                                <div className="xpo_max-w-[260px] xpo_mx-auto xpo_mt-4">
+                                    <button
+                                        type="submit"
+                                        onClick={async (e) => {
+                                            e.preventDefault();
+                                            setError(null);
+                                            if (inputRefs.current.some(input => !input.value)) {
+                                                setError(__('Please fill all the fields.'));
+                                                return;
+                                            }
+                                            setLoading(true);
+                                            await sleep(1000);
+                                            const code = inputRefs.current.map(input => input.value).join('');
+                                            if (code.trim().length < 4) {
+                                                setError(__('Please enter a valid 4-digit code.'));
+                                                setLoading(false);return;
+                                            }
+                                            const formData = new FormData();
+                                            formData.append('email', data?.email);formData.append('code', code);
+                                            request(rest_url('/partnership/v1/otp/verify'), {method: 'POST', headers: {'Cache-Control': 'no-cache'}, body: formData})
+                                            .then(res => {
+                                                if (res?.token) {
+                                                    setPopup(null);setAuth(false);
+                                                    setSession(prev => ({...prev, authToken: res.token, user_id: res.bearer, user: res?.user}));
+                                                    navigate(home_route('/'));setAuth(false);
+                                                    notify.success(__('Account verified successfully. Thanks for your collaboration!'));
+                                                } else {
+                                                    setError(res?.message??__('Invalid code, please try again.'));
+                                                }
+                                            })
+                                            .catch(err => setError(err?.response?.message??err?.message??__('Something went wrong')))
+                                            .finally(() => setLoading(false));
+                                        }}
+                                        className={`xpo_w-full xpo_inline-flex xpo_justify-center xpo_whitespace-nowrap xpo_rounded-lg xpo_bg-primary-500 xpo_px-3.5 xpo_py-2.5 xpo_text-sm xpo_font-medium xpo_text-white xpo_shadow-sm xpo_shadow-primary-950/10 hover:xpo_bg-primary-600 focus:xpo_outline-none focus:xpo_ring focus:xpo_ring-primary-300 focus-visible:xpo_outline-none focus-visible:xpo_ring focus-visible:xpo_ring-primary-300 xpo_transition-colors xpo_duration-150`}
+                                    >{loading ? __('Matching...') : __('Verify Account')}</button>
+                                </div>
+                            </div>
+                            <div className="xpo_text-sm xpo_text-slate-500 xpo_mt-4">
+                                {__('Didn\'t receive code?')}{' '}
+                                <a
+                                    href="#"
+                                    onClick={async (e) => {
+                                        setError(null);
+                                        e.preventDefault();
+                                        e.target.disabled = true;
+                                        e.target.innerText = __('Sending...');
+                                        await sleep(1000);
+                                        request(rest_url('/partnership/v1/otp/send'), {method: 'POST', headers: { 'Cache-Control': 'no-cache' }, body: formData})
+                                        .catch(err => setError(err?.response?.message??err?.message??__('Something went wrong')))
+                                        .finally(async () => {
+                                            e.target.innerText = __('Sent');
+                                            await sleep(1000);
+                                            let count = 30;
+                                            const loop = setInterval(() => {
+                                                e.target.innerText = sprintf(__('Wait for %d seconds'), count);
+                                                count--;
+                                            }, 1000);
+                                            setTimeout(() => {
+                                                clearInterval(loop);
+                                                e.target.disabled = false;
+                                                e.target.innerText = __('Resend');
+                                            }, 30000);
+                                        });
+                                    }}
+                                    className="xpo_font-medium xpo_text-primary-500 hover:xpo_text-primary-600"
+                                >{__('Resend')}</a>
+                            </div>
+                        </div>
+                    );
+                };
+                // 
+                setPopup(<VerifyOTP acc={data} />);
+                
+            } else {
+                setAuth(false);
+                setSession(prev => ({
+                    ...prev,
+                    authToken: data.token,
+                    user_id: data.bearer,
+                    user: data?.user
+                }));
+                navigate(home_route('/'));
+                return data.token;
+            }
+        })
+        .catch(err => {
+            setAuth(true);
             console.error('Login failed', err);
             if (err?.response && err?.response?.data && err?.response?.data?.message) {
                 setError([`${err?.response?.data?.message??''}`, `${err?.response?.data?.error??''}`].join(' '));
             }
-        } finally {
-            setLoading(false);
-        }
+        })
+        .finally(() => setLoading(false));
     };
 
     const logout = () => {
@@ -83,28 +236,6 @@ export const AuthProvider = ({ children }) => {
     }
 
     request.setAuth = setAuth;
-
-
-    // const authenticatedRequest = async (url, options = {}) => {
-    //     try {
-    //         const headers = {
-    //             ...options.headers,
-    //             Authorization: `Bearer ${token}`
-    //         };
-    //         return await axios({ url, ...options, headers });
-    //     } catch (err) {
-    //         if (err.response?.status === 403 && username && password) {
-    //             try {
-    //                 const newToken = await login(username, password);
-    //                 return await axios({ url, ...options, headers: { ...options.headers, Authorization: `Bearer ${newToken}` } });
-    //             } catch (reAuthErr) {
-    //                 setAuth(false);
-    //                 throw reAuthErr;
-    //             }
-    //         }
-    //         throw err;
-    //     }
-    // };
 
     useEffect(() => {
         if (auth) {
@@ -118,7 +249,6 @@ export const AuthProvider = ({ children }) => {
         if (roles?.length) {return;}
         request(rest_url('/partnership/v1/roles'))
         .then(res => {
-            console.log(res);
             setRoles(
                 Object.keys(res).filter(k => !['partnership_project_manager'].includes(k)).reduce((acc, roleKey) => {
                     acc[roleKey] = res[roleKey].label;

@@ -3,12 +3,14 @@ import { X } from 'lucide-react';
 const PopupContext = createContext();
 
 export const PopupProvider = ({ children }) => {
+    const [backdrop, setBackdrop] = useState({close: false});
     const [popup, setPopup] = useState(null);
     const popupRef = useRef(null);
 
     const closePopup = () => setPopup(null);
 
     useEffect(() => {
+        if (!backdrop.close) {return;}
         const handleClickOutside = (event) => {
             if (popupRef.current && !popupRef.current.contains(event.target)) {
                 setPopup(null);

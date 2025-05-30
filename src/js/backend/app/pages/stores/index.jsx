@@ -28,7 +28,7 @@ export default function Stores() {
 
     const storeVariants = [
         {key: 'dev', label: __('Development'), color: 'primary'},
-        {key: 'prod', label: __('Production'), color: 'success'}
+        {key: 'live', label: __('Production'), color: 'success'}
     ];
 
     const fetchStores = async () => {
@@ -87,14 +87,20 @@ export default function Stores() {
                                 <div className="form-group mb-0 me-3">
                                     <input type="text" className="form-control" placeholder={__('Search...')} value={filters.search} onChange={(e) => setFilters({ ...filters, s: e.target.value })} />
                                 </div>
-                                <button className="btn btn-primary" onClick={() => setPopup(
-                                <CreateStore
-                                    data={{}}
-                                    __={__}
-                                    setPopup={setPopup}
-                                    variants={storeVariants}
-                                    onSuccess={(data => setStores(prev => ([data, ...prev])))}
-                                />)}>{__('Create new store')}</button>
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={() =>
+                                        setPopup(
+                                            <EditStore
+                                                data={{}}
+                                                __={__}
+                                                setPopup={setPopup}
+                                                variants={storeVariants}
+                                                onSuccess={(data => setStores(prev => ([data, ...prev])))}
+                                            />
+                                        )
+                                    }
+                                >{__('Create new store')}</button>
                             </div>
                         </div>
                     </div>
@@ -169,12 +175,19 @@ export default function Stores() {
                                                     // to={ home_url(`/stores/${store.id}/view`) }
                                                     className="bg-success-focus text-success-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center"
                                                     onClick={() => setPopup(
-                                                        <CreateStore
+                                                        <EditStore
                                                             data={store}
                                                             __={__}
                                                             setPopup={setPopup}
                                                             variants={storeVariants}
-                                                            onSuccess={(data => setStores(prev => ([data, ...prev])))}
+                                                            onSuccess={(data => setStores(prev => {
+                                                                if (data?.id && prev.find(r => r.id === data.id)) {
+                                                                    prev = prev.map(r => r.id === data.id ? data : r);
+                                                                } else {
+                                                                    prev = [data, ...prev];
+                                                                }
+                                                                return prev;
+                                                            }))}
                                                         />
                                                     )}
                                                 ><SquarePen className="icon" /></button>
@@ -211,12 +224,12 @@ export default function Stores() {
                     )}</span>
                     <ul className="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
                         <li className="page-item">
-                            <button onClick={() => setFilters(prev = ({...prev, page: filters.page - 1}))} className="page-link bg-neutral-200"> <ChevronsLeft /> </button>
+                            <button onClick={() => setFilters(prev => ({...prev, page: filters.page - 1}))} className="page-link bg-neutral-200"> <ChevronsLeft /> </button>
                         </li>
                         {[...Array(totalPages)].map((_, i) => (
                             <li key={i + 1} className="page-item">
                                 <button
-                                    onClick={() => setFilters(prev = ({...prev, page: i + 1}))}
+                                    onClick={() => setFilters(prev => ({...prev, page: i + 1}))}
                                     className={`page-link ${filters.page === i + 1 ? 'bg-primary-600 text-white' : 'bg-neutral-200'}`}
                                 >
                                     {i + 1}
@@ -224,7 +237,7 @@ export default function Stores() {
                             </li>
                         ))}
                         <li className="page-item">
-                            <button onClick={() => setFilters(prev = ({...prev, page: filters.page + 1}))} className="page-link bg-neutral-200"> <ChevronsRight /> </button>
+                            <button onClick={() => setFilters(prev => ({...prev, page: filters.page + 1}))} className="page-link bg-neutral-200"> <ChevronsRight /> </button>
                         </li>
                     </ul>
                 </div>
@@ -235,7 +248,7 @@ export default function Stores() {
 
 
 
-const CreateStore = ({ data = {}, variants = [], __, setPopup, onSuccess }) => {
+const EditStore = ({ data = {}, variants = [], __, setPopup, onSuccess }) => {
     const [loading, setLoading] = useState(null);
     const [form, setForm] = useState({
         id: null,

@@ -75,16 +75,19 @@ function request(url, options = {}) {
 
         if (error.response) {
             switch (status) {
-                case 401:
-                    console.log("Ah it's 401 error", status);
-                    if (request?.setAuth) {
-                        request.setAuth(prev => true);
-                    }
-                    break;
+                // case 401:
+                //     console.log("Ah it's 401 error", status);
+                //     if (request?.setAuth) {
+                //         request.setAuth(prev => true);
+                //     }
+                //     break;
                 default:
                     try {
                         const errorBody = await error.response.json();
                         error.response = errorBody;
+                        if (errorBody?.code == 'expired_token') {
+                            if (request?.setAuth) {request.setAuth(prev => true);}
+                        }
                         if (errorBody?.message) {
                             notify.error(ejson.message);
                         }

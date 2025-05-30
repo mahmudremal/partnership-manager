@@ -1,4 +1,10 @@
-const { default: axios } = require("axios");
+import React, { Suspense, lazy } from 'react';
+import { createRoot } from 'react-dom/client';
+import { Toaster } from 'react-hot-toast';
+const TaskTable = lazy(() => import('./table'));
+import axios from 'axios';
+
+const __ = (t) => t;
 
 class Tasks {
 	constructor() {
@@ -10,7 +16,8 @@ class Tasks {
 		this.setup_hooks();
 	}
 	setup_hooks() {
-		// this.setup_events();
+		this.setup_table();
+		this.setup_events();
 	}
     setup_events() {
         document.querySelectorAll('.toplevel_page_automated-jobs select[name="job-status"]').forEach(element => {
@@ -20,10 +27,28 @@ class Tasks {
 				const task_key = parseInt(element.parentElement.dataset.key);
 				const update_value = event.target.value
 				if (job_id) {
-					axios.post(`https://tools4everyone.local/wp-json/partnership/v1/tasks/${job_id}`, {task_key, update_value}, {headers: {'X-WP-Nonce': this.ajaxNonce}});
+					axios.post(`https://partners.agency.local/wp-json/partnership/v1/tasks/${job_id}`, {task_key, update_value}, {headers: {'X-WP-Nonce': this.ajaxNonce}});
 				}
 			});
 		});
     }
+	setup_table() {
+		const script = document.createElement("script");
+        script.src = 'https://cdn.tailwindcss.com';
+        script.onload = () => {
+            window.tailwind = window.tailwind || {};
+            window.tailwind.config = {prefix: 'xpo_'};
+        }
+        document.head.appendChild(script);
+		document.querySelectorAll('#automated_task_table').forEach(container => {
+			const config = JSON.parse(container.dataset.config);
+			const root = createRoot(container);root.render(
+				<Suspense fallback={<div className="text-center p-4">{__('Loading...')}</div>}>
+					<Toaster />
+					<TaskTable config={config} />
+				</Suspense>
+			);
+		});
+	}
 }
 new Tasks();

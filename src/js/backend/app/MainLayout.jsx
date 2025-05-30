@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Nav } from '@components/sidebar/nav';
 import { Link } from '@common/link';
-import { home_url } from '@functions';
+import { home_url, roles } from '@functions';
 import Footer from '@components/element/Footer';
 import { ChevronRight, Menu, MoonStar, Search, SunMedium, X } from 'lucide-react';
 import LanguageSwitcher from '@components/element/LanguageSwitcher';
@@ -25,7 +25,6 @@ const MainLayout = ({ children }) => {
     const [miniSidebar, setMiniSidebar] = useState(false);
     
     useEffect(() => {
-        console.log('IOS', opened, is_mobile_width())
         if (opened) {
             document.body.classList.add('overlay-active');
         } else {
@@ -92,7 +91,7 @@ const MainLayout = ({ children }) => {
                                 {/*  */}
                                 <LanguageSwitcher />
                                 {/* <MessageNotification /> */}
-                                <Notifications />
+                                {roles.has_ability('notifications') && <Notifications />}
                                 <ProfilePannel />
                                 {/*  */}
                             </div>

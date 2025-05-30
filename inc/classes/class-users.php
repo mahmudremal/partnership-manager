@@ -21,13 +21,12 @@ class Users {
 
     protected function setup_hooks() {
         add_filter('rest_api_init', [$this, 'rest_api_init']);
+        add_filter('partnership/security/api/abilities', [$this, 'api_abilities'], 10, 3);
     }
     
     public function rest_api_init() {
         register_rest_route(
-            'partnership/v1',
-            '/users',
-            [
+            'partnership/v1', '/users', [
                 'methods'  => 'GET',
                 'callback' => [$this, 'partnership_get_users'],
                 'args'     => [
@@ -58,9 +57,7 @@ class Users {
             ]
         );
         register_rest_route(
-            'partnership/v1',
-            '/users/(?P<user_id>\d+)',
-            [
+            'partnership/v1', '/users/(?P<user_id>\d+)', [
                 'methods'             => 'GET',
                 'callback'            => [$this, 'partnership_get_user_details'],
                 'permission_callback' => [Security::get_instance(), 'permission_callback'],
@@ -74,23 +71,26 @@ class Users {
             ]
         );
         register_rest_route(
-            'partnership/v1',
-            '/users/(?P<user_id>\d+)',
-            [
+            'partnership/v1', '/users/(?P<user_id>\d+)', [
                 'methods'             => 'POST',
                 'callback'            => [$this, 'partnership_update_user_details'],
                 'permission_callback' => [Security::get_instance(), 'permission_callback']
             ]
         );
         register_rest_route(
-            'partnership/v1',
-            '/users/(?P<user_id>\d+)/avater',
-            [
+            'partnership/v1', '/users/(?P<user_id>\d+)/avater', [
                 'methods'             => 'POST',
                 'callback'            => [$this, 'partnership_update_user_avater'],
-                'permission_callback' => '__return_true'
+                'permission_callback' => [Security::get_instance(), 'permission_callback']
             ]
         );
+    }
+    
+    public function api_abilities($abilities, $_route, $user_id) {
+        if (str_starts_with($_route, 'users/')) {
+            $abilities[] = 'users';
+        }
+        return $abilities;
     }
     
     public function partnership_get_users( WP_REST_Request $request ) {
@@ -106,13 +106,15 @@ class Users {
             'fields'  => 'all',
             'orderby' => 'ID',
             'order'   => 'ASC',
+            'role__in' => ['partnership_stuff', 'partnership_project_manager', 'partnership_partner'],
+            // 'include' => [1, 5, 12, 27, 30], // Replace with your actual user IDs
         );
 
         if ( ! empty( $status ) && $status != 'any' ) {
             $args['meta_query'] = array(
                 array(
-                    'key'   => '_user_status',
-                    'value' => $status,
+                    'key'   => '_verified',
+                    'value' => strtolower(trim($status)) === 'active',
                 ),
             );
         }
@@ -164,15 +166,15 @@ class Users {
             'roles' => $user->roles,
             'email' => $user->data->user_email,
             // 'metadata' => $transformed_meta,
+            'editable' => $user->ID === Security::get_instance()->user_id,
             'metadata' => [
-                'avater' => get_user_meta($user_id, 'avater', true),
+                // ...$transformed_meta,
                 'first_name' => get_user_meta($user_id, 'first_name', true),
                 'last_name' => get_user_meta($user_id, 'last_name', true),
                 'description' => get_user_meta($user_id, 'description', true),
-                'partnership_dashboard_locale' => get_user_meta($user_id, 'partnership_dashboard_locale', true),
-                // '_tap_customer_id' => get_user_meta($user_id, '_tap_customer_id', true),
-                // 'referral_code' => get_user_meta($user_id, 'referral_code', true)
-            ]
+
+            ],
+            ...$this->prepare_user_data_for_response($user)
         ]);
     }
 

@@ -128,14 +128,14 @@ const Referrals = ({ filters = 'any' }) => {
                                         <td className="text-center">
                                             <div className="d-flex align-items-center gap-10 justify-content-center">
                                                 <Link to={ home_url(`/referrals/${referral.id}/view`) } className="bg-info-focus text-info-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center" ><Eye className="icon text-xl" /></Link>
-                                                <button
+                                                {/* <button
                                                     className="bg-success-focus text-success-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center"
                                                     onClick={() => setPopup(<div>Hello from popup!</div>)}
                                                 ><SquarePen className="icon" /></button>
                                                 <button
                                                     className="bg-danger-focus text-danger-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center"
                                                     onClick={() => setPopup(<div>Hello from popup!</div>)}
-                                                ><Trash2 className="icon" /></button>
+                                                ><Trash2 className="icon" /></button> */}
                                             </div>
                                         </td>
                                     </tr>
@@ -180,15 +180,15 @@ const Referrals = ({ filters = 'any' }) => {
 
 export default function ReferralsScreen({ filters = 'any' }) {
     return (
-        <div className="xpo_grid xpo_gap-4 xl:xpo_grid-cols-3">
-            <div className="xl:xpo_col-span-2 md:xpo_col-span-5 sm:xpo_col-span-5">
+        <div className="xpo_grid xpo_gap-4 xl:xpo_grid-cols-4 xl:xpo_grid-rows-3">
+            <div className="xl:xpo_col-span-3 xl:xpo_row-span-3 md:xpo_col-span-4">
                 <div className="card h-100 radius-8 border-0">
                     <div className="card-body p-24">
                         <Referrals filters={filters} />
                     </div>
                 </div>
             </div>
-            <div className="xl:xpo_col-span-1 md:xpo_col-span-5 sm:xpo_col-span-5">
+            <div className="xl:xpo_col-span-1 md:xpo_col-span-4">
                 <div className="card h-100 radius-8 border-0">
                     <div className="card-body p-24">
                         <div className="d-flex align-items-center flex-wrap gap-2 justify-content-between">
@@ -202,7 +202,7 @@ export default function ReferralsScreen({ filters = 'any' }) {
                     </div>
                 </div>
             </div>
-            <div className="md:xpo_col-span-3 sm:xpo_col-span-5">
+            <div className="xl:xpo_col-span-1 md:xpo_col-span-2">
                 <div className="card h-100 radius-8 border-0">
                     <div className="card-body p-24">
                         <div className="d-flex align-items-center flex-wrap gap-2 justify-content-between">
@@ -292,7 +292,7 @@ export default function ReferralsScreen({ filters = 'any' }) {
                     </div>
                 </div>
             </div>
-            <div className="md:xpo_col-span-2 sm:xpo_col-span-5">
+            <div className="xl:xpo_col-span-1 md:xpo_col-span-2">
                 <div className="card h-100 radius-8 border-0 overflow-hidden">
                     <div className="card-body p-24">
                         <div className="d-flex align-items-center flex-wrap gap-2 justify-content-between">
