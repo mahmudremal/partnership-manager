@@ -40,7 +40,6 @@ class Shortcode {
         // // wp_enqueue_style( 'wp-partnershipm-admin' );
         
         // wp_enqueue_style( 'wp-partnershipm-tailwind' );
-        wp_enqueue_script('wp-partnershipm-runtime');
         wp_enqueue_script( 'wp-partnershipm-admin' );
         // wp_enqueue_script( 'wp-partnershipm-public' );
         

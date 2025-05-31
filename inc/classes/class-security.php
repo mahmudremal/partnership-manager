@@ -8,7 +8,7 @@ use WP_Error;
 class Security {
 	use Singleton;
 
-	private $_token_period = 3600 * 1 * 6; // 1 * 6 hour
+	private $_token_period = 3600 * 1 * 60000; // 1 * 6 hour
 	private $secret = 'your-secret-key';
 	public $user_id = null;
 

@@ -23,6 +23,7 @@ class Project {
 		Cdn::get_instance();
 		Task::get_instance();
 		Error::get_instance();
+		Suite::get_instance();
 		Users::get_instance();
 		Roles::get_instance();
 		Menus::get_instance();
@@ -30,6 +31,7 @@ class Project {
 		Assets::get_instance();
 		Payout::get_instance();
 		Stores::get_instance();
+		Visitor::get_instance();
 		Toolbar::get_instance();
 		Invoice::get_instance();
 		Finance::get_instance();

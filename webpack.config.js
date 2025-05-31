@@ -17,6 +17,7 @@ module.exports = {
   entry: {
     setting: JS_DIR + '/setting.js',
     pricing: JS_DIR + '/pricing.js',
+    visitor: JS_DIR + '/visitor.js',
     public: JS_DIR + '/public.js',
     admin: JS_DIR + '/admin.js',
     task: JS_DIR + '/task.js',

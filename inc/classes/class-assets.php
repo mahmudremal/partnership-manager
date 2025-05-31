@@ -60,10 +60,9 @@ class Assets {
 	 * @param string $curr_page The current admin page.
 	 */
 	public function admin_enqueue_scripts($curr_page) {
-		wp_register_script('wp-partnershipm-runtime', WP_PARTNERSHIPM_BUILD_JS_URI . '/runtime.js', [], $this->filemtime(WP_PARTNERSHIPM_BUILD_JS_DIR_PATH . '/runtime.js'), true);
 		wp_register_style('wp-partnershipm-tailwind', WP_PARTNERSHIPM_DIR_URI . '/assets/tailwind.css', [], $this->filemtime(WP_PARTNERSHIPM_DIR_PATH . '/assets/tailwind.css'), 'all');
 		wp_register_style('wp-partnershipm-admin', WP_PARTNERSHIPM_BUILD_CSS_URI . '/admin.css', [], $this->filemtime(WP_PARTNERSHIPM_BUILD_CSS_DIR_PATH . '/admin.css'), 'all');
-		wp_register_script('wp-partnershipm-admin', WP_PARTNERSHIPM_BUILD_JS_URI . '/admin.js', [ 'wp-partnershipm-runtime' ], $this->filemtime(WP_PARTNERSHIPM_BUILD_JS_DIR_PATH . '/admin.js'), true);
+		wp_register_script('wp-partnershipm-admin', WP_PARTNERSHIPM_BUILD_JS_URI . '/admin.js', [], $this->filemtime(WP_PARTNERSHIPM_BUILD_JS_DIR_PATH . '/admin.js'), true);
 		wp_register_script('wp-partnershipm-setting', WP_PARTNERSHIPM_BUILD_JS_URI . '/setting.js', [], $this->filemtime(WP_PARTNERSHIPM_BUILD_JS_DIR_PATH . '/setting.js'), true);
 		wp_localize_script('wp-partnershipm-admin', 'partnershipmangConfig', apply_filters('partnershipmang/siteconfig', []));
 		// 
