@@ -58,8 +58,8 @@ const Referrals = ({ filters = 'any' }) => {
 
     return (
         <div className="card h-100 p-0 radius-12 xpo_shadow-none xpo_p-0">
-            <div className="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between">
-                <div className="d-flex align-items-center flex-wrap gap-3">
+            <div className="card-header border-bottom bg-base py-16 px-24 xpo_flex xpo_items-center flex-wrap gap-3 xpo_justify-between">
+                <div className="xpo_flex xpo_items-center flex-wrap gap-3">
                     <span className="text-md fw-medium text-secondary-light mb-0">{__('Show')}</span>
                     <select
                         className="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px"
@@ -126,7 +126,7 @@ const Referrals = ({ filters = 'any' }) => {
                                             )}
                                         </td>
                                         <td className="text-center">
-                                            <div className="d-flex align-items-center gap-10 justify-content-center">
+                                            <div className="xpo_flex xpo_items-center gap-10 justify-content-center">
                                                 <Link to={ home_url(`/referrals/${referral.id}/view`) } className="bg-info-focus text-info-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center" ><Eye className="icon text-xl" /></Link>
                                                 {/* <button
                                                     className="bg-success-focus text-success-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center"
@@ -147,14 +147,14 @@ const Referrals = ({ filters = 'any' }) => {
                     )}
                 </div>
 
-                <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
+                <div className="xpo_flex xpo_items-center xpo_justify-between flex-wrap gap-2 mt-24">
                     <span>{sprintf(
                         __('Showing %d to %d of %d entries'),
                         (page - 1) * perPage + 1,
                         Math.min(page * perPage, totalEntries),
                         totalEntries
                     )}</span>
-                    <ul className="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
+                    <ul className="pagination xpo_flex flex-wrap xpo_items-center gap-2 justify-content-center">
                         <li className="page-item">
                             <button onClick={() => handlePageChange(page - 1)} className="page-link bg-neutral-200"> <ChevronsLeft /> </button>
                         </li>
@@ -191,7 +191,7 @@ export default function ReferralsScreen({ filters = 'any' }) {
             <div className="xl:xpo_col-span-1 md:xpo_col-span-4">
                 <div className="card h-100 radius-8 border-0">
                     <div className="card-body p-24">
-                        <div className="d-flex align-items-center flex-wrap gap-2 justify-content-between">
+                        <div className="xpo_flex xpo_items-center flex-wrap gap-2 xpo_justify-between">
                             <h6 className="mb-2 fw-bold text-lg">Campaigns</h6>
                         </div>
                         
@@ -205,7 +205,7 @@ export default function ReferralsScreen({ filters = 'any' }) {
             <div className="xl:xpo_col-span-1 md:xpo_col-span-2">
                 <div className="card h-100 radius-8 border-0">
                     <div className="card-body p-24">
-                        <div className="d-flex align-items-center flex-wrap gap-2 justify-content-between">
+                        <div className="xpo_flex xpo_items-center flex-wrap gap-2 xpo_justify-between">
                             <h6 className="mb-2 fw-bold text-lg">Campaigns</h6>
                             <div className="">
                                 <select className="form-select form-select-sm w-auto bg-base border text-secondary-light">
@@ -219,14 +219,14 @@ export default function ReferralsScreen({ filters = 'any' }) {
                         
                         <div className="mt-3">
                         
-                            <div className="d-flex align-items-center justify-content-between gap-3 mb-12">
-                                <div className="d-flex align-items-center">
-                                    <span className="text-xxl line-height-1 d-flex align-content-center flex-shrink-0 text-orange">
+                            <div className="xpo_flex xpo_items-center xpo_justify-between gap-3 mb-12">
+                                <div className="xpo_flex xpo_items-center">
+                                    <span className="text-xxl line-height-1 xpo_flex align-content-center flex-shrink-0 text-orange">
                                         <Mail className="icon" />
                                     </span>
                                     <span className="text-primary-light fw-medium text-sm ps-12">Email</span>
                                 </div>
-                                <div className="d-flex align-items-center gap-2 w-100">
+                                <div className="xpo_flex xpo_items-center gap-2 w-100">
                                     <div className="w-100 max-w-66 ms-auto">
                                         <div className="progress progress-sm rounded-pill" role="progressbar" aria-label="Success example" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
                                             <div className="progress-bar bg-orange rounded-pill" style={{width: '80%'}}></div>
@@ -236,14 +236,14 @@ export default function ReferralsScreen({ filters = 'any' }) {
                                 </div>
                             </div>
                             
-                            <div className="d-flex align-items-center justify-content-between gap-3 mb-12">
-                                <div className="d-flex align-items-center">
-                                    <span className="text-xxl line-height-1 d-flex align-content-center flex-shrink-0 text-success-main">
+                            <div className="xpo_flex xpo_items-center xpo_justify-between gap-3 mb-12">
+                                <div className="xpo_flex xpo_items-center">
+                                    <span className="text-xxl line-height-1 xpo_flex align-content-center flex-shrink-0 text-success-main">
                                         <Globe className="icon" />
                                     </span>
                                     <span className="text-primary-light fw-medium text-sm ps-12">Website</span>
                                 </div>
-                                <div className="d-flex align-items-center gap-2 w-100">
+                                <div className="xpo_flex xpo_items-center gap-2 w-100">
                                     <div className="w-100 max-w-66 ms-auto">
                                         <div className="progress progress-sm rounded-pill" role="progressbar" aria-label="Success example" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
                                             <div className="progress-bar bg-success-main rounded-pill" style={{width: '60%'}}></div>
@@ -253,14 +253,14 @@ export default function ReferralsScreen({ filters = 'any' }) {
                                 </div>
                             </div>
                             
-                            <div className="d-flex align-items-center justify-content-between gap-3 mb-12">
-                                <div className="d-flex align-items-center">
-                                    <span className="text-xxl line-height-1 d-flex align-content-center flex-shrink-0 text-info-main">
+                            <div className="xpo_flex xpo_items-center xpo_justify-between gap-3 mb-12">
+                                <div className="xpo_flex xpo_items-center">
+                                    <span className="text-xxl line-height-1 xpo_flex align-content-center flex-shrink-0 text-info-main">
                                         <iconify-icon icon="fa6-brands:square-facebook" className="icon" />
                                     </span>
                                     <span className="text-primary-light fw-medium text-sm ps-12">Facebook</span>
                                 </div>
-                                <div className="d-flex align-items-center gap-2 w-100">
+                                <div className="xpo_flex xpo_items-center gap-2 w-100">
                                     <div className="w-100 max-w-66 ms-auto">
                                         <div className="progress progress-sm rounded-pill" role="progressbar" aria-label="Success example" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
                                             <div className="progress-bar bg-info-main rounded-pill" style={{width: '49%'}}></div>
@@ -270,14 +270,14 @@ export default function ReferralsScreen({ filters = 'any' }) {
                                 </div>
                             </div>
                             
-                            <div className="d-flex align-items-center justify-content-between gap-3">
-                                <div className="d-flex align-items-center">
-                                    <span className="text-xxl line-height-1 d-flex align-content-center flex-shrink-0 text-indigo">
+                            <div className="xpo_flex xpo_items-center xpo_justify-between gap-3">
+                                <div className="xpo_flex xpo_items-center">
+                                    <span className="text-xxl line-height-1 xpo_flex align-content-center flex-shrink-0 text-indigo">
                                         <LocateOffIcon className="icon" />
                                     </span>
                                     <span className="text-primary-light fw-medium text-sm ps-12">Email</span>
                                 </div>
-                                <div className="d-flex align-items-center gap-2 w-100">
+                                <div className="xpo_flex xpo_items-center gap-2 w-100">
                                     <div className="w-100 max-w-66 ms-auto">
                                         <div className="progress progress-sm rounded-pill" role="progressbar" aria-label="Success example" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
                                             <div className="progress-bar bg-indigo rounded-pill" style={{width: '70%'}}></div>
@@ -295,7 +295,7 @@ export default function ReferralsScreen({ filters = 'any' }) {
             <div className="xl:xpo_col-span-1 md:xpo_col-span-2">
                 <div className="card h-100 radius-8 border-0 overflow-hidden">
                     <div className="card-body p-24">
-                        <div className="d-flex align-items-center flex-wrap gap-2 justify-content-between">
+                        <div className="xpo_flex xpo_items-center flex-wrap gap-2 xpo_justify-between">
                             <h6 className="mb-2 fw-bold text-lg">Customer Overview</h6>
                             <div className="">
                                 <select className="form-select form-select-sm w-auto bg-base border text-secondary-light">
@@ -307,17 +307,17 @@ export default function ReferralsScreen({ filters = 'any' }) {
                             </div>
                         </div>
 
-                        <div className="d-flex flex-wrap align-items-center mt-3"> 
+                        <div className="xpo_flex flex-wrap xpo_items-center mt-3"> 
                             <ul className="flex-shrink-0">
-                                <li className="d-flex align-items-center gap-2 mb-28">
+                                <li className="xpo_flex xpo_items-center gap-2 mb-28">
                                     <span className="w-12-px h-12-px rounded-circle bg-success-main"></span>
                                     <span className="text-secondary-light text-sm fw-medium">Total: 500</span>
                                 </li>
-                                <li className="d-flex align-items-center gap-2 mb-28">
+                                <li className="xpo_flex xpo_items-center gap-2 mb-28">
                                     <span className="w-12-px h-12-px rounded-circle bg-warning-main"></span>
                                     <span className="text-secondary-light text-sm fw-medium">New: 500</span>
                                 </li>
-                                <li className="d-flex align-items-center gap-2">
+                                <li className="xpo_flex xpo_items-center gap-2">
                                     <span className="w-12-px h-12-px rounded-circle bg-primary-600"></span>
                                     <span className="text-secondary-light text-sm fw-medium">Active: 1500</span>
                                 </li>

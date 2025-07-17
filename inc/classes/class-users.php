@@ -145,7 +145,7 @@ class Users {
     }
 
     public function partnership_get_user_details( WP_REST_Request $request ) {
-        $user_id = $request->get_param( 'user_id' );
+        $user_id = $request->get_param('user_id');
         if ( ! $user_id ) {
             return new WP_Error( 'invalid_user_id', __( 'User ID is required.', 'partnership-manager' ), array( 'status' => 400 ) );
         }

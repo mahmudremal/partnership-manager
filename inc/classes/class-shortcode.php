@@ -55,7 +55,7 @@ class Shortcode {
                 <a href="https://wa.me/8801814118328" target="_blank">+8801814118328</a> <a href="mailto:hello@mahmudremal.com">hello@mahmudremal.com</a>
             </p>
         </div>
-        <link rel="stylesheet" href="https://wowdash.wowtheme7.com/bundlelive/demo/assets/css/remixicon.css" media="all" />
+        <link rel="stylesheet" href="' . esc_url(WP_PARTNERSHIPM_BUILD_LIB_URI . '/css/remixicon.css') . '" media="all" />
         <style>div#wpadminbar {display: none;}</style>
         ';
     }

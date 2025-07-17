@@ -68,10 +68,10 @@ export default function Stores() {
     return (
         <div className="card h-100 p-0 radius-12">
             <div className="card-header">
-                <div className="d-flex align-items-center justify-content-between">
+                <div className="xpo_flex xpo_items-center xpo_justify-between">
                     <h5 className="card-title mb-0">{__('Stores')}</h5>
                     <div className="card-header-action">
-                        <div className="d-flex align-items-center xpo_justify-between xpo_gap-4 xpo_w-full">
+                        <div className="xpo_flex xpo_items-center xpo_justify-between xpo_gap-4 xpo_w-full">
                             <div className="btn-group radius-8" role="group" aria-label="Default button group">
                                 {[
                                     ['all', __('All')],
@@ -83,7 +83,7 @@ export default function Stores() {
                                     <button key={index} type="button" className={ `btn btn-link text-secondary-light text-decoration-none xpo_p-2 hover:xpo_bg-transparent ${filters.store_type == key && 'xpo_text-primary'}` } onClick={() => setFilters(prev => ({...prev, store_type: key}))}>{label}</button>
                                 ))}
                             </div>
-                            <div className="d-flex align-items-center">
+                            <div className="xpo_flex xpo_items-center">
                                 <div className="form-group mb-0 me-3">
                                     <input type="text" className="form-control" placeholder={__('Search...')} value={filters.search} onChange={(e) => setFilters({ ...filters, s: e.target.value })} />
                                 </div>
@@ -129,7 +129,7 @@ export default function Stores() {
                                     <tr>
                                         <td colSpan={4} className="xpo_px-4 xpo_py-6">
                                             <div className="alert alert-warning bg-warning-100 text-warning-600 border-warning-100 px-24 py-11 mb-0 fw-semibold text-lg radius-8" role="alert">
-                                                <div className="d-flex align-items-center justify-content-between text-lg">
+                                                <div className="xpo_flex xpo_items-center xpo_justify-between text-lg">
                                                     {__('No stores found!')} 
                                                 </div>
                                                 <p className="fw-medium text-warning-600 text-sm mt-8">{__('Create a new store to make purchase, to start a project or to do a thing here. Store is required to create before start with us.')}</p>
@@ -142,11 +142,11 @@ export default function Stores() {
                                         <td>{(store?.plans??[]).map(p => <span className="badge text-sm fw-semibold rounded-pill text-success-600 bg-success-100 px-20 py-9 radius-4 text-white">{p}</span>)}</td>
                                         <td>{storeVariants.find(i => i.key === store.store_type)?.label}</td>
                                         <td className="text-center">
-                                            <div className="d-flex align-items-center gap-10 justify-content-center">
+                                            <div className="xpo_flex xpo_items-center gap-10 justify-content-center">
                                                 <button
                                                     onClick={() => setPopup(
                                                         <div className="xpo_flex xpo_flex-col xpo_gap-4">
-                                                            <div className="d-flex align-items-center gap-2">
+                                                            <div className="xpo_flex xpo_items-center gap-2">
                                                                 <Store className="text-xxl" /> 
                                                                 <h6 className="text-lg mb-0">{store.store_title}</h6>
                                                             </div>
@@ -215,14 +215,14 @@ export default function Stores() {
                 </div>
             </div>
             <div className="card-footer">
-                <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
+                <div className="xpo_flex xpo_items-center xpo_justify-between flex-wrap gap-2 mt-24">
                     <span>{sprintf(
                         __('Showing %d to %d of %d entries'),
                         (filters.page - 1) * filters.per_page + 1,
                         Math.min(filters.page * filters.per_page, totalEntries),
                         totalEntries
                     )}</span>
-                    <ul className="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
+                    <ul className="pagination xpo_flex flex-wrap xpo_items-center gap-2 justify-content-center">
                         <li className="page-item">
                             <button onClick={() => setFilters(prev => ({...prev, page: filters.page - 1}))} className="page-link bg-neutral-200"> <ChevronsLeft /> </button>
                         </li>
@@ -297,7 +297,7 @@ const EditStore = ({ data = {}, variants = [], __, setPopup, onSuccess }) => {
                         <div className="xpo_flex xpo_flex-wrap xpo_w-full xpo_gap-4">
                             {variants.map(({key: tKey, label: tLabel, color}, i) => (
                                 <div key={i} className={ `bg-${color}-50 px-20 py-12 radius-8` }>
-                                    <span className={ `form-check checked-${color} d-flex align-items-center gap-2` }>
+                                    <span className={ `form-check checked-${color} xpo_flex xpo_items-center gap-2` }>
                                         <input className="form-check-input" type="radio" name="store_type" id={ `store_type_${tKey}` } checked={tKey ==form.store_type} value={tKey} onChange={(e) => setForm(prev => ({...prev, store_type: e.target.value}))} />
                                         <label className="form-check-label line-height-1 fw-medium text-secondary-light" htmlFor={ `store_type_${tKey}` }> {tLabel}</label>
                                     </span>

@@ -2,9 +2,7 @@
 module.exports = {
   darkMode: 'class',
   prefix: 'xpo_',
-  content: [
-    "./src/js/**/*.{js,jsx,ts,tsx}",
-  ],
+  content: [...Array(10)].map((u, i) => `./src/js/${[...Array(i + 1)].map(o => '**/').join('')}*.{js,jsx,ts,tsx}`),
   theme: {
     extend: {
       colors: {

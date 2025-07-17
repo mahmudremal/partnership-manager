@@ -78,7 +78,7 @@ export default function Contract_Board() {
                 {/* here you'll implement trello like Kanban board. */}
                 <div className="overflow-x-auto scroll-sm pb-8">
                     <div className="kanban-wrapper">
-                        <div className="d-flex align-items-start gap-24" id="sortable-wrapper">
+                        <div className="xpo_flex align-items-start gap-24" id="sortable-wrapper">
                             {project?.columns?.map((column, columnIndex) => (
                                 <SingleColumn
                                     key={columnIndex}
@@ -100,10 +100,10 @@ export default function Contract_Board() {
                                     <div className="card-body p-24">
                                         <button
                                             type="button"
-                                            className="add-kanban d-flex align-items-center gap-2 fw-medium w-100 text-primary-600 justify-content-center text-hover-primary-800 line-height-1"
+                                            className="add-kanban xpo_flex xpo_items-center gap-2 fw-medium w-100 text-primary-600 justify-content-center text-hover-primary-800 line-height-1"
                                             onClick={() => setProject(prev => ({...prev, columns: [...prev.columns, {id: null, contract_id: contract_id, title: '', sort_order: prev.columns.length, cards: []}]}))}
                                         >
-                                            <CirclePlus className="icon text-xl d-flex" /> 
+                                            <CirclePlus className="icon text-xl xpo_flex" /> 
                                             {__('Add Column')}
                                         </button>
                                     </div>
@@ -215,7 +215,7 @@ const SingleColumn = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
         <div className="w-25 xpo_w-80 kanban-item radius-12 pending-card xpo_min-w-60 md:xpo_min-w-80">
             <div className="card p-0 radius-12 overflow-unset shadow-none">
                 <div className="card-body p-0 pb-24">
-                    <div className="d-flex align-items-center gap-2 justify-content-between ps-24 pt-24 pe-24">
+                    <div className="xpo_flex xpo_items-center gap-2 xpo_justify-between ps-24 pt-24 pe-24">
                         <h6 className="text-lg fw-semibold mb-0">
                             <input
                                 type="text"
@@ -230,7 +230,7 @@ const SingleColumn = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
                                 }}
                             />
                         </h6>
-                        <div className="d-flex align-items-center gap-3 justify-content-between mb-0">
+                        <div className="xpo_flex xpo_items-center gap-3 xpo_justify-between mb-0">
                             <button type="button" className="text-2xl hover-text-primary add-task-button" onClick={() => onAddCard({id: null, column_id: column.id, title: '', description: '', tags: [], created_at: Date.now(), updated_at: Date.now()})}>
                                 <CirclePlus className="icon" />
                             </button>
@@ -243,7 +243,7 @@ const SingleColumn = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
                                     <li>
                                         <button
                                             onClick={() => onAddColumn({...column, id: null}).then(() => setMenuOpened(false))}
-                                            className="duplicate-button dropdown-item px-16 py-8 rounded text-secondary-light bg-hover-neutral-200 text-hover-neutral-900 d-flex align-items-center gap-2"
+                                            className="duplicate-button dropdown-item px-16 py-8 rounded text-secondary-light bg-hover-neutral-200 text-hover-neutral-900 xpo_flex xpo_items-center gap-2"
                                         >
                                             <Copy className="text-xl" />
                                             {__('Duplicate')}
@@ -271,7 +271,7 @@ const SingleColumn = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
                                                     </div>
                                                 );
                                             }}
-                                            className="delete-button dropdown-item px-16 py-8 rounded text-secondary-light bg-hover-neutral-200 text-hover-neutral-900 d-flex align-items-center gap-2"
+                                            className="delete-button dropdown-item px-16 py-8 rounded text-secondary-light bg-hover-neutral-200 text-hover-neutral-900 xpo_flex xpo_items-center gap-2"
                                         >
                                             <Trash2 className="text-xl" />
                                             {__('Delete')}
@@ -301,7 +301,7 @@ const SingleColumn = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
                         ))}
                     </div>
                     
-                    <button type="button" className="d-flex align-items-center gap-2 fw-medium w-100 text-primary-600 justify-content-center text-hover-primary-800 add-task-button" onClick={() => onAddCard({id: null, column_id: column.id, title: '', description: '', sort_order: column.cards?.length??0, tags: [], created_at: Date.now(), updated_at: Date.now()})}>
+                    <button type="button" className="xpo_flex xpo_items-center gap-2 fw-medium w-100 text-primary-600 justify-content-center text-hover-primary-800 add-task-button" onClick={() => onAddCard({id: null, column_id: column.id, title: '', description: '', sort_order: column.cards?.length??0, tags: [], created_at: Date.now(), updated_at: Date.now()})}>
                         <CirclePlus className="icon text-xl" />
                         {__('Add Card')}
                     </button>
@@ -348,16 +348,16 @@ const SingleCard = ({ data, __, setPopup, empty, setProject, hooks={} }) => {
             <h6 className="kanban-title text-lg fw-semibold mb-8">{empty(card?.title, __('Untitled card'))}</h6>
             <p className="kanban-desc text-secondary-light xpo_text-ellipsis xpo_line-clamp-3 xpo_leading-normal">{card?.description}</p>
             {(card?.tags??[]).map((tag, tagIndex) => (
-                <button key={tagIndex} type="button" className="btn text-primary-600 border rounded border-primary-600 bg-hover-primary-600 text-hover-white d-flex align-items-center gap-2">
+                <button key={tagIndex} type="button" className="btn text-primary-600 border rounded border-primary-600 bg-hover-primary-600 text-hover-white xpo_flex xpo_items-center gap-2">
                     <Tag className="icon" /><span className="kanban-tag fw-semibold">{tag}</span>
                 </button>
             ))}
-            <div className="mt-12 d-flex align-items-center justify-content-between gap-10">
-                <div className="d-flex align-items-center justify-content-between gap-10">
+            <div className="mt-12 xpo_flex xpo_items-center xpo_justify-between gap-10">
+                <div className="xpo_flex xpo_items-center xpo_justify-between gap-10">
                     <CalendarDays className="text-primary-light" />
                     <span className="start-date text-secondary-light">{strtotime(card?.updated_at??0).format('DD MMM YYYY')}</span>
                 </div>
-                <div className="d-flex align-items-center justify-content-between gap-10 xpo_relative">
+                <div className="xpo_flex xpo_items-center xpo_justify-between gap-10 xpo_relative">
                     <button
                         type="button"
                         className="card-edit-button text-success-600"

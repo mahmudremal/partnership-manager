@@ -107,7 +107,7 @@ export default function LanguageSwitcher() {
     <div className="d-none d-sm-inline-block position-relative">
       <button
         ref={buttonRef}
-        className={`has-indicator w-40-px h-40-px bg-neutral-200 rounded-circle d-flex justify-content-center align-items-center ${menuOpened ? 'show' : ''}`}
+        className={`has-indicator w-40-px h-40-px bg-neutral-200 rounded-circle xpo_flex justify-content-center xpo_items-center ${menuOpened ? 'show' : ''}`}
         type="button"
         onClick={toggleDropdown}
         aria-expanded={menuOpened ? 'true' : 'false'}
@@ -125,7 +125,7 @@ export default function LanguageSwitcher() {
         ref={dropdownRef}
         className={`dropdown-menu to-top dropdown-menu-sm xpo_z-10 ${menuOpened ? 'show d-block' : ''}`}
       >
-        <div className="py-12 px-16 radius-8 bg-primary-50 mb-16 d-flex align-items-center justify-content-between gap-2">
+        <div className="py-12 px-16 radius-8 bg-primary-50 mb-16 xpo_flex xpo_items-center xpo_justify-between gap-2">
           <h6 className="text-lg text-primary-light fw-semibold mb-0">
             {__('Choose Your Language')}
           </h6>
@@ -137,14 +137,14 @@ export default function LanguageSwitcher() {
         <div className="max-h-400-px overflow-y-auto scroll-sm pe-8">
           {LanguageCodes.map((lang, index) => (
             <div
-              className="form-check style-check d-flex align-items-center justify-content-between mb-16"
+              className="form-check style-check xpo_flex xpo_items-center xpo_justify-between mb-16"
               key={index}
             >
               <label
                 className="form-check-label line-height-1 fw-medium text-secondary-light"
                 htmlFor={lang.lang_code + '-' + index}
               >
-                <span className="text-black hover-bg-transparent hover-text-primary d-flex align-items-center gap-3">
+                <span className="text-black hover-bg-transparent hover-text-primary xpo_flex xpo_items-center gap-3">
                   <img
                     src={`https://flagcdn.com/48x36/${lang.flag_code}.png`}
                     alt={lang.language_name}

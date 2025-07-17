@@ -89,7 +89,7 @@ const Sandbox = ({ publicKey = null, bgImage = '' }) => {
           //     if (verify?.success) {
           //         setPopup(
           //             <div className="text-center xpo_p-8">
-          //                 <span className="w-100-px h-100-px bg-success-600 rounded-circle d-inline-flex justify-content-center align-items-center text-2xxl mb-32 text-white">
+          //                 <span className="w-100-px h-100-px bg-success-600 rounded-circle d-inline-flex justify-content-center xpo_items-center text-2xxl mb-32 text-white">
           //                     <Check />
           //                 </span>
           //                 <h5 className="mb-8 text-2xl">{__('Payment Successful')}</h5>
@@ -99,7 +99,7 @@ const Sandbox = ({ publicKey = null, bgImage = '' }) => {
           //     } else {
           //         setPopup(
           //             <div className="text-center xpo_p-8">
-          //                 <span className="w-100-px h-100-px bg-danger-600 rounded-circle d-inline-flex justify-content-center align-items-center text-2xxl mb-32 text-white">
+          //                 <span className="w-100-px h-100-px bg-danger-600 rounded-circle d-inline-flex justify-content-center xpo_items-center text-2xxl mb-32 text-white">
           //                     <X />
           //                 </span>
           //                 <h5 className="mb-8 text-2xl">{__('Payment Failed')}</h5>

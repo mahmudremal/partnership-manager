@@ -63,14 +63,14 @@ const Breadcrumb = () => {
     .filter(Boolean); // Remove nulls (invalid segments like 'partnership-dashboard')
 
   return (
-    <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+    <div className="xpo_flex flex-wrap xpo_items-center xpo_justify-between gap-3 mb-24">
       <h6 className="fw-semibold mb-0">
         {breadcrumbItems.length === 0 ? 'Home' : breadcrumbItems[breadcrumbItems.length - 1].label}
       </h6>
 
-      <ul className="d-flex align-items-center gap-2">
+      <ul className="xpo_flex xpo_items-center gap-2">
         <li className="fw-medium">
-          <Link to={home_url('/')} className="d-flex align-items-center gap-1 hover-text-primary">
+          <Link to={home_url('/')} className="xpo_flex xpo_items-center gap-1 hover-text-primary">
             <Home className="icon text-lg" />
             Home
           </Link>
@@ -87,7 +87,7 @@ const Breadcrumb = () => {
                 {isLast ? (
                   item.label
                 ) : (
-                  <Link to={home_url(item.path)} className="d-flex align-items-center gap-1 hover-text-primary">
+                  <Link to={home_url(item.path)} className="xpo_flex xpo_items-center gap-1 hover-text-primary">
                     {item.label}
                   </Link>
                 )}

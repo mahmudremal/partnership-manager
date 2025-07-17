@@ -156,7 +156,9 @@ class Security {
 		if (is_wp_error($data)) {
 			return $data;
 		}
-		// print_r($data);wp_die();
+		if ($request->get_param('user_id') && Security::get_instance()->user_id && Security::get_instance()->user_id == $request->get_param('user_id')) {
+			return true;
+		}
 		$result = apply_filters('partnership/security/permission/approval', $data !== false, $request);
 		return $result;
 	}

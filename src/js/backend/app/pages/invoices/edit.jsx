@@ -121,7 +121,7 @@ export default function InvoiceEdit() {
               {[1, 2, 3, 4].map((s) => (
                 <li
                   key={s}
-                  className={`form-wizard-list__item d-flex align-items-center gap-8 ${step === s ? 'active' : ''}`}
+                  className={`form-wizard-list__item xpo_flex xpo_items-center gap-8 ${step === s ? 'active' : ''}`}
                 >
                   <div className="form-wizard-list__line">
                     <span className="count">{s}</span>
@@ -282,11 +282,11 @@ export default function InvoiceEdit() {
                 <div className="col-12 text-end">
                   <button type="button" className="btn btn-outline" onClick={addItem}>{__('Add Item')}</button>
                 </div>
-                <div className="col-12 d-flex justify-content-between align-items-center">
+                <div className="col-12 xpo_flex xpo_justify-between xpo_items-center">
                   <strong>{__('Total')}:</strong>
                   <span className="text-xl fw-bold">{print_money(form.total, form.currency)}</span>
                 </div>
-                <div className="form-group d-flex align-items-center justify-content-end gap-8">
+                <div className="form-group xpo_flex xpo_items-center justify-content-end gap-8">
                   <button type="button" className="form-wizard-previous-btn btn btn-neutral-500 border-neutral-100 px-32" onClick={() => setStep(1)}>{__('Back')}</button>
                   <button type="button" className="form-wizard-next-btn btn btn-primary-600 px-32" onClick={() => setStep(3)}>{__('Next')}</button>
                 </div>
@@ -318,19 +318,19 @@ export default function InvoiceEdit() {
                   <strong>{__('Items')}:</strong>
                   <ul className="list-group">
                     {form.items.filter(item => item).map((item, i) => (
-                      <li key={i} className="list-group-item d-flex justify-content-between">
+                      <li key={i} className="list-group-item xpo_flex xpo_justify-between">
                         <span>{get_item_label(item)}</span>
                         <span>{get_item_price(item)}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
-                <div className="col-12 d-flex justify-content-between border-top pt-3 mt-3">
+                <div className="col-12 xpo_flex xpo_justify-between border-top pt-3 mt-3">
                   <strong>{__('Total')}</strong>
                   <span>{print_money(form.total, form.currency)}</span>
                 </div>
               </div>
-              <div className="form-group d-flex align-items-center justify-content-end gap-8 mt-4">
+              <div className="form-group xpo_flex xpo_items-center justify-content-end gap-8 mt-4">
                 <button type="button" className="form-wizard-previous-btn btn btn-neutral-500 border-neutral-100 px-32" onClick={() => setStep(2)}>{__('Back')}</button>
                 <button type="button" className="form-wizard-next-btn btn btn-primary-600 px-32" onClick={submitInvoice}>{__('Confirm Invoice')}</button>
               </div>

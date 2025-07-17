@@ -65,13 +65,13 @@ export default function UsersEdit({ viewType = 'list' }) {
                                                 />
                                                 <label
                                                     htmlFor="imageUpload"
-                                                    className="w-32-px h-32-px d-flex justify-content-center align-items-center bg-primary-50 text-primary-600 border border-primary-600 bg-hover-primary-100 text-lg rounded-circle"
+                                                    className="w-32-px h-32-px xpo_flex justify-content-center xpo_items-center bg-primary-50 text-primary-600 border border-primary-600 bg-hover-primary-100 text-lg rounded-circle"
                                                 >
                                                     <Camera className="icon" />
                                                 </label>
                                             </div>
                                             <div className="avatar-preview">
-                                                <div id="imagePreview" className="w-100-px h-100-px rounded-circle overflow-hidden bg-light d-flex align-items-center justify-content-center">
+                                                <div id="imagePreview" className="w-100-px h-100-px rounded-circle overflow-hidden bg-light xpo_flex xpo_items-center justify-content-center">
                                                     {previewImage ? (
                                                         <img src={previewImage} alt="Preview" className="w-100 h-100 object-fit-cover" />
                                                     ) : (
@@ -172,7 +172,7 @@ export default function UsersEdit({ viewType = 'list' }) {
                                             />
                                         </div>
 
-                                        <div className="d-flex align-items-center justify-content-center gap-3">
+                                        <div className="xpo_flex xpo_items-center justify-content-center gap-3">
                                             <button
                                                 type="button"
                                                 onClick={handleCancel}

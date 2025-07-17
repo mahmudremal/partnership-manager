@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { home_route, roles } from '@functions';
 import { useTranslation } from '@context/LanguageProvider';
+import { useSession } from "@context/SessionProvider";
 
 // Lazy-loaded components
 const Home = lazy(() => import('./home'));
@@ -48,6 +49,13 @@ const InvoiceCheckout = lazy(() => import('./pages/invoices/checkout'));
 
 const Stores = lazy(() => import('./pages/stores'));
 
+const MyProfile = () => {
+    const { session } = useSession();
+    // 
+    return (
+        <UsersView user_id={session?.user?.id} />
+    )
+}
 
 export default function Content() {
     const { __ } = useTranslation();
@@ -55,9 +63,10 @@ export default function Content() {
         <div className="xpo_w-full">
             <Suspense fallback={<div className="text-center p-4">{__('Loading...')}</div>}>
                 <Routes>
-                    <Route path={home_route('/')} element={!roles.has_ability('project_manager') ? (<NoAccess />) : (<Home />)} />
-                    <Route path={home_route('/insights')} element={!roles.has_ability('project_manager') ? (<NoAccess />) : (<Home />)} />
-                    <Route path={home_route('/sales')} element={!roles.has_ability('project_manager') ? (<NoAccess />) : (<Home />)} />
+                    <Route path={home_route('/')} element={<MyProfile />} />
+                    {/* <Route path={home_route('/')} element={!roles.has_ability('read') ? (<NoAccess />) : (<MyProfile />)} /> */}
+                    <Route path={home_route('/insights')} element={!roles.has_ability('read') ? (<NoAccess />) : (<Home />)} />
+                    <Route path={home_route('/sales')} element={!roles.has_ability('read') ? (<NoAccess />) : (<Home />)} />
                     <Route path={home_route('/analytics')} element={!roles.has_ability('read') ? (<NoAccess />) : (<Home />)} />
 
                     <Route path={home_route('/users')} element={!roles.has_ability('project_manager', 'users') ? (<NoAccess />) : (<UsersList />)} />

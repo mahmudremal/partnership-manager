@@ -103,7 +103,7 @@ export default function Checkout() {
                             if (verify?.success) {
                                 setPopup(
                                     <div className="text-center xpo_p-8">
-                                        <span className="w-100-px h-100-px bg-success-600 rounded-circle d-inline-flex justify-content-center align-items-center text-2xxl mb-32 text-white">
+                                        <span className="w-100-px h-100-px bg-success-600 rounded-circle d-inline-flex justify-content-center xpo_items-center text-2xxl mb-32 text-white">
                                             <Check />
                                         </span>
                                         <h5 className="mb-8 text-2xl">{__('Payment Successful')}</h5>
@@ -113,7 +113,7 @@ export default function Checkout() {
                             } else {
                                 setPopup(
                                     <div className="text-center xpo_p-8">
-                                        <span className="w-100-px h-100-px bg-danger-600 rounded-circle d-inline-flex justify-content-center align-items-center text-2xxl mb-32 text-white">
+                                        <span className="w-100-px h-100-px bg-danger-600 rounded-circle d-inline-flex justify-content-center xpo_items-center text-2xxl mb-32 text-white">
                                             <X />
                                         </span>
                                         <h5 className="mb-8 text-2xl">{__('Payment Failed')}</h5>
@@ -137,7 +137,7 @@ export default function Checkout() {
             // Initial success + Pay Now button
             setPopup(
                 <div className="text-center xpo_p-8">
-                    <span className="w-100-px h-100-px bg-success-600 rounded-circle d-inline-flex justify-content-center align-items-center text-2xxl mb-32 text-white">
+                    <span className="w-100-px h-100-px bg-success-600 rounded-circle d-inline-flex justify-content-center xpo_items-center text-2xxl mb-32 text-white">
                         <Check />
                     </span>
                     <h5 className="mb-8 text-2xl">{__('Your payment link was created successfully!')}</h5>
@@ -163,10 +163,10 @@ export default function Checkout() {
                 <div className="card h-100 p-0 radius-12">
                     <div className="card-body px-24 py-32">
 
-                        <div className="d-flex align-items-center justify-content-between mb-24">
-                            <div className="d-flex align-items-center">
+                        <div className="xpo_flex xpo_items-center xpo_justify-between mb-24">
+                            <div className="xpo_flex xpo_items-center">
                                 <Package className="w-72-px h-72-px rounded-circle flex-shrink-0 me-12 overflow-hidden" />
-                                <div className="flex-grow-1 d-flex xpo_flex-col">
+                                <div className="flex-grow-1 xpo_flex xpo_flex-col">
                                     <h4 className="mb-4">{pricing?.name}</h4>
                                     <span className="text-md mb-0 fw-medium text-neutral-500 d-block">{pricing?.packagefor}</span>
                                 </div>
@@ -209,9 +209,9 @@ export default function Checkout() {
                                         <span className="text-neutral-500 text-sm">{__('You can upgrade/downgrade later.')}</span>
                                     </div>
                                     <div className="mt-24 border radius-8 position-relative">
-                                        <div className="p-16 d-flex align-items-center border-bottom">
+                                        <div className="p-16 xpo_flex xpo_items-center border-bottom">
                                             <span className="text-neutral-500 fw-medium w-76-px border-end">{__("Date")}</span>
-                                            <div className="d-flex align-items-center justify-content-between flex-grow-1 ps-16">
+                                            <div className="xpo_flex xpo_items-center xpo_justify-between flex-grow-1 ps-16">
                                                 <div className="xpo_w-full">
                                                     <div>
                                                         <input
@@ -224,13 +224,13 @@ export default function Checkout() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="p-16 d-flex align-items-center">
+                                        <div className="p-16 xpo_flex xpo_items-center">
                                             <span className="text-neutral-500 fw-medium w-76-px border-end">{__('Pay with')}</span>
-                                            <div className="d-flex align-items-center justify-content-between flex-grow-1 ps-16">
+                                            <div className="xpo_flex xpo_items-center xpo_justify-between flex-grow-1 ps-16">
                                                 <div className="xpo_relative xpo_select-none">
-                                                    <div className="d-flex align-items-center gap-8">
+                                                    <div className="xpo_flex xpo_items-center gap-8">
                                                         <img src={gateways[selectedGateWay]?.icon??''} alt={gateways[selectedGateWay]?.title??''} className="w-24-px h-24-px rounded-circle flex-shrink-0 overflow-hidden" />
-                                                        <div className="flex-grow-1 d-flex xpo_flex-col">
+                                                        <div className="flex-grow-1 xpo_flex xpo_flex-col">
                                                             <span className="text-sm mb-0 fw-medium text-primary-light d-block">{gateways[selectedGateWay]?.title??''}</span>
                                                         </div>
                                                     </div>
@@ -243,9 +243,9 @@ export default function Checkout() {
                                                                 onClick={() => setSelectedGateWay(index)}
                                                                 className="dropdown-item xpo_px-2 xpo_py-3 xpo_cursor-pointer rounded text-secondary-light bg-hover-neutral-200 text-hover-neutral-900"
                                                             >
-                                                                <div className="d-flex align-items-center gap-8">
+                                                                <div className="xpo_flex xpo_items-center gap-8">
                                                                     <img src={ g?.icon??'' } alt="" className="w-24-px h-24-px rounded-circle flex-shrink-0 overflow-hidden" />
-                                                                    <div className="flex-grow-1 d-flex xpo_flex-col">
+                                                                    <div className="flex-grow-1 xpo_flex xpo_flex-col">
                                                                         <span className="text-sm mb-0 fw-medium text-primary-light d-block">{g?.title??'N/A'}</span>
                                                                     </div>
                                                                 </div>
@@ -279,12 +279,12 @@ export default function Checkout() {
                                     <div className="xpo_w-full">
                                         <div className="card h-100 radius-12 bg-gradient-danger text-center">
                                             <div className="card-body p-24">
-                                                <div className="w-64-px h-64-px d-inline-flex align-items-center justify-content-center bg-danger-600 text-white mb-16 radius-12">
+                                                <div className="w-64-px h-64-px d-inline-flex xpo_items-center justify-content-center bg-danger-600 text-white mb-16 radius-12">
                                                     <BriefcaseBusiness className="h5 mb-0" /> 
                                                 </div>
                                                 <h6 className="mb-8">{__('Business Strategy')}</h6>
                                                 <p className="card-text mb-8 text-secondary-light">{__('Businesses prioritizing trust, reliability, and professionalism are best positioned for lasting success. These core values cultivate strong relationships and a resilient reputation, driving long-term growth.')}</p>
-                                                <Link to="#" className="btn text-danger-600 hover-text-danger px-0 py-10 d-inline-flex align-items-center gap-2">{__('Read More')} <ChevronRight className="text-xl" /></Link>
+                                                <Link to="#" className="btn text-danger-600 hover-text-danger px-0 py-10 d-inline-flex xpo_items-center gap-2">{__('Read More')} <ChevronRight className="text-xl" /></Link>
                                             </div>
                                         </div>
                                     </div>

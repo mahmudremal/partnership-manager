@@ -60,8 +60,8 @@ export default function Payouts({ maxAmount = 0, viewType = 'list' }) {
 
     return (
         <div className="card h-100 p-0 radius-12">
-            <div className="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between">
-                <div className="d-flex align-items-center flex-wrap gap-3">
+            <div className="card-header border-bottom bg-base py-16 px-24 xpo_flex xpo_items-center flex-wrap gap-3 xpo_justify-between">
+                <div className="xpo_flex xpo_items-center flex-wrap gap-3">
                     <span className="text-md fw-medium text-secondary-light mb-0">{__('Show')}</span>
                     <select
                         value={perPage}
@@ -98,7 +98,7 @@ export default function Payouts({ maxAmount = 0, viewType = 'list' }) {
 
                 <button
                     onClick={() => setPopup(<PayoutRequestForm maxAmount={maxAmount} />)}
-                    className="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2"
+                    className="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 xpo_flex xpo_items-center gap-2"
                 >
                     <Plus className="icon text-xl line-height-1" />
                     {__('Request a Payout')}
@@ -137,7 +137,7 @@ export default function Payouts({ maxAmount = 0, viewType = 'list' }) {
                                     //     <td>{item.type}</td>
                                     //     <td>{item.reference}</td>
                                     //     <td className="text-center">
-                                    //         <div className="d-flex align-items-center gap-10 justify-content-center">
+                                    //         <div className="xpo_flex xpo_items-center gap-10 justify-content-center">
                                     //             <Link to={ home_url(`/transactions/${item.id}/view`) } className="bg-info-focus text-info-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center" ><Eye className="icon text-xl" /></Link>
                                     //             <button
                                     //                 className="bg-success-focus text-success-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center"
@@ -157,7 +157,7 @@ export default function Payouts({ maxAmount = 0, viewType = 'list' }) {
                                         <td className="xpo_capitalize">{item.method}</td>
                                         <td className="xpo_capitalize">{item.status}</td>
                                         <td className="text-center">
-                                            <div className="d-flex align-items-center gap-10 justify-content-center">
+                                            <div className="xpo_flex xpo_items-center gap-10 justify-content-center">
                                                 <button
                                                     className="bg-success-focus text-success-600 w-40-px h-40-px rounded-circle xpo_flex xpo_justify-center xpo_items-center"
                                                     onClick={() => setPopup(<ViewPayout item={item} setItems={setTransactions} />)}
@@ -173,14 +173,14 @@ export default function Payouts({ maxAmount = 0, viewType = 'list' }) {
                     )}
                 </div>
 
-                <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
+                <div className="xpo_flex xpo_items-center xpo_justify-between flex-wrap gap-2 mt-24">
                     <span>{sprintf(
                         __('Showing %d to %d of %d entries'),
                         (page - 1) * perPage + 1,
                         Math.min(page * perPage, totalEntries),
                         totalEntries
                     )}</span>
-                    <ul className="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
+                    <ul className="pagination xpo_flex flex-wrap xpo_items-center gap-2 justify-content-center">
                         <li className="page-item">
                             <button onClick={() => handlePageChange(page - 1)} className="page-link bg-neutral-200"> <ChevronsLeft /> </button>
                         </li>

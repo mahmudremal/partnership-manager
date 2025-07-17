@@ -17,7 +17,7 @@ const Footer = () => {
     
     return (
         <footer className="d-footer">
-            <div className="row align-items-center justify-content-between">
+            <div className="row xpo_items-center xpo_justify-between">
                 <div className="col-auto">
                     <p className="mb-0">© {date.getFullYear()} ECommerized LLC. {__('All Rights Reserved.')}</p>
                 </div>

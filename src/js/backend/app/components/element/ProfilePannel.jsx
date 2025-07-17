@@ -44,7 +44,7 @@ export default function ProfilePannel() {
                 ref={buttonRef}
                 onClick={toggleDropdown}
                 aria-expanded={menuOpened ? 'true' : 'false'}
-                className={`d-flex justify-content-center align-items-center rounded-circle ${menuOpened ? 'show' : ''}`}
+                className={`xpo_flex justify-content-center xpo_items-center rounded-circle ${menuOpened ? 'show' : ''}`}
             >
                 <div className="xpo_relative">
                     <img src={ user?.avater??'' } alt="image" className="w-40-px h-40-px object-fit-cover rounded-circle" />
@@ -55,7 +55,7 @@ export default function ProfilePannel() {
             {menuOpened && <div className="xpo_fixed xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full xpo_z-10" onClick={(e) => setMenuOpened(false)}></div>}
             
             <div ref={dropdownRef} className={`dropdown-menu to-top dropdown-menu-sm xpo_z-10 ${menuOpened ? 'show d-block' : ''}`}>
-                <div className="py-12 px-16 radius-8 bg-primary-50 mb-16 d-flex align-items-center justify-content-between gap-2">
+                <div className="py-12 px-16 radius-8 bg-primary-50 mb-16 xpo_flex xpo_items-center xpo_justify-between gap-2">
                     <div>
                         <h6 className="text-lg text-primary-light fw-semibold mb-2">{[user?.firstName??'', user?.lastName??''].join(' ')}</h6>
                         <span className="text-secondary-light fw-medium text-sm">{__(get_user_role(user))}</span>
@@ -66,21 +66,21 @@ export default function ProfilePannel() {
                 </div>
                 <ul className="to-top-list">
                     <li>
-                        <Link to={ home_url(`/users/${user?.id??''}/view`) } className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-primary d-flex align-items-center gap-3"> 
+                        <Link to={ home_url(`/users/${user?.id??''}/view`) } className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-primary xpo_flex xpo_items-center gap-3"> 
                         <User className="icon text-xl" />  {__('My Profile')}</Link>
                     </li>
                     <li>
-                        <Link to={ home_url('/notifications') } className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-primary d-flex align-items-center gap-3"> 
+                        <Link to={ home_url('/notifications') } className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-primary xpo_flex xpo_items-center gap-3"> 
                         <MailCheck className="icon text-xl" />  {__('Notifications')}</Link>
                     </li>
                     <li>
-                        <Link to={ home_url('/settings') } className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-primary d-flex align-items-center gap-3"> 
+                        <Link to={ home_url('/settings') } className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-primary xpo_flex xpo_items-center gap-3"> 
                         <Settings className="icon text-xl" />  {__('Setting')}</Link>
                     </li>
                     <li>
                         <button
                             onClick={logout}
-                            className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-danger d-flex align-items-center gap-3"
+                            className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-danger xpo_flex xpo_items-center gap-3"
                         > 
                         <Power className="icon text-xl" />  {__('Log Out')}</button>
                     </li>

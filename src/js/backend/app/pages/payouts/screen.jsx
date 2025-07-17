@@ -34,10 +34,10 @@ export default function PayoutsScreen({ filters = 'any' }) {
         <div className="xpo_flex xpo_flex-col xpo_gap-4">
             <div className="xpo_grid xpo_gap-4 xpo_grid-cols-2 md:xpo_grid-cols-4">
                 <div>
-                    <div className="card-body xpo_p-5 bg-base border h-100 d-flex flex-column justify-content-center border-end-0">
-                        <div className="d-flex flex-wrap align-items-center justify-content-between gap-1 mb-8">
+                    <div className="card-body xpo_p-5 bg-base border h-100 xpo_flex flex-column justify-content-center border-end-0">
+                        <div className="xpo_flex flex-wrap xpo_items-center xpo_justify-between gap-1 mb-8">
                             <div>
-                                <span className="mb-12 w-44-px h-44-px text-primary-600 bg-primary-light border border-primary-light-white flex-shrink-0 d-flex justify-content-center align-items-center radius-8 h6 mb-12">
+                                <span className="mb-12 w-44-px h-44-px text-primary-600 bg-primary-light border border-primary-light-white flex-shrink-0 xpo_flex justify-content-center xpo_items-center radius-8 h6 mb-12">
                                     <Wallet className="icon" />
                                 </span>
                                 <span className="mb-1 fw-medium text-secondary-light text-md">{__('Balance')}</span>
@@ -48,10 +48,10 @@ export default function PayoutsScreen({ filters = 'any' }) {
                     </div>
                 </div>
                 <div>
-                    <div className="card-body xpo_p-5 bg-base border h-100 d-flex flex-column justify-content-center border-end-0">
-                        <div className="d-flex flex-wrap align-items-center justify-content-between gap-1 mb-8">
+                    <div className="card-body xpo_p-5 bg-base border h-100 xpo_flex flex-column justify-content-center border-end-0">
+                        <div className="xpo_flex flex-wrap xpo_items-center xpo_justify-between gap-1 mb-8">
                             <div>
-                                <span className="mb-12 w-44-px h-44-px text-yellow bg-yellow-light border border-yellow-light-white flex-shrink-0 d-flex justify-content-center align-items-center radius-8 h6 mb-12">
+                                <span className="mb-12 w-44-px h-44-px text-yellow bg-yellow-light border border-yellow-light-white flex-shrink-0 xpo_flex justify-content-center xpo_items-center radius-8 h6 mb-12">
                                     <UsersRound absoluteStrokeWidth className="icon" />
                                 </span>
                                 <span className="mb-1 fw-medium text-secondary-light text-md">{__('Refferrals')}</span>
@@ -62,10 +62,10 @@ export default function PayoutsScreen({ filters = 'any' }) {
                     </div>
                 </div>
                 <div>
-                    <div className="card-body xpo_p-5 bg-base border h-100 d-flex flex-column justify-content-center border-end-0">
-                        <div className="d-flex flex-wrap align-items-center justify-content-between gap-1 mb-8">
+                    <div className="card-body xpo_p-5 bg-base border h-100 xpo_flex flex-column justify-content-center border-end-0">
+                        <div className="xpo_flex flex-wrap xpo_items-center xpo_justify-between gap-1 mb-8">
                             <div>
-                                <span className="mb-12 w-44-px h-44-px text-lilac bg-lilac-light border border-lilac-light-white flex-shrink-0 d-flex justify-content-center align-items-center radius-8 h6 mb-12">
+                                <span className="mb-12 w-44-px h-44-px text-lilac bg-lilac-light border border-lilac-light-white flex-shrink-0 xpo_flex justify-content-center xpo_items-center radius-8 h6 mb-12">
                                     <BanknoteArrowDown className="icon" />  
                                 </span>
                                 <span className="mb-1 fw-medium text-secondary-light text-md">{__('Withdrawable')}</span>
@@ -76,10 +76,10 @@ export default function PayoutsScreen({ filters = 'any' }) {
                     </div>
                 </div>
                 <div>
-                    <div className="card-body xpo_p-5 bg-base border h-100 d-flex flex-column justify-content-center">
-                        <div className="d-flex flex-wrap align-items-center justify-content-between gap-1 mb-8">
+                    <div className="card-body xpo_p-5 bg-base border h-100 xpo_flex flex-column justify-content-center">
+                        <div className="xpo_flex flex-wrap xpo_items-center xpo_justify-between gap-1 mb-8">
                             <div>
-                                <span className="mb-12 w-44-px h-44-px text-pink bg-pink-light border border-pink-light-white flex-shrink-0 d-flex justify-content-center align-items-center radius-8 h6 mb-12">
+                                <span className="mb-12 w-44-px h-44-px text-pink bg-pink-light border border-pink-light-white flex-shrink-0 xpo_flex justify-content-center xpo_items-center radius-8 h6 mb-12">
                                     <HandCoins className="icon" />  
                                 </span>
                                 <span className="mb-1 fw-medium text-secondary-light text-md">{__('Payments to date')}</span>

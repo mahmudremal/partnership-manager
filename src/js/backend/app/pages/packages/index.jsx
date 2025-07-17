@@ -72,8 +72,8 @@ export default function Packages({ viewType = 'list' }) {
                                 <div className="pricing-plan-wrapper" key={index}>
                                     {/* scale-item */}
                                     <div className="pricing-plan position-relative radius-24 overflow-hidden border bg-lilac-100">
-                                        <div className="d-flex align-items-center gap-16">
-                                            <span className="w-72-px h-72-px d-flex justify-content-center align-items-center radius-16 bg-base">
+                                        <div className="xpo_flex xpo_items-center gap-16">
+                                            <span className="w-72-px h-72-px xpo_flex justify-content-center xpo_items-center radius-16 bg-base">
                                                 <img src={ priceIcon } alt={__('Price icon')} />
                                             </span>
                                             <div className="">
@@ -86,8 +86,8 @@ export default function Packages({ viewType = 'list' }) {
                                         <span className="mb-20 fw-medium">{__(pack?.list_title??'What’s included')}</span>
                                         <ul>
                                             {pack.list.map((itemTitle, itemIndex) => 
-                                                <li className="d-flex align-items-center gap-16 mb-16" key={itemIndex}>
-                                                    <span className="w-24-px h-24-px d-flex justify-content-center align-items-center bg-lilac-600 rounded-circle">
+                                                <li className="xpo_flex xpo_items-center gap-16 mb-16" key={itemIndex}>
+                                                    <span className="w-24-px h-24-px xpo_flex justify-content-center xpo_items-center bg-lilac-600 rounded-circle">
                                                         <Check className="text-white text-lg" />
                                                     </span>
                                                     <span className="text-secondary-light text-lg">{itemTitle}</span>
@@ -167,7 +167,7 @@ const InvoiceGenerator = ({ pack, plan, stores, __ }) => {
                             <ul className="list-group radius-8">
                                 {stores.map((store, index) => (
                                     <li key={index} className={ `list-group-item border text-secondary-light p-16 text-white card ${stores.length == (index + 1) ? '' : 'border-bottom-0'}` }>
-                                        <div className="form-check checked-warning d-flex align-items-center gap-2">
+                                        <div className="form-check checked-warning xpo_flex xpo_items-center gap-2">
                                             <input className="form-check-input" type="radio" name="store" id={ `store_${index}` } value={store.id} />
                                             <label className="form-check-label line-height-1 fw-medium text-secondary-light" htmlFor={ `store_${index}` }>{store.store_title}</label>
                                         </div>
@@ -175,7 +175,7 @@ const InvoiceGenerator = ({ pack, plan, stores, __ }) => {
                                 ))}
                             </ul>
                         </div>
-                        <div className="d-flex align-items-start flex-column flex-wrap gap-3 xpo_mt-8">
+                        <div className="xpo_flex align-items-start flex-column flex-wrap gap-3 xpo_mt-8">
                             <button className={`btn rounded-pill btn-success-100 text-success-600 radius-8 px-20 py-11 ${loading ? 'disabled:xpo_cursor-progress' : ''}`}>{loading ? __('Generating invoice...') : __('Create invoice')}</button>
                         </div>
                     </div>

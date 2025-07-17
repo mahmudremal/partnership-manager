@@ -24,7 +24,7 @@ export default function PartnerDocs({ post_type = 'partner_doc', post_taxonomy =
         <div className="card basic-data-table">
             <div className="card-header p-0 border-0">
                 <div className="responsive-padding-40-150 xpo_bg-primary-100">
-                    <div className="row gy-4 align-items-center">
+                    <div className="row gy-4 xpo_items-center">
                         <div className="col-xl-7">
                             <h4 className="mb-20">{pageTitle}</h4>        
                             <p className="mb-0 text-secondary-light max-w-634-px text-xl">{pageDescription}</p>
@@ -41,10 +41,10 @@ export default function PartnerDocs({ post_type = 'partner_doc', post_taxonomy =
                     <div className="col-lg-12">
                         {docs.length === 0 ? (
                             <div className="text-center">
-                                <div className="xpo_h-200 xpo_d-flex xpo_justify-content-center xpo_align-items-center">
+                                <div className="xpo_h-200 xpo_xpo_flex xpo_justify-content-center xpo_align-items-center">
                                     <div className="xpo_relative">
                                         <img src={emptyStreet} alt={__('No documents found')} className="xpo_w-100 xpo_h-100" />
-                                        <div className="xpo_absolute xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full xpo_d-flex xpo_justify-content-center xpo_align-items-center"></div>
+                                        <div className="xpo_absolute xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full xpo_xpo_flex xpo_justify-content-center xpo_align-items-center"></div>
                                     </div>
                                 </div>
                             </div>
@@ -65,7 +65,7 @@ export default function PartnerDocs({ post_type = 'partner_doc', post_taxonomy =
                                                 <p>{term.description}</p>
                                             </div>
                                             <div>
-                                                <span className="d-flex"><ChevronDown className={ `text-xl ${term.id === active && 'xpo_rotate-180'}` } /></span>
+                                                <span className="xpo_flex"><ChevronDown className={ `text-xl ${term.id === active && 'xpo_rotate-180'}` } /></span>
                                             </div>
                                         </div>
                                         <div className={`accordion-collapse collapse ${active === term.id && 'show'}`}>
@@ -74,9 +74,9 @@ export default function PartnerDocs({ post_type = 'partner_doc', post_taxonomy =
                                                     <ul className="list-group xpo_mt-5">
                                                         {term.docs.map((doc, docIndex) => (
                                                             <li key={docIndex} className="list-group-item border text-secondary-light p-16 bg-base border-bottom-0">
-                                                                <div className="d-flex align-items-center gap-2">
-                                                                    <Link to={home_url(`/resources/${app_slug}/${term.slug}/${doc.slug}`)} className="text-decoration-none d-flex align-items-center gap-2">
-                                                                        <span className="d-flex"><Bell className="text-xl" /></span>
+                                                                <div className="xpo_flex xpo_items-center gap-2">
+                                                                    <Link to={home_url(`/resources/${app_slug}/${term.slug}/${doc.slug}`)} className="text-decoration-none xpo_flex xpo_items-center gap-2">
+                                                                        <span className="xpo_flex"><Bell className="text-xl" /></span>
                                                                         <span className="text-primary-light text-xl">{doc.title}</span>
                                                                     </Link>
                                                                 </div>

@@ -31,7 +31,7 @@ export default function OpenTicket() {
         <div className="card basic-data-table">
             <div className="card-header p-0 border-0">
                 <div className="responsive-padding-40-150 xpo_bg-secondary-100">
-                    <div className="row gy-4 align-items-center">
+                    <div className="row gy-4 xpo_items-center">
                         <div className="col-xl-7">
                             <h4 className="mb-20">{__('Open New Ticket')}</h4>        
                             <p className="mb-0 text-secondary-light max-w-634-px text-xl">{__('We\'re always being waiting for your message. Please feel free to contact us.')}</p>

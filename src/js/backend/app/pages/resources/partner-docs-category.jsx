@@ -28,7 +28,7 @@ export default function PartnerDocsCategory({ post_type = 'partner_doc', post_ta
         <div className="card basic-data-table">
             <div className="card-header p-0 border-0">
                 <div className="responsive-padding-40-150 bg-light-pink">
-                    <div className="row gy-4 align-items-center">
+                    <div className="row gy-4 xpo_items-center">
                         <div className="col-xl-7">
                             <h4 className="mb-20">{category.name}</h4>        
                             <p className="mb-0 text-secondary-light max-w-634-px text-xl">{category.description}</p>
@@ -45,10 +45,10 @@ export default function PartnerDocsCategory({ post_type = 'partner_doc', post_ta
                     <div className="col-lg-12">
                         {docs.length === 0 ? (
                             <div className="text-center">
-                                <div className="xpo_h-200 xpo_d-flex xpo_justify-content-center xpo_align-items-center">
+                                <div className="xpo_h-200 xpo_xpo_flex xpo_justify-content-center xpo_align-items-center">
                                     <div className="xpo_relative">
                                         <img src={emptyStreet} alt={__('No documents found')} className="xpo_w-100 xpo_h-100" />
-                                        <div className="xpo_absolute xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full xpo_d-flex xpo_justify-content-center xpo_align-items-center"></div>
+                                        <div className="xpo_absolute xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full xpo_xpo_flex xpo_justify-content-center xpo_align-items-center"></div>
                                     </div>
                                 </div>
                             </div>
@@ -58,7 +58,7 @@ export default function PartnerDocsCategory({ post_type = 'partner_doc', post_ta
                                     <li className="list-group-item border text-secondary-light p-16 bg-base">
                                         <div key={docIndex} className="xpo_gap-2">
                                             <Link to={home_url(`/resources/${app_slug}/${category_slug}/${doc.slug}`)} className="text-decoration-none xpo_flex xpo_items-center xpo_gap-2">
-                                                <span className="d-flex"><Bell className="text-xl" /></span>
+                                                <span className="xpo_flex"><Bell className="text-xl" /></span>
                                                 <span className="text-primary-light text-xl">{doc.title}</span>
                                             </Link>
                                             <p>{doc.excerpt}</p>

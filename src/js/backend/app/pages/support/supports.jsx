@@ -50,7 +50,7 @@ export default function Supports() {
         <div className="card basic-data-table">
             <div className="card-header p-0 border-0">
                 <div className="responsive-padding-40-150 xpo_bg-primary-100">
-                    <div className="row gy-4 align-items-center">
+                    <div className="row gy-4 xpo_items-center">
                         <div className="col-xl-7">
                             <h4 className="mb-20">{pageTitle}</h4>        
                             <p className="mb-0 text-secondary-light max-w-634-px text-xl">{pageDescription}</p>
@@ -82,7 +82,7 @@ export default function Supports() {
                     <div className="col-lg-12">
                         {loading ? (
                             <div className="text-center">
-                                <div className="xpo_h-200 xpo_d-flex xpo_justify-content-center xpo_align-items-center">
+                                <div className="xpo_h-200 xpo_xpo_flex xpo_justify-content-center xpo_align-items-center">
                                     <div className="xpo_relative">
                                         <p className="xpo_text-secondary xpo_text-xl">{__('Loading...')}</p>
                                     </div>
@@ -91,10 +91,10 @@ export default function Supports() {
                         ) :
                         tickets.length === 0 ? (
                             <div className="text-center">
-                                <div className="xpo_h-200 xpo_d-flex xpo_justify-content-center xpo_align-items-center">
+                                <div className="xpo_h-200 xpo_xpo_flex xpo_justify-content-center xpo_align-items-center">
                                     <div className="xpo_relative">
                                         <img src={emptyStreet} alt={__('No documents found')} className="xpo_w-100 xpo_h-100" />
-                                        <div className="xpo_absolute xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full xpo_d-flex xpo_justify-content-center xpo_align-items-center"></div>
+                                        <div className="xpo_absolute xpo_top-0 xpo_left-0 xpo_w-full xpo_h-full xpo_xpo_flex xpo_justify-content-center xpo_align-items-center"></div>
                                     </div>
                                 </div>
                             </div>

@@ -66,9 +66,9 @@ const MainLayout = ({ children }) => {
             </aside>
             <main className={ `dashboard-main xpo_relative ${miniSidebar ? 'active' : null}` }>
                 <div className="navbar-header">
-                    <div className="row align-items-center justify-content-between">
+                    <div className="row xpo_items-center xpo_justify-between">
                         <div className="col-auto">
-                            <div className="d-flex flex-wrap align-items-center gap-4">
+                            <div className="xpo_flex flex-wrap xpo_items-center gap-4">
                                 <button type="button" className={ `sidebar-toggle ${miniSidebar ? 'active' : null}` } onClick={(e) => setMiniSidebar(prev => !prev)}>
                                     <Menu className="icon text-2xl non-active" />
                                     <ChevronRight className="icon text-2xl active" />
@@ -83,9 +83,9 @@ const MainLayout = ({ children }) => {
                             </div>
                         </div>
                         <div className="col-auto">
-                            <div className="d-flex flex-wrap align-items-center gap-3">
+                            <div className="xpo_flex flex-wrap xpo_items-center gap-3">
 
-                                <button type="button" data-theme-toggle className="w-40-px h-40-px bg-neutral-200 rounded-circle d-flex justify-content-center align-items-center" onClick={switchTheme}>
+                                <button type="button" data-theme-toggle className="w-40-px h-40-px bg-neutral-200 rounded-circle xpo_flex justify-content-center xpo_items-center" onClick={switchTheme}>
                                     {theme === 'dark' ? <MoonStar /> : <SunMedium />}
                                 </button>
                                 {/*  */}

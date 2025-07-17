@@ -44,7 +44,7 @@ export const UserCard = ({ user, index }) => {
                     ref={buttonRef}
                     type="button"
                     onClick={toggleDropdown}
-                    className="bg-white-gradient-light w-32-px h-32-px radius-8 border border-light-white d-flex justify-content-center align-items-center text-white"
+                    className="bg-white-gradient-light w-32-px h-32-px radius-8 border border-light-white xpo_flex justify-content-center xpo_items-center text-white"
                 >
                     <EllipsisVertical className="icon" />
                 </button>
@@ -57,7 +57,7 @@ export const UserCard = ({ user, index }) => {
                         <li>
                             <Link
                                 to={ home_url(`/users/${user.id}/edit`) }
-                                className="dropdown-item px-16 py-8 rounded text-secondary-light bg-hover-neutral-200 text-hover-neutral-900 d-flex align-items-center gap-10"
+                                className="dropdown-item px-16 py-8 rounded text-secondary-light bg-hover-neutral-200 text-hover-neutral-900 xpo_flex xpo_items-center gap-10"
                             >
                                 {__('Edit')}
                             </Link>
@@ -65,7 +65,7 @@ export const UserCard = ({ user, index }) => {
                         <li>
                             <button
                                 type="button"
-                                className="delete-btn dropdown-item px-16 py-8 rounded text-secondary-light bg-hover-danger-100 text-hover-danger-600 d-flex align-items-center gap-10"
+                                className="delete-btn dropdown-item px-16 py-8 rounded text-secondary-light bg-hover-danger-100 text-hover-danger-600 xpo_flex xpo_items-center gap-10"
                             >
                                 {__('Delete')}
                             </button>
@@ -82,7 +82,7 @@ export const UserCard = ({ user, index }) => {
                 <h6 className="text-lg mb-0 mt-4">{user.name}</h6>
                 <span className="text-secondary-light mb-16">{user.email}</span>
 
-                <div className="center-border position-relative bg-danger-gradient-light radius-8 p-12 d-flex align-items-center gap-4">
+                <div className="center-border position-relative bg-danger-gradient-light radius-8 p-12 xpo_flex xpo_items-center gap-4">
                     <div className="text-center w-50">
                         <h6 className="text-md mb-0">{user.department}</h6>
                         <span className="text-secondary-light text-sm mb-0">Department</span>
@@ -95,7 +95,7 @@ export const UserCard = ({ user, index }) => {
 
                 <Link
                     to={home_url(`/users/${user.id}/view`)}
-                    className="bg-primary-50 text-primary-600 bg-hover-primary-600 hover-text-white p-10 text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center justify-content-center mt-16 fw-medium gap-2 w-100"
+                    className="bg-primary-50 text-primary-600 bg-hover-primary-600 hover-text-white p-10 text-sm btn-sm px-12 py-12 radius-8 xpo_flex xpo_items-center justify-content-center mt-16 fw-medium gap-2 w-100"
                 >
                     {__('View Profile')}
                     <ChevronRight className="icon text-xl line-height-1" />

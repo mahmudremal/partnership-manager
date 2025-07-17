@@ -225,6 +225,9 @@ class Roles {
                 if (!empty($role_capabilities[$capability])) {
                     return true;
                 }
+                // if ($capability == 'users') {
+                //     return true;
+                // }
             }
         }
 
@@ -236,15 +239,16 @@ class Roles {
         // if ( ! is_user_logged_in() ) {return false;}
         $user_id = Security::get_instance()->user_id;
         if ( ! $user_id ) {return false;}
-
-        
+        // 
         $_route = $request->get_route();
+        // 
         if (! str_starts_with($_route, '/partnership/v1/')) {
             return $permission;
         }
         $_route = str_replace('/partnership/v1/', '', $_route);
         // 
         $_abilities = apply_filters('partnership/security/api/abilities', [], $_route, $user_id);
+        // 
         if (empty($_abilities)) {return $permission;}
         // 
         return $this->has_ability($_abilities, $user_id);

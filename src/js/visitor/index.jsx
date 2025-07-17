@@ -34,6 +34,8 @@ class Visitor {
             },
         };
 
+        this.boundingBoxes = [];
+
         this.setup_hooks();
     }
 
@@ -41,6 +43,7 @@ class Visitor {
         this.trackPageVisibility();
         this.trackInteractions();
         this.trackAttentionPoints();
+        this.bounding_box();
     }
 
     trackAttentionPoints() {
@@ -138,15 +141,27 @@ class Visitor {
 
     trackInteractions() {
         document.addEventListener('click', (event) => {
+            const selection = window.getSelection();
+            const selectedText = selection.toString().trim();
+
             const target = event.target;
+            const text = target.innerText && target.innerText.trim() ? target.innerText.trim() : '';
+            var rect = target.getBoundingClientRect();
             const eventData = {
                 time: Date.now(),
                 tag: target.tagName.toLowerCase(),
-                bound: target.getBoundingClientRect(),
+                bound: {
+                    top: rect.top + window.scrollY,
+                    left: rect.left + window.scrollX,
+                    width: rect.width,
+                    height: rect.height
+                },
                 src: target.src || target.dataset.src || null,
+                type: selectedText.length > 0 ? 'highlight' : 'click',
                 screen: { w: window.innerWidth, h: window.innerHeight },
-                text: target.innerText && target.innerText.trim() ? target.innerText.trim() : null,
+                text: selectedText.length > 0 ? selectedText : (text.length > 33 ? text.substr(0, 30) + '...' : text),
             };
+            // this.createBoundingBox(eventData);
             this.logEvent('click', 0, this.encodeJSON(eventData));
         });
     }
@@ -183,6 +198,52 @@ class Visitor {
     encodeJSON(code) {
         return JSON.stringify(code);
     }
+
+
+    bounding_box() {
+        window.addEventListener('resize', () => {
+            this.boundingBoxes.forEach(item => {
+                const { element, eventData } = item;
+                const { bound, screen } = eventData;
+                this.updateBoundingBoxPosition(element, bound, screen);
+            });
+        });
+    }
+
+    createBoundingBox(eventData) {
+        const { bound, screen } = eventData;
+
+        const box = document.createElement('div');
+        box.style.position = 'absolute';
+        box.style.pointerEvents = 'none';
+        box.style.background = 'rgba(255, 255, 0, 0.4)';
+        box.style.border = '2px solid #F32013';
+        box.style.zIndex = '1000';
+
+        document.body.appendChild(box);
+
+        // Push with original eventData and element
+        this.boundingBoxes.push({
+            element: box,
+            eventData: eventData
+        });
+
+        // Initial draw
+        this.updateBoundingBoxPosition(box, bound, screen);
+    }
+
+    updateBoundingBoxPosition(box, originalBound, originalScreen) {
+        const scaleX = window.innerWidth / originalScreen.w;
+        const scaleY = window.innerHeight / originalScreen.h;
+
+        box.style.left = `${originalBound.left * scaleX}px`;
+        box.style.top = `${originalBound.top * scaleY}px`;
+        box.style.width = `${originalBound.width * scaleX}px`;
+        box.style.height = `${originalBound.height * scaleY}px`;
+    }
+
+
+
 }
 
 new Visitor();

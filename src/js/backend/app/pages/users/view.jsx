@@ -8,10 +8,10 @@ import { notify, rest_url, home_route } from "@functions";
 import request from "@common/request";
 import { sprintf } from "sprintf-js";
 
-const ProfileEdit = ({ user, setUser }) => {
+export const ProfileEdit = ({ user, setUser, user_id = null }) => {
     const { __ } = useTranslation();
     const { setLoading } = useLoading();
-    const { userid } = useParams();
+    const { userid = user_id } = useParams();
     const [activeTab, setActiveTab] = useState('edit');
     const [notifConfig, setNotifConfig] = useState(null);
 
@@ -114,13 +114,13 @@ const ProfileEdit = ({ user, setUser }) => {
                                             />
                                             <label
                                                 htmlFor="imageUpload"
-                                                className="w-32-px h-32-px d-flex justify-content-center align-items-center bg-primary-50 text-primary-600 border border-primary-600 bg-hover-primary-100 text-lg rounded-circle"
+                                                className="w-32-px h-32-px xpo_flex justify-content-center xpo_items-center bg-primary-50 text-primary-600 border border-primary-600 bg-hover-primary-100 text-lg rounded-circle"
                                             >
                                                 <Camera className="icon" />
                                             </label>
                                         </div>
                                         <div className="avatar-preview !xpo_w-52 !xpo_h-auto xpo_aspect-square">
-                                            <div className="xpo_w-52 xpo_h-52 rounded-circle overflow-hidden bg-light d-flex align-items-center justify-content-center">
+                                            <div className="xpo_w-52 xpo_h-52 rounded-circle overflow-hidden bg-light xpo_flex xpo_items-center justify-content-center">
                                                 {(previewImage || user.metadata?.avater) ? (
                                                     <img
                                                         alt={__('Avater')}
@@ -144,27 +144,27 @@ const ProfileEdit = ({ user, setUser }) => {
                             <div className="mt-24">
                                 <h6 className="text-xl mb-16">{__('Personal Info')}</h6>
                                 <ul>
-                                    <li className="d-flex align-items-center gap-1 mb-12">
+                                    <li className="xpo_flex xpo_items-center gap-1 mb-12">
                                         <span className="w-30 text-md fw-semibold text-primary-light">{__('Full Name')}</span>
                                         <span className="w-70 text-secondary-light fw-medium">: {[user.metadata?.first_name??'', user.metadata?.last_name??''].join(' ')}</span>
                                     </li>
-                                    <li className="d-flex align-items-center gap-1 mb-12">
+                                    <li className="xpo_flex xpo_items-center gap-1 mb-12">
                                         <span className="w-30 text-md fw-semibold text-primary-light"> {__('Email')}</span>
                                         <span className="w-70 text-secondary-light fw-medium">: {user?.email??'N/A'}</span>
                                     </li>
-                                    <li className="d-flex align-items-center gap-1 mb-12">
+                                    <li className="xpo_flex xpo_items-center gap-1 mb-12">
                                         <span className="w-30 text-md fw-semibold text-primary-light"> {__('Phone Number')}</span>
                                         <span className="w-70 text-secondary-light fw-medium">: {user.metadata?.phone??'N/A'}</span>
                                     </li>
-                                    {/* <li className="d-flex align-items-center gap-1 mb-12">
+                                    {/* <li className="xpo_flex xpo_items-center gap-1 mb-12">
                                         <span className="w-30 text-md fw-semibold text-primary-light"> {__('Department')}</span>
                                         <span className="w-70 text-secondary-light fw-medium">: {user.metadata?.department??'N/A'}</span>
                                     </li>
-                                    <li className="d-flex align-items-center gap-1 mb-12">
+                                    <li className="xpo_flex xpo_items-center gap-1 mb-12">
                                         <span className="w-30 text-md fw-semibold text-primary-light"> {__('Designation')}</span>
                                         <span className="w-70 text-secondary-light fw-medium">: {user.metadata?.designation??'N/A'}</span>
                                     </li>
-                                    <li className="d-flex align-items-center gap-1 mb-12">
+                                    <li className="xpo_flex xpo_items-center gap-1 mb-12">
                                         <span className="w-30 text-md fw-semibold text-primary-light"> {__('Languages')}</span>
                                         <span className="w-70 text-secondary-light fw-medium">: {user.metadata?.partnership_dashboard_locale??'English'}</span>
                                     </li> */}
@@ -183,7 +183,7 @@ const ProfileEdit = ({ user, setUser }) => {
                             <ul className="nav border-gradient-tab nav-pills mb-20 d-inline-flex" id="pills-tab" role="tablist">
                                 <li className="nav-item" role="presentation">
                                     <button
-                                        className={ `nav-link d-flex align-items-center px-24 ${isActiveTab('edit') && 'active'}` }
+                                        className={ `nav-link xpo_flex xpo_items-center px-24 ${isActiveTab('edit') && 'active'}` }
                                         id="pills-edit-profile-tab"
                                         data-bs-toggle="pill"
                                         data-bs-target="#pills-edit-profile"
@@ -198,7 +198,7 @@ const ProfileEdit = ({ user, setUser }) => {
                                 </li>
                                 <li className="nav-item" role="presentation">
                                     <button
-                                        className={ `nav-link d-flex align-items-center px-24 ${isActiveTab('password') && 'active'}` }
+                                        className={ `nav-link xpo_flex xpo_items-center px-24 ${isActiveTab('password') && 'active'}` }
                                         id="pills-change-password-tab"
                                         data-bs-toggle="pill"
                                         data-bs-target="#pills-change-password"
@@ -214,7 +214,7 @@ const ProfileEdit = ({ user, setUser }) => {
                                 </li>
                                 <li className="nav-item" role="presentation">
                                     <button
-                                        className={ `nav-link d-flex align-items-center px-24 ${isActiveTab('notification') && 'active'}` }
+                                        className={ `nav-link xpo_flex xpo_items-center px-24 ${isActiveTab('notification') && 'active'}` }
                                         id="pills-notification-tab"
                                         data-bs-toggle="pill"
                                         data-bs-target="#pills-notification"
@@ -348,7 +348,7 @@ const ProfileEdit = ({ user, setUser }) => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="d-flex align-items-center justify-content-center gap-3">
+                                        <div className="xpo_flex xpo_items-center justify-content-center gap-3">
                                             <button type="reset" className="border border-danger-600 bg-hover-danger-200 text-danger-600 text-md px-56 py-11 radius-8"> 
                                                 {__('Cancel')}
                                             </button>
@@ -381,35 +381,35 @@ const ProfileEdit = ({ user, setUser }) => {
                                         <div>
                                             <div className="form-switch switch-primary py-12 px-16 border radius-8 position-relative mb-16">
                                                 <label htmlFor="companzNew" className="position-absolute w-100 h-100 start-0 top-0"></label>
-                                                <div className="d-flex align-items-center gap-3 justify-content-between">
+                                                <div className="xpo_flex xpo_items-center gap-3 xpo_justify-between">
                                                     <span className="form-check-label line-height-1 fw-medium text-secondary-light">{__('Company News')}</span>
                                                     <input className="form-check-input" type="checkbox" role="switch" id="companzNew" checked={notifConfig?.['pm_notis-news']} onChange={(e) => update_notif_config('pm_notis-news', e.target.checked)} />
                                                 </div>
                                             </div>
                                             <div className="form-switch switch-primary py-12 px-16 border radius-8 position-relative mb-16">
                                                 <label htmlFor="pushNotifcation" className="position-absolute w-100 h-100 start-0 top-0"></label>
-                                                <div className="d-flex align-items-center gap-3 justify-content-between">
+                                                <div className="xpo_flex xpo_items-center gap-3 xpo_justify-between">
                                                     <span className="form-check-label line-height-1 fw-medium text-secondary-light">{__('Push Notification')}</span>
                                                     <input className="form-check-input" type="checkbox" role="switch" id="pushNotifcation" checked={notifConfig?.['pm_notis-push']} onChange={(e) => update_notif_config('pm_notis-push', e.target.checked)} />
                                                 </div>
                                             </div>
                                             <div className="form-switch switch-primary py-12 px-16 border radius-8 position-relative mb-16">
                                                 <label htmlFor="weeklyLetters" className="position-absolute w-100 h-100 start-0 top-0"></label>
-                                                <div className="d-flex align-items-center gap-3 justify-content-between">
+                                                <div className="xpo_flex xpo_items-center gap-3 xpo_justify-between">
                                                     <span className="form-check-label line-height-1 fw-medium text-secondary-light">{__('Weekly News Letters')}</span>
                                                     <input className="form-check-input" type="checkbox" role="switch" id="weeklyLetters" checked={notifConfig?.['pm_notis-newsletter']} onChange={(e) => update_notif_config('pm_notis-newsletter', e.target.checked)} />
                                                 </div>
                                             </div>
                                             <div className="form-switch switch-primary py-12 px-16 border radius-8 position-relative mb-16">
                                                 <label htmlFor="meetUp" className="position-absolute w-100 h-100 start-0 top-0"></label>
-                                                <div className="d-flex align-items-center gap-3 justify-content-between">
+                                                <div className="xpo_flex xpo_items-center gap-3 xpo_justify-between">
                                                     <span className="form-check-label line-height-1 fw-medium text-secondary-light">{__('Meetups Near you')}</span>
                                                     <input className="form-check-input" type="checkbox" role="switch" id="meetUp" checked={notifConfig?.['pm_notis-meetup']} onChange= {(e) => update_notif_config('pm_notis-meetup', e.target.checked)} />
                                                 </div>
                                             </div>
                                             <div className="form-switch switch-primary py-12 px-16 border radius-8 position-relative mb-16">
                                                 <label htmlFor="orderNotification" className="position-absolute w-100 h-100 start-0 top-0"></label>
-                                                <div className="d-flex align-items-center gap-3 justify-content-between">
+                                                <div className="xpo_flex xpo_items-center gap-3 xpo_justify-between">
                                                     <span className="form-check-label line-height-1 fw-medium text-secondary-light">{__('Orders Notifications')}</span>
                                                     <input className="form-check-input" type="checkbox" role="switch" id="orderNotification" checked={notifConfig?.['pm_notis-order']} onChange={(e) => update_notif_config('pm_notis-order', e.target.checked)} />
                                                 </div>
@@ -429,10 +429,10 @@ const ProfileEdit = ({ user, setUser }) => {
 }
 
 
-const ProfileView = ({ user: userData }) => {
+export const ProfileView = ({ user: userData, user_id: userId = null }) => {
     const { __ } = useTranslation();
     const { setLoading } = useLoading();
-    const { userid: user_id } = useParams();
+    const { userid: user_id = userId } = useParams();
     const [user, setUser] = useState({
         avatar: '',
         skills: [
@@ -559,11 +559,11 @@ const ProfileView = ({ user: userData }) => {
     );
 }
 
-const UserProfile = () => {
+export const UserProfile = ({ user_id: userId = null }) => {
     const { __ } = useTranslation();
     const navigate = useNavigate();
     const { loading, setLoading } = useLoading();
-    const { userid: user_id } = useParams();
+    const { userid: user_id = userId } = useParams();
     // const [loading, setLoading] = useState(true);
     const [userData, setUserData] = useState(null);
     const [error, setError] = useState(null);
@@ -581,15 +581,15 @@ const UserProfile = () => {
             {userData ? (
                 <div>
                     {userData?.editable ? (
-                        <ProfileEdit user={userData} setUser={setUserData} />
+                        <ProfileEdit user={userData} setUser={setUserData} user_id={user_id} />
                     ) : (
-                        <ProfileView user={userData} setUser={setUserData} />
+                        <ProfileView user={userData} setUser={setUserData} user_id={user_id} />
                     )}
                 </div>
             ) : error ? (
                 <div>
                     <div class="alert alert-danger bg-danger-100 text-danger-600 border-danger-100 px-24 py-11 mb-0 fw-semibold text-lg radius-8" role="alert">
-                        <div class="d-flex align-items-center justify-content-between text-lg">
+                        <div class="xpo_flex xpo_items-center xpo_justify-between text-lg">
                             {error} 
                             {/* window.history.back() */}
                             <button class="remove-button text-danger-600 text-xxl line-height-1" onClick={() => navigate(home_route('/'))}>
@@ -604,7 +604,7 @@ const UserProfile = () => {
     )
 }
 
-const Socials = ({ platform, ...params }) => {
+export const Socials = ({ platform, ...params }) => {
     if (platform === 'facebook') {
         return <svg {...params} role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Facebook</title><path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z"/></svg>;
     }

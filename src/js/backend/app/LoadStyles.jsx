@@ -2,29 +2,32 @@ import React, { useEffect } from 'react';
 
 const LoadStyles = () => {
   useEffect(() => {
+    const lib_url = (file) => {
+      return `https://${location.host}/wp-content/plugins/partnership-manager/dist/library/css/${file}`;
+    }
     const stylesheets = [
-      "https://wowdash.wowtheme7.com/bundlelive/demo/assets/css/remixicon.css",
-      "https://wowdash.wowtheme7.com/bundlelive/demo/assets/css/lib/bootstrap.min.css",
-      "https://wowdash.wowtheme7.com/bundlelive/demo/assets/css/lib/apexcharts.css",
-      "https://wowdash.wowtheme7.com/bundlelive/demo/assets/css/lib/dataTables.min.css",
-      "https://wowdash.wowtheme7.com/bundlelive/demo/assets/css/lib/editor-katex.min.css",
-      "https://wowdash.wowtheme7.com/bundlelive/demo/assets/css/lib/editor.atom-one-dark.min.css",
-      "https://wowdash.wowtheme7.com/bundlelive/demo/assets/css/lib/editor.quill.snow.css",
-      "https://wowdash.wowtheme7.com/bundlelive/demo/assets/css/lib/flatpickr.min.css",
-      "https://wowdash.wowtheme7.com/bundlelive/demo/assets/css/lib/full-calendar.css",
-      "https://wowdash.wowtheme7.com/bundlelive/demo/assets/css/lib/jquery-jvectormap-2.0.5.css",
-      "https://wowdash.wowtheme7.com/bundlelive/demo/assets/css/lib/magnific-popup.css",
-      "https://wowdash.wowtheme7.com/bundlelive/demo/assets/css/lib/slick.css",
-      "https://wowdash.wowtheme7.com/bundlelive/demo/assets/css/lib/prism.css",
-      "https://wowdash.wowtheme7.com/bundlelive/demo/assets/css/lib/file-upload.css",
-      "https://wowdash.wowtheme7.com/bundlelive/demo/assets/css/lib/audioplayer.css",
-      "https://wowdash.wowtheme7.com/bundlelive/demo/assets/css/style.css"
+      "remixicon.css",
+      "bootstrap.min.css",
+      "apexcharts.css",
+      "dataTables.min.css",
+      "editor-katex.min.css",
+      "editor.atom-one-dark.min.css",
+      "editor.quill.snow.css",
+      "flatpickr.min.css",
+      "full-calendar.css",
+      "jquery-jvectormap-2.0.5.css",
+      "magnific-popup.css",
+      "slick.css",
+      "prism.css",
+      "file-upload.css",
+      "audioplayer.css",
+      "style.css",
     ];
 
     stylesheets.forEach((stylesheet) => {
       const link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = stylesheet;
+      link.href = lib_url(stylesheet);
       document.head.appendChild(link);
       return () => {
         document.head.removeChild(link);
