@@ -104,7 +104,7 @@ export default function LanguageSwitcher() {
   const currentLang = LanguageCodes.find(lang => lang.lang_code === language) ?? LanguageCodes.find(lang => lang.lang_code === 'en');
 
   return (
-    <div className="d-none d-sm-inline-block position-relative">
+    <div className="d-none d-sm-inline-block xpo_relative">
       <button
         ref={buttonRef}
         className={`has-indicator w-40-px h-40-px bg-neutral-200 rounded-circle xpo_flex justify-content-center xpo_items-center ${menuOpened ? 'show' : ''}`}

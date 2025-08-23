@@ -88,6 +88,9 @@ class Security {
 			if (!empty($password) && $password == $password2) {
 				if (empty(trim($username))) {
 					$username = strstr($email, '@', true);
+					if (username_exists($username)) {
+						$username = str_replace(['@', '.'], ['', ''], $email);
+					}
 					$username = sanitize_user($username, true);
 					if (empty($username)) {$username = 'user_' . wp_generate_password(8, false);}
 				}

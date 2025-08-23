@@ -48,7 +48,7 @@ export default function ReferralShareBox() {
                 className="input-group-text btn btn-outline-neutral-700 xpo_bg-base xpo_flex xpo_gap-3"
               >
                   <Copy className="xpo_w-4 xpo_h-4" />
-                  {copied ? __('Copied!') : __('Copy')}
+                  <span className="xl:xpo_hidden xpo_block">{copied ? __('Copied!') : __('Copy')}</span>
               </button>
               <button
                 variant="default"
@@ -57,7 +57,7 @@ export default function ReferralShareBox() {
                 className="input-group-text btn btn-outline-neutral-700 xpo_bg-base xpo_flex xpo_gap-3"
               >
                   <Share2 className="xpo_w-4 xpo_h-4" />
-                  {__('Share')}
+                  <span className="xl:xpo_hidden xpo_block">{__('Share')}</span>
               </button>
           </div>
           <p className="xpo_text-sm xpo_mt-1 xpo_mb-0 xpo_text-muted-foreground">{__('Easily share your personalized referral link to invite friends and earn rewards.')}</p>

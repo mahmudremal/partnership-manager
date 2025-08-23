@@ -71,7 +71,7 @@ export default function Packages({ viewType = 'list' }) {
                             {packages.map((pack, index) => 
                                 <div className="pricing-plan-wrapper" key={index}>
                                     {/* scale-item */}
-                                    <div className="pricing-plan position-relative radius-24 overflow-hidden border bg-lilac-100">
+                                    <div className="pricing-plan xpo_relative radius-24 overflow-hidden border bg-lilac-100">
                                         <div className="xpo_flex xpo_items-center gap-16">
                                             <span className="w-72-px h-72-px xpo_flex justify-content-center xpo_items-center radius-16 bg-base">
                                                 <img src={ priceIcon } alt={__('Price icon')} />
@@ -164,9 +164,9 @@ const InvoiceGenerator = ({ pack, plan, stores, __ }) => {
                     <div className="xpo_flex xpo_flex-col xpo_gap-3">
                         <h6>Select a store</h6>
                         <div className="xpo_block xpo_mt-6">
-                            <ul className="list-group radius-8">
+                            <ul className="list-group radius-8 xpo_space-y-3">
                                 {stores.map((store, index) => (
-                                    <li key={index} className={ `list-group-item border text-secondary-light p-16 text-white card ${stores.length == (index + 1) ? '' : 'border-bottom-0'}` }>
+                                    <li key={index} className={ `list-group-item border text-secondary-light p-16 text-white card ${stores.length == (index + 1) ? '' : ''}` }>
                                         <div className="form-check checked-warning xpo_flex xpo_items-center gap-2">
                                             <input className="form-check-input" type="radio" name="store" id={ `store_${index}` } value={store.id} />
                                             <label className="form-check-label line-height-1 fw-medium text-secondary-light" htmlFor={ `store_${index}` }>{store.store_title}</label>

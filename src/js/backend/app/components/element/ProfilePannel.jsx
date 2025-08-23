@@ -66,21 +66,21 @@ export default function ProfilePannel() {
                 </div>
                 <ul className="to-top-list">
                     <li>
-                        <Link to={ home_url(`/users/${user?.id??''}/view`) } className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-primary xpo_flex xpo_items-center gap-3"> 
+                        <Link to={ home_url(`/users/${user?.id??''}/view`) } className="dropdown-item text-black px-0 py-8 hover-bg-transparent xpo_cursor-pointer hover-text-primary xpo_flex xpo_items-center gap-3"> 
                         <User className="icon text-xl" />  {__('My Profile')}</Link>
                     </li>
                     <li>
-                        <Link to={ home_url('/notifications') } className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-primary xpo_flex xpo_items-center gap-3"> 
+                        <Link to={ home_url('/notifications') } className="dropdown-item text-black px-0 py-8 hover-bg-transparent xpo_cursor-pointer hover-text-primary xpo_flex xpo_items-center gap-3"> 
                         <MailCheck className="icon text-xl" />  {__('Notifications')}</Link>
                     </li>
                     <li>
-                        <Link to={ home_url('/settings') } className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-primary xpo_flex xpo_items-center gap-3"> 
+                        <Link to={ home_url('/settings') } className="dropdown-item text-black px-0 py-8 hover-bg-transparent xpo_cursor-pointer hover-text-primary xpo_flex xpo_items-center gap-3"> 
                         <Settings className="icon text-xl" />  {__('Setting')}</Link>
                     </li>
                     <li>
                         <button
                             onClick={logout}
-                            className="dropdown-item text-black px-0 py-8 hover-bg-transparent cursor-pointer hover-text-danger xpo_flex xpo_items-center gap-3"
+                            className="dropdown-item text-black px-0 py-8 hover-bg-transparent xpo_cursor-pointer hover-text-danger xpo_flex xpo_items-center gap-3"
                         > 
                         <Power className="icon text-xl" />  {__('Log Out')}</button>
                     </li>

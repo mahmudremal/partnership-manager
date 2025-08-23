@@ -425,7 +425,7 @@ export const AuthProvider = ({ children }) => {
                                                 </div>
                                             </div>
                                         )}
-                                        <div className="position-relative mb-20">
+                                        <div className="xpo_relative mb-20">
                                             <div className="icon-field">
                                                 <span className="icon top-50 translate-middle-y">
                                                     <LockKeyhole />
@@ -440,13 +440,13 @@ export const AuthProvider = ({ children }) => {
                                                     className="form-control h-56-px bg-neutral-50 radius-12"
                                                 />
                                             </div>
-                                            <span className="toggle-password cursor-pointer position-absolute end-0 top-50 translate-middle-y me-16 text-secondary-light" data-toggle="#your-password" onClick={() => setShowPass(prev => !prev)}>
+                                            <span className="toggle-password xpo_cursor-pointer position-absolute end-0 top-50 translate-middle-y me-16 text-secondary-light" data-toggle="#your-password" onClick={() => setShowPass(prev => !prev)}>
                                                 {showPass ? <EyeOff /> : <Eye />}
                                             </span>
                                             {form?.isSignUp && <span className="mt-12 text-sm text-secondary-light">{__('Your password must have at least 8 characters')}</span>}
                                         </div>
                                         {form?.isSignUp && (
-                                            <div className="position-relative mb-20">
+                                            <div className="xpo_relative mb-20">
                                                 <div className="icon-field">
                                                     <span className="icon top-50 translate-middle-y">
                                                         <LockKeyhole />

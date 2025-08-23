@@ -20,7 +20,7 @@ module.exports = {
     visitor: JS_DIR + '/visitor.js',
     public: JS_DIR + '/public.js',
     admin: JS_DIR + '/admin.js',
-    task: JS_DIR + '/task.js',
+    // emails: JS_DIR + '/emails.js',
     pwa: JS_DIR + '/pwa.js',
   },
   output: {

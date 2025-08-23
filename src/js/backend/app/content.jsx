@@ -63,50 +63,94 @@ export default function Content() {
         <div className="xpo_w-full">
             <Suspense fallback={<div className="text-center p-4">{__('Loading...')}</div>}>
                 <Routes>
-                    <Route path={home_route('/')} element={<MyProfile />} />
-                    {/* <Route path={home_route('/')} element={!roles.has_ability('read') ? (<NoAccess />) : (<MyProfile />)} /> */}
-                    <Route path={home_route('/insights')} element={!roles.has_ability('read') ? (<NoAccess />) : (<Home />)} />
-                    <Route path={home_route('/sales')} element={!roles.has_ability('read') ? (<NoAccess />) : (<Home />)} />
-                    <Route path={home_route('/analytics')} element={!roles.has_ability('read') ? (<NoAccess />) : (<Home />)} />
+                    {/* <Route path={home_route('/')} element={<MyProfile />} />
+                        <Route path={home_route('/')} element={!roles.has_ability('read') ? (<NoAccess />) : (<MyProfile />)} />
+                        <Route path={home_route('/insights')} element={!roles.has_ability('read') ? (<NoAccess />) : (<Home />)} />
+                        <Route path={home_route('/sales')} element={!roles.has_ability('read') ? (<NoAccess />) : (<Home />)} />
+                        <Route path={home_route('/analytics')} element={!roles.has_ability('read') ? (<NoAccess />) : (<Home />)} />
 
-                    <Route path={home_route('/users')} element={!roles.has_ability('project_manager', 'users') ? (<NoAccess />) : (<UsersList />)} />
+                        <Route path={home_route('/users')} element={!roles.has_ability('project_manager', 'users') ? (<NoAccess />) : (<UsersList />)} />
+                        <Route path={home_route('/users/:userid/view')} element={<UsersView />} />
+                        <Route path={home_route('/users/:userid/edit')} element={<UsersEdit />} />
+
+                        <Route path={home_route('/stores')} element={!roles.has_ability('stores') ? (<NoAccess />) : (<Stores />)} />
+
+                        <Route path={home_route('/resources/partner-docs')} element={!roles.has_ability('partner-docs') ? (<NoAccess />) : (<PartnerDocs/>)} />
+                        <Route path={home_route('/resources/partner-docs/:category_slug')} element={!roles.has_ability('partner-docs') ? (<NoAccess />) : (<PartnerDocsCategory/>)} />
+                        <Route path={home_route('/resources/partner-docs/:category_slug/:doc_slug')} element={!roles.has_ability('partner-docs') ? (<NoAccess />) : (<PartnerDocsSingle/>)} />
+                        
+                        <Route path={home_route('/resources/service-docs')} element={!roles.has_ability('service-docs') ? (<NoAccess />) : (<ServiceDocs />)} handle={{ breadcrumb: 'Service Documentations' }} />
+                        <Route path={home_route('/resources/service-docs/:category_slug')} element={!roles.has_ability('service-docs') ? (<NoAccess />) : (<ServiceDocsCategory />)} />
+                        <Route path={home_route('/resources/service-docs/:category_slug/:doc_slug')} element={!roles.has_ability('service-docs') ? (<NoAccess />) : (<ServiceDocsSingle />)} />
+
+                        <Route path={home_route('/support/supports')} element={!roles.has_ability('support-ticket') ? (<NoAccess />) : (<Supports />)} />
+                        <Route path={home_route('/support/open-ticket')} element={!roles.has_ability('support-ticket') ? (<NoAccess />) : (<OpenTicket />)} />
+
+                        <Route path={home_route('/referrals')} element={!roles.has_ability('referral') ? (<NoAccess />) : (<ReferralsScreen />)} />
+                        <Route path={home_route('/referrals/active')} element={!roles.has_ability('referral') ? (<NoAccess />) : (<Active_Referrals />)} />
+                        <Route path={home_route('/referrals/inactive')} element={!roles.has_ability('referral') ? (<NoAccess />) : (<Inactive_Referrals />)} />
+                        <Route path={home_route('/referrals/:referral_id/view')} element={!roles.has_ability('referral') ? (<NoAccess />) : (<Referral_View />)} />
+                        
+                        <Route path={home_route('/packages')} element={!roles.has_ability('packages') ? (<NoAccess />) : (<Packages />)} />
+                        <Route path={home_route('/packages/:package_id/:pricing_plan/checkout')} element={!roles.has_ability('packages') ? (<NoAccess />) : (<Checkout />)} />
+                        
+                        <Route path={home_route('/contracts')} element={!roles.has_ability('contracts') ? (<NoAccess />) : (<Contracts />)} />
+                        <Route path={home_route('/contracts/active')} element={!roles.has_ability('contracts') ? (<NoAccess />) : (<Contracts_Actives />)} />
+                        <Route path={home_route('/contracts/archive')} element={!roles.has_ability('contracts') ? (<NoAccess />) : (<Contracts_Inactives />)} />
+                        <Route path={home_route('/contracts/:contract_id/board')} element={!roles.has_ability('contracts') ? (<NoAccess />) : (<Contract_Board />)} />
+
+                        <Route path={home_route('/payouts')} element={!roles.has_ability('payouts') ? (<NoAccess />) : (<PayoutsScreen />)} />
+                        <Route path={home_route('/settings')} element={<Settings />} />
+                        <Route path={home_route('/team')} element={!roles.has_ability('team') ? (<NoAccess />) : (<UsersGrid />)} />
+
+                        <Route path={home_route('/invoices')} element={!roles.has_ability('invoices') ? (<NoAccess />) : (<Invoices />)} />
+                        <Route path={home_route('/invoices/:invoice_id/view')} element={!roles.has_ability('invoices') ? (<NoAccess />) : (<InvoiceEdit />)} />
+                        <Route path={home_route('/invoices/:invoice_id/checkout')} element={!roles.has_ability('invoices') ? (<NoAccess />) : (<InvoiceCheckout />)} /> */}
+
+                    <Route path={home_route('/')} element={<MyProfile />} />
+                    <Route path={home_route('/insights')} element={(<Home />)} />
+                    <Route path={home_route('/sales')} element={(<Home />)} />
+                    <Route path={home_route('/analytics')} element={(<Home />)} />
+
+                    <Route path={home_route('/users')} element={(<UsersList />)} />
                     <Route path={home_route('/users/:userid/view')} element={<UsersView />} />
                     <Route path={home_route('/users/:userid/edit')} element={<UsersEdit />} />
 
-                    <Route path={home_route('/stores')} element={!roles.has_ability('stores') ? (<NoAccess />) : (<Stores />)} />
+                    <Route path={home_route('/stores')} element={(<Stores />)} />
 
-                    <Route path={home_route('/resources/partner-docs')} element={!roles.has_ability('partner-docs') ? (<NoAccess />) : (<PartnerDocs/>)} />
-                    <Route path={home_route('/resources/partner-docs/:category_slug')} element={!roles.has_ability('partner-docs') ? (<NoAccess />) : (<PartnerDocsCategory/>)} />
-                    <Route path={home_route('/resources/partner-docs/:category_slug/:doc_slug')} element={!roles.has_ability('partner-docs') ? (<NoAccess />) : (<PartnerDocsSingle/>)} />
+                    <Route path={home_route('/resources/partner-docs')} element={(<PartnerDocs/>)} />
+                    <Route path={home_route('/resources/partner-docs/:category_slug')} element={(<PartnerDocsCategory/>)} />
+                    <Route path={home_route('/resources/partner-docs/:category_slug/:doc_slug')} element={(<PartnerDocsSingle/>)} />
                     
-                    <Route path={home_route('/resources/service-docs')} element={!roles.has_ability('service-docs') ? (<NoAccess />) : (<ServiceDocs />)} handle={{ breadcrumb: 'Service Documentations' }} />
-                    <Route path={home_route('/resources/service-docs/:category_slug')} element={!roles.has_ability('service-docs') ? (<NoAccess />) : (<ServiceDocsCategory />)} />
-                    <Route path={home_route('/resources/service-docs/:category_slug/:doc_slug')} element={!roles.has_ability('service-docs') ? (<NoAccess />) : (<ServiceDocsSingle />)} />
+                    <Route path={home_route('/resources/service-docs')} element={(<ServiceDocs handle={{ breadcrumb: 'Service Documentations'}} />)} />
+                    <Route path={home_route('/resources/service-docs/:category_slug')} element={(<ServiceDocsCategory />)} />
+                    <Route path={home_route('/resources/service-docs/:category_slug/:doc_slug')} element={(<ServiceDocsSingle />)} />
 
-                    <Route path={home_route('/support/supports')} element={!roles.has_ability('support-ticket') ? (<NoAccess />) : (<Supports />)} />
-                    <Route path={home_route('/support/open-ticket')} element={!roles.has_ability('support-ticket') ? (<NoAccess />) : (<OpenTicket />)} />
+                    <Route path={home_route('/support/supports')} element={(<Supports />)} />
+                    <Route path={home_route('/support/open-ticket')} element={(<OpenTicket />)} />
 
-                    <Route path={home_route('/referrals')} element={!roles.has_ability('referral') ? (<NoAccess />) : (<ReferralsScreen />)} />
-                    <Route path={home_route('/referrals/active')} element={!roles.has_ability('referral') ? (<NoAccess />) : (<Active_Referrals />)} />
-                    <Route path={home_route('/referrals/inactive')} element={!roles.has_ability('referral') ? (<NoAccess />) : (<Inactive_Referrals />)} />
-                    <Route path={home_route('/referrals/:referral_id/view')} element={!roles.has_ability('referral') ? (<NoAccess />) : (<Referral_View />)} />
+                    <Route path={home_route('/referrals')} element={(<ReferralsScreen />)} />
+                    <Route path={home_route('/referrals/active')} element={(<Active_Referrals />)} />
+                    <Route path={home_route('/referrals/inactive')} element={(<Inactive_Referrals />)} />
+                    <Route path={home_route('/referrals/:referral_id/view')} element={(<Referral_View />)} />
                     
-                    <Route path={home_route('/packages')} element={!roles.has_ability('packages') ? (<NoAccess />) : (<Packages />)} />
-                    <Route path={home_route('/packages/:package_id/:pricing_plan/checkout')} element={!roles.has_ability('packages') ? (<NoAccess />) : (<Checkout />)} />
+                    <Route path={home_route('/packages')} element={(<Packages />)} />
+                    <Route path={home_route('/packages/:package_id/:pricing_plan/checkout')} element={(<Checkout />)} />
                     
-                    <Route path={home_route('/contracts')} element={!roles.has_ability('contracts') ? (<NoAccess />) : (<Contracts />)} />
-                    <Route path={home_route('/contracts/active')} element={!roles.has_ability('contracts') ? (<NoAccess />) : (<Contracts_Actives />)} />
-                    <Route path={home_route('/contracts/archive')} element={!roles.has_ability('contracts') ? (<NoAccess />) : (<Contracts_Inactives />)} />
-                    <Route path={home_route('/contracts/:contract_id/board')} element={!roles.has_ability('contracts') ? (<NoAccess />) : (<Contract_Board />)} />
+                    <Route path={home_route('/contracts')} element={(<Contracts />)} />
+                    <Route path={home_route('/contracts/active')} element={(<Contracts_Actives />)} />
+                    <Route path={home_route('/contracts/archive')} element={(<Contracts_Inactives />)} />
+                    <Route path={home_route('/contracts/:contract_id/board')} element={(<Contract_Board />)} />
 
-                    <Route path={home_route('/payouts')} element={!roles.has_ability('payouts') ? (<NoAccess />) : (<PayoutsScreen />)} />
+                    <Route path={home_route('/payouts')} element={(<PayoutsScreen />)} />
                     <Route path={home_route('/settings')} element={<Settings />} />
-                    <Route path={home_route('/team')} element={!roles.has_ability('team') ? (<NoAccess />) : (<UsersGrid />)} />
+                    <Route path={home_route('/team')} element={(<UsersGrid />)} />
+
+                    <Route path={home_route('/invoices')} element={(<Invoices />)} />
+                    <Route path={home_route('/invoices/:invoice_id/view')} element={(<InvoiceEdit />)} />
+                    <Route path={home_route('/invoices/:invoice_id/checkout')} element={(<InvoiceCheckout />)} />
 
 
-                    <Route path={home_route('/invoices')} element={!roles.has_ability('invoices') ? (<NoAccess />) : (<Invoices />)} />
-                    <Route path={home_route('/invoices/:invoice_id/view')} element={!roles.has_ability('invoices') ? (<NoAccess />) : (<InvoiceEdit />)} />
-                    <Route path={home_route('/invoices/:invoice_id/checkout')} element={!roles.has_ability('invoices') ? (<NoAccess />) : (<InvoiceCheckout />)} />
 
                     <Route path="*" element={<ErrorPage />} />
                 </Routes>

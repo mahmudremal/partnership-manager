@@ -96,14 +96,14 @@ export const ProfileEdit = ({ user, setUser, user_id = null }) => {
         <div>
             <div className="row gy-4">
                 <div className="col-lg-4">
-                    <div className="user-grid-card position-relative border radius-16 overflow-hidden bg-base h-100">
+                    <div className="user-grid-card xpo_relative border radius-16 overflow-hidden bg-base h-100">
                         <img src={ CoverPhoto } alt={__('Cover photo')} className="w-100 object-fit-cover" />
                         <div className="xpo_relative xpo_-mt-28 xpo_p-4">
                             <div className="text-center border border-top-0 border-start-0 border-end-0">
                                 
                                 <div className="xpo_relative xpo_grid xpo_grid-cols-[200px_1fr] xpo_items-end xpo_mb-4">
-                                    <div className="avatar-upload position-relative">
-                                        <div className="avatar-edit position-absolute bottom-0 end-0 me-24 mt-16 z-1 cursor-pointer">
+                                    <div className="avatar-upload xpo_relative">
+                                        <div className="avatar-edit position-absolute bottom-0 end-0 me-24 mt-16 z-1 xpo_cursor-pointer">
                                             <input
                                                 type="file"
                                                 id="imageUpload"
@@ -362,16 +362,16 @@ export const ProfileEdit = ({ user, setUser, user_id = null }) => {
                                 <div className={ `tab-pane fade ${isActiveTab('password') && 'show active'}` } id="pills-change-password" role="tabpanel" aria-labelledby="pills-change-password-tab" tabIndex="0">
                                     <div className="mb-20">
                                         <label htmlFor="your-password" className="form-label fw-semibold text-primary-light text-sm mb-8">{__('New Password')} <span className="text-danger-600">*</span></label>
-                                        <div className="position-relative">
+                                        <div className="xpo_relative">
                                             <input type="password" className="form-control radius-8" id="your-password" placeholder={__('Enter New Password*')} />
-                                            <span className="toggle-password ri-eye-line cursor-pointer position-absolute end-0 top-50 translate-middle-y me-16 text-secondary-light" data-toggle="#your-password"></span>
+                                            <span className="toggle-password ri-eye-line xpo_cursor-pointer position-absolute end-0 top-50 translate-middle-y me-16 text-secondary-light" data-toggle="#your-password"></span>
                                         </div>
                                     </div>
                                     <div className="mb-20">
                                         <label htmlFor="confirm-password" className="form-label fw-semibold text-primary-light text-sm mb-8">{__('Confirmed Password')} <span className="text-danger-600">*</span></label>
-                                        <div className="position-relative">
+                                        <div className="xpo_relative">
                                             <input type="password" className="form-control radius-8" id="confirm-password" placeholder={__('Confirm Password*')} />
-                                            <span className="toggle-password ri-eye-line cursor-pointer position-absolute end-0 top-50 translate-middle-y me-16 text-secondary-light" data-toggle="#confirm-password"></span>
+                                            <span className="toggle-password ri-eye-line xpo_cursor-pointer position-absolute end-0 top-50 translate-middle-y me-16 text-secondary-light" data-toggle="#confirm-password"></span>
                                         </div>
                                     </div>
                                 </div>
@@ -379,35 +379,35 @@ export const ProfileEdit = ({ user, setUser, user_id = null }) => {
                                 <div className={ `tab-pane fade ${isActiveTab('notification') && 'show active'}` } id="pills-notification" role="tabpanel" aria-labelledby="pills-notification-tab" tabIndex="0">
                                     {notifConfig ? (
                                         <div>
-                                            <div className="form-switch switch-primary py-12 px-16 border radius-8 position-relative mb-16">
+                                            <div className="form-switch switch-primary py-12 px-16 border radius-8 xpo_relative mb-16">
                                                 <label htmlFor="companzNew" className="position-absolute w-100 h-100 start-0 top-0"></label>
                                                 <div className="xpo_flex xpo_items-center gap-3 xpo_justify-between">
                                                     <span className="form-check-label line-height-1 fw-medium text-secondary-light">{__('Company News')}</span>
                                                     <input className="form-check-input" type="checkbox" role="switch" id="companzNew" checked={notifConfig?.['pm_notis-news']} onChange={(e) => update_notif_config('pm_notis-news', e.target.checked)} />
                                                 </div>
                                             </div>
-                                            <div className="form-switch switch-primary py-12 px-16 border radius-8 position-relative mb-16">
+                                            <div className="form-switch switch-primary py-12 px-16 border radius-8 xpo_relative mb-16">
                                                 <label htmlFor="pushNotifcation" className="position-absolute w-100 h-100 start-0 top-0"></label>
                                                 <div className="xpo_flex xpo_items-center gap-3 xpo_justify-between">
                                                     <span className="form-check-label line-height-1 fw-medium text-secondary-light">{__('Push Notification')}</span>
                                                     <input className="form-check-input" type="checkbox" role="switch" id="pushNotifcation" checked={notifConfig?.['pm_notis-push']} onChange={(e) => update_notif_config('pm_notis-push', e.target.checked)} />
                                                 </div>
                                             </div>
-                                            <div className="form-switch switch-primary py-12 px-16 border radius-8 position-relative mb-16">
+                                            <div className="form-switch switch-primary py-12 px-16 border radius-8 xpo_relative mb-16">
                                                 <label htmlFor="weeklyLetters" className="position-absolute w-100 h-100 start-0 top-0"></label>
                                                 <div className="xpo_flex xpo_items-center gap-3 xpo_justify-between">
                                                     <span className="form-check-label line-height-1 fw-medium text-secondary-light">{__('Weekly News Letters')}</span>
                                                     <input className="form-check-input" type="checkbox" role="switch" id="weeklyLetters" checked={notifConfig?.['pm_notis-newsletter']} onChange={(e) => update_notif_config('pm_notis-newsletter', e.target.checked)} />
                                                 </div>
                                             </div>
-                                            <div className="form-switch switch-primary py-12 px-16 border radius-8 position-relative mb-16">
+                                            <div className="form-switch switch-primary py-12 px-16 border radius-8 xpo_relative mb-16">
                                                 <label htmlFor="meetUp" className="position-absolute w-100 h-100 start-0 top-0"></label>
                                                 <div className="xpo_flex xpo_items-center gap-3 xpo_justify-between">
                                                     <span className="form-check-label line-height-1 fw-medium text-secondary-light">{__('Meetups Near you')}</span>
                                                     <input className="form-check-input" type="checkbox" role="switch" id="meetUp" checked={notifConfig?.['pm_notis-meetup']} onChange= {(e) => update_notif_config('pm_notis-meetup', e.target.checked)} />
                                                 </div>
                                             </div>
-                                            <div className="form-switch switch-primary py-12 px-16 border radius-8 position-relative mb-16">
+                                            <div className="form-switch switch-primary py-12 px-16 border radius-8 xpo_relative mb-16">
                                                 <label htmlFor="orderNotification" className="position-absolute w-100 h-100 start-0 top-0"></label>
                                                 <div className="xpo_flex xpo_items-center gap-3 xpo_justify-between">
                                                     <span className="form-check-label line-height-1 fw-medium text-secondary-light">{__('Orders Notifications')}</span>

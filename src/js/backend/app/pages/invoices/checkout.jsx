@@ -226,7 +226,7 @@ export default function InvoiceCheckout() {
                                         <h3 className="text-neutral-400 mb-16">{print_money((pricing?.pricing?.[pricing_plan]??0).toFixed(2))}</h3>
                                         <span className="text-neutral-500 text-sm">{__('You can upgrade/downgrade later.')}</span>
                                     </div>
-                                    <div className="mt-24 border radius-8 position-relative">
+                                    <div className="mt-24 border radius-8 xpo_relative">
                                         <div className="p-16 xpo_flex xpo_items-center border-bottom">
                                             <span className="text-neutral-500 fw-medium w-76-px border-end">{__("Date")}</span>
                                             <div className="xpo_flex xpo_items-center xpo_justify-between flex-grow-1 ps-16">
@@ -279,7 +279,7 @@ export default function InvoiceCheckout() {
                                         </div>
                                     </div>
                                     {showCardForm && 
-                                        <div className="mt-24 border radius-8 position-relative">
+                                        <div className="mt-24 border radius-8 xpo_relative">
                                             <CreditCard store={[storedCards, setstoredCards]} pk={showCardForm} setAllowProceed={setAllowProceed} />
                                         </div>
                                     }

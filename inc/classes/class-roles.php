@@ -55,13 +55,13 @@ class Roles {
             $roles = get_option('_partnership_roles', []);
             $this->roles = [
                 'partnership_project_manager' => [
-                    'label' => __('Partnership Project Manager', 'partnership-manager'),
+                    'label' => __('Partnership Manager', 'partnership-manager'),
                     'capabilities' => [
                         'all_access' => true,
                     ],
                 ],
                 'partnership_stuff'          => [
-                    'label' => __('Partnership Freelancer', 'partnership-manager'),
+                    'label' => __('Freelancer Partnership', 'partnership-manager'),
                     'capabilities' => [
                         'read' => true,
                         'payouts' => true,
@@ -73,7 +73,7 @@ class Roles {
                     ],
                 ],
                 'partnership_influencer'     => [
-                    'label' => __('Partnership Influencer', 'partnership-manager'),
+                    'label' => __('Influencer Partnership', 'partnership-manager'),
                     'capabilities' => [
                         'read' => true,
                         'payouts' => true,
@@ -85,7 +85,7 @@ class Roles {
                     ],
                 ],
                 'partnership_partner'        => [
-                    'label' => __('Partnership Partner', 'partnership-manager'),
+                    'label' => __('Agency Partnership', 'partnership-manager'),
                     'capabilities' => [
                         'read' => true,
                         'users' => true,
@@ -100,6 +100,21 @@ class Roles {
                 ],
                 'partnership_client'         => [
                     'label' => __('Partnership Client', 'partnership-manager'),
+                    'capabilities' => [
+                        'read' => true,
+                        'team' => true,
+                        'stores' => true,
+                        'payouts' => false,
+                        'referral' => true,
+                        'invoices' => true,
+                        'packages' => true,
+                        'contracts' => true,
+                        'service-docs' => true,
+                        'support-ticket' => true,
+                    ],
+                ],
+                'partnership_technology'         => [
+                    'label' => __('Technology Partnership', 'partnership-manager'),
                     'capabilities' => [
                         'read' => true,
                         'team' => true,
@@ -189,7 +204,7 @@ class Roles {
 						'data-config'		=> esc_attr(
 							json_encode([
 								'_nonce'		=> wp_create_nonce('_role_settings_security'),
-								'roles'			=> Roles::get_instance()->get_roles()
+								'roles'			=> $this->get_roles()
 							])
 						),
 					]

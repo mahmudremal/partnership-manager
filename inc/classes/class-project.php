@@ -27,6 +27,7 @@ class Project {
 		Users::get_instance();
 		Roles::get_instance();
 		Menus::get_instance();
+		Emails::get_instance();
 		Option::get_instance();
 		Assets::get_instance();
 		Payout::get_instance();

@@ -32,7 +32,7 @@ export const UserCard = ({ user, index }) => {
     }, [menuOpened]);
 
     return (
-        <div className="position-relative border radius-16 overflow-hidden">
+        <div className="xpo_relative border radius-16 overflow-hidden">
             <img
                 src={`https://wowdash.wowtheme7.com/bundlelive/demo/assets/images/user-grid/user-grid-bg${index + 1}.png`}
                 alt="cover photo"
@@ -82,7 +82,7 @@ export const UserCard = ({ user, index }) => {
                 <h6 className="text-lg mb-0 mt-4">{user.name}</h6>
                 <span className="text-secondary-light mb-16">{user.email}</span>
 
-                <div className="center-border position-relative bg-danger-gradient-light radius-8 p-12 xpo_flex xpo_items-center gap-4">
+                <div className="center-border xpo_relative bg-danger-gradient-light radius-8 p-12 xpo_flex xpo_items-center gap-4">
                     <div className="text-center w-50">
                         <h6 className="text-md mb-0">{user.department}</h6>
                         <span className="text-secondary-light text-sm mb-0">Department</span>

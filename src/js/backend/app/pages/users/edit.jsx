@@ -53,8 +53,8 @@ export default function UsersEdit({ viewType = 'list' }) {
                                 <div className="card-body">
                                     <h6 className="text-md text-primary-light mb-16">{__('Profile Image')}</h6>
                                     <div className="mb-24 mt-16">
-                                        <div className="avatar-upload position-relative">
-                                            <div className="avatar-edit position-absolute bottom-0 end-0 me-24 mt-16 z-1 cursor-pointer">
+                                        <div className="avatar-upload xpo_relative">
+                                            <div className="avatar-edit position-absolute bottom-0 end-0 me-24 mt-16 z-1 xpo_cursor-pointer">
                                                 <input
                                                     type="file"
                                                     id="imageUpload"
